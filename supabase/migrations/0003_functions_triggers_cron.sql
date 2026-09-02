@@ -16,10 +16,8 @@ CREATE OR REPLACE FUNCTION fn_protect_profile_role()
 RETURNS TRIGGER AS $$
 BEGIN
   IF OLD.role IS DISTINCT FROM NEW.role THEN
-    -- current_setting('request.jwt.claim.role') is set by Supabase PostgREST
-    -- to the JWT's role claim. For service_role calls, this is 'service_role'.
-    -- For authenticated user calls, this is 'authenticated'.
-    IF current_setting('role', true) NOT IN ('postgres', 'service_role') THEN
+    IF current_user NOT IN ('postgres', 'service_role')
+       AND current_setting('role', true) NOT IN ('postgres', 'service_role') THEN
       RAISE EXCEPTION 'Changing profiles.role is forbidden outside service-role context'
         USING ERRCODE = 'insufficient_privilege';
     END IF;
