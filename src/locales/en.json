@@ -1,5 +1,18 @@
 {
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "email": "Email Address",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?"
+  },
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
   "common": {
-    "welcome": "Welcome"
+    "save": "Save",
+    "cancel": "Cancel",
+    "loading": "Loading..."
   }
 }
