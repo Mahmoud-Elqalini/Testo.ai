@@ -45,18 +45,17 @@ describe('i18n Provider and Hook', () => {
       wrapper: ({ children }) => <I18nProvider>{children}</I18nProvider>,
     })
 
-    // Initial synchronous state is 'ar' (the useState default).
-    // After the async initLang() effect fires with no authenticated user,
-    // it resolves to the browser locale.  jsdom sets navigator.language = 'en-US'.
+    // Fix 2: jsdom sets navigator.language = 'en-US', so the fallback MUST resolve
+    // to 'en'.  Accepting 'ar' here would let the test pass even if the effect never
+    // ran (initial useState default is 'ar').  toBe('en') proves the effect executed.
     await waitFor(() => {
-      // Either 'en' (matched en-US) or 'ar' — both are valid Language values.
-      expect(['en', 'ar']).toContain(result.current.language)
+      expect(result.current.language).toBe('en')
     })
 
-    // Key lookup works regardless of language
-    expect(result.current.t('auth.login')).toBeTruthy()
-    expect(result.current.t('nav.home')).toBeTruthy()
-    expect(result.current.t('common.save')).toBeTruthy()
+    // Key lookup works in the resolved language
+    expect(result.current.t('auth.login')).toBe('Login')
+    expect(result.current.t('nav.home')).toBe('Home')
+    expect(result.current.t('common.save')).toBe('Save')
   })
 
   it('returns the key string itself for missing keys (fallback safety)', async () => {

@@ -5,6 +5,16 @@ import { createClient } from "../supabase/client";
 
 export type Theme = "light" | "dark";
 
+const STORAGE_KEY = "testo_theme";
+
+/** Read the last-known theme synchronously from localStorage (Fix 3).
+ *  Falls back to undefined when localStorage is unavailable (SSR, first visit). */
+function readCachedTheme(): Theme | undefined {
+  if (typeof localStorage === "undefined") return undefined;
+  const v = localStorage.getItem(STORAGE_KEY);
+  return v === "dark" || v === "light" ? v : undefined;
+}
+
 interface ThemeContextProps {
   theme: Theme;
   setTheme: (theme: Theme) => void;
@@ -19,27 +29,41 @@ export function ThemeProvider({
   children: ReactNode;
   initialTheme?: Theme;
 }) {
-  const [theme, setThemeState] = useState<Theme>(initialTheme || "light");
+  // Fix 3: synchronous initializer — avoids flash on repeat visits.
+  // Priority: explicit prop > localStorage cache > 'light' default.
+  const [theme, setThemeState] = useState<Theme>(
+    initialTheme ?? readCachedTheme() ?? "light"
+  );
 
   useEffect(() => {
+    // Skip async init when an explicit prop was provided (test / SSR scenario).
     if (initialTheme) return;
 
     const initTheme = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase.from("profiles").select("preferred_theme").eq("id", user.id).single();
+        const { data } = await supabase
+          .from("profiles")
+          .select("preferred_theme")
+          .eq("id", user.id)
+          .single();
         if (data?.preferred_theme) {
-          setThemeState(data.preferred_theme as Theme);
+          const t = data.preferred_theme as Theme;
+          setThemeState(t);
+          localStorage.setItem(STORAGE_KEY, t);
           return;
         }
       }
-      
+
+      // Logged-out: fall back to prefers-color-scheme.
       const prefersDark =
-        typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-          ? window.matchMedia('(prefers-color-scheme: dark)').matches
-          : false
-      setThemeState(prefersDark ? 'dark' : 'light')
+        typeof window !== "undefined" && typeof window.matchMedia === "function"
+          ? window.matchMedia("(prefers-color-scheme: dark)").matches
+          : false;
+      const resolved: Theme = prefersDark ? "dark" : "light";
+      setThemeState(resolved);
+      localStorage.setItem(STORAGE_KEY, resolved);
     };
     initTheme();
   }, [initialTheme]);
@@ -54,6 +78,7 @@ export function ThemeProvider({
 
   const setTheme = async (newTheme: Theme) => {
     setThemeState(newTheme);
+    localStorage.setItem(STORAGE_KEY, newTheme);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

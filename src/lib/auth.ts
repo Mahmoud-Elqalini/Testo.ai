@@ -3,8 +3,24 @@ import { createClient } from './supabase/client'
 
 const supabase = createClient()
 
-export function signUp(email: string, password: string) {
-  return supabase.auth.signUp({ email, password })
+export type SignUpOptions = {
+  preferred_language?: 'en' | 'ar'
+  preferred_theme?: 'light' | 'dark'
+  full_name?: string
+}
+
+export function signUp(email: string, password: string, options: SignUpOptions = {}) {
+  return supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      data: {
+        full_name: options.full_name ?? '',
+        preferred_language: options.preferred_language ?? 'en',
+        preferred_theme: options.preferred_theme ?? 'light',
+      },
+    },
+  })
 }
 
 export function signIn(email: string, password: string) {

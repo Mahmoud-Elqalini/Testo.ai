@@ -8,6 +8,16 @@ import ar from "../../locales/ar.json";
 const dictionaries: Record<string, any> = { en, ar };
 export type Language = "en" | "ar";
 
+const STORAGE_KEY = "testo_language";
+
+/** Read the last-known language synchronously from localStorage (Fix 3).
+ *  Falls back to undefined when localStorage is unavailable (SSR, first visit). */
+function readCachedLanguage(): Language | undefined {
+  if (typeof localStorage === "undefined") return undefined;
+  const v = localStorage.getItem(STORAGE_KEY);
+  return v === "en" || v === "ar" ? v : undefined;
+}
+
 interface I18nContextProps {
   language: Language;
   setLanguage: (lang: Language) => void;
@@ -23,27 +33,37 @@ export function I18nProvider({
   children: ReactNode;
   initialLanguage?: Language;
 }) {
-  const [language, setLanguageState] = useState<Language>(initialLanguage || "ar");
-  const [isInitialized, setIsInitialized] = useState(!!initialLanguage);
+  // Fix 3: synchronous initializer — avoids flash on repeat visits.
+  // Priority: explicit prop > localStorage cache > hardcoded default.
+  const [language, setLanguageState] = useState<Language>(
+    initialLanguage ?? readCachedLanguage() ?? "ar"
+  );
 
   useEffect(() => {
+    // Skip async init when an explicit prop was provided (test / SSR scenario).
     if (initialLanguage) return;
 
     const initLang = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase.from("profiles").select("preferred_language").eq("id", user.id).single();
+        const { data } = await supabase
+          .from("profiles")
+          .select("preferred_language")
+          .eq("id", user.id)
+          .single();
         if (data?.preferred_language) {
-          setLanguageState(data.preferred_language as Language);
-          setIsInitialized(true);
+          const lang = data.preferred_language as Language;
+          setLanguageState(lang);
+          localStorage.setItem(STORAGE_KEY, lang);
           return;
         }
       }
-      
-      const browserLang = navigator.language.startsWith("en") ? "en" : "ar";
+
+      // Logged-out: fall back to browser locale (Fix 2 correctness — jsdom = 'en-US').
+      const browserLang: Language = navigator.language.startsWith("en") ? "en" : "ar";
       setLanguageState(browserLang);
-      setIsInitialized(true);
+      localStorage.setItem(STORAGE_KEY, browserLang);
     };
     initLang();
   }, [initialLanguage]);
@@ -55,6 +75,7 @@ export function I18nProvider({
 
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
+    localStorage.setItem(STORAGE_KEY, lang);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

@@ -39,11 +39,13 @@ CREATE TRIGGER trg_protect_profile_role
 CREATE OR REPLACE FUNCTION fn_create_profile_on_signup()
 RETURNS TRIGGER AS $$
 BEGIN
-  INSERT INTO public.profiles (id, role, full_name)
+  INSERT INTO public.profiles (id, role, full_name, preferred_language, preferred_theme)
   VALUES (
     NEW.id,
     'student',  -- default role; admin promotion is a service-role operation
-    COALESCE(NEW.raw_user_meta_data->>'full_name', '')
+    COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
+    COALESCE(NEW.raw_user_meta_data->>'preferred_language', 'en'),
+    COALESCE(NEW.raw_user_meta_data->>'preferred_theme', 'light')
   );
   RETURN NEW;
 END;

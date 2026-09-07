@@ -73,4 +73,32 @@ describe('auth utilities (local Supabase)', () => {
     const passwordResetResult = await resetPassword(email)
     expect(passwordResetResult.error).toBeNull()
   }, 30_000)
+
+  // Fix 1: prove that signUp metadata is written to the profile row by the trigger.
+  // A signup with preferred_language='ar' and preferred_theme='dark' MUST produce
+  // a profiles row with those exact values — not the column defaults ('en'/'light').
+  it('profile row reflects preferred_language and preferred_theme from signup metadata', async () => {
+    const metaEmail = `auth-meta-${crypto.randomUUID()}@testo.local`
+
+    const signUpResult = await signUp(metaEmail, password, {
+      preferred_language: 'ar',
+      preferred_theme: 'dark',
+    })
+    testUserId = signUpResult.data.user?.id
+
+    expect(signUpResult.error).toBeNull()
+    expect(testUserId).toBeDefined()
+
+    // Query the profiles table via the service-role client (bypasses RLS)
+    const { data: profile, error: profileError } = await adminClient
+      .from('profiles')
+      .select('preferred_language, preferred_theme')
+      .eq('id', testUserId!)
+      .single()
+
+    expect(profileError).toBeNull()
+    // These must be 'ar'/'dark', not the column defaults 'en'/'light'
+    expect(profile?.preferred_language).toBe('ar')
+    expect(profile?.preferred_theme).toBe('dark')
+  }, 30_000)
 })
