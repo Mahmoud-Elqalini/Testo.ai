@@ -7,7 +7,13 @@ import { signUp, signOut } from '../../../src/lib/auth'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const adminClient = createSupabaseAdminClient(supabaseUrl, serviceRoleKey)
+const adminClient = createSupabaseAdminClient(supabaseUrl, serviceRoleKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+    storageKey: 'testo-service-role-test-client',
+  },
+})
 
 // Detect whether the local Supabase is reachable.
 // Tests that sign up real users are skipped when Docker/Supabase is not running.
