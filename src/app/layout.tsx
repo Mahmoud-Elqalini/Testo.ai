@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { ThemeProvider } from "@/lib/theme/provider";
+import { QueryProvider } from "@/lib/query/provider";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -32,11 +33,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[--color-background] text-[--color-foreground]">
-        <ThemeProvider>
-          <I18nProvider>
-            {children}
-          </I18nProvider>
-        </ThemeProvider>
+        <QueryProvider>
+          <ThemeProvider>
+            <I18nProvider>
+              {children}
+            </I18nProvider>
+          </ThemeProvider>
+        </QueryProvider>
       </body>
     </html>
   );
