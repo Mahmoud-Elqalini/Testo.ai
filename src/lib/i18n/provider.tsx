@@ -5,7 +5,7 @@ import { createClient } from "../supabase/client";
 import en from "../../locales/en.json";
 import ar from "../../locales/ar.json";
 
-const dictionaries: Record<string, any> = { en, ar };
+const dictionaries: Record<string, Record<string, unknown>> = { en, ar };
 export type Language = "en" | "ar";
 
 const STORAGE_KEY = "testo_language";
@@ -85,10 +85,10 @@ export function I18nProvider({
 
   const t = (key: string) => {
     const keys = key.split(".");
-    let value: any = dictionaries[language];
+    let value: unknown = dictionaries[language];
     for (const k of keys) {
-      if (value === undefined) break;
-      value = value[k];
+      if (!value || typeof value !== "object") break;
+      value = (value as Record<string, unknown>)[k];
     }
     return typeof value === "string" ? value : key;
   };

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
 
 export default defineConfig(({ mode }) => {
   // Load .env and .env.local from the project root into process.env

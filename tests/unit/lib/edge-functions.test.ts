@@ -103,7 +103,8 @@ describe('invokeEdgeFunction utility', () => {
 
     const httpError = new Error('FunctionsHttpError');
     httpError.name = 'FunctionsHttpError';
-    (httpError as any).context = {
+    const httpErrorWithContext = httpError as Error & { context: unknown };
+    httpErrorWithContext.context = {
       json: vi.fn().mockRejectedValue(new Error('SyntaxError: Unexpected end of JSON input')),
     };
 

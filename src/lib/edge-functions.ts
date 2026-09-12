@@ -27,7 +27,7 @@ export async function invokeEdgeFunction<TResponse = unknown, TBody = Record<str
     const supabase = createClient();
 
     let method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'POST';
-    let body: any = undefined;
+    let body: unknown = undefined;
     let query: Record<string, string | number | boolean | undefined | null> | undefined;
     let headers: Record<string, string> | undefined;
 
@@ -64,10 +64,10 @@ export async function invokeEdgeFunction<TResponse = unknown, TBody = Record<str
       // Look for a JSON payload inside the error object thrown by functions.invoke.
       // FunctionsHttpError in @supabase/supabase-js contains a `context: Response` property.
       if (error && typeof error === 'object' && 'context' in error) {
-        const ctx = (error as any).context;
-        if (ctx && typeof ctx.json === 'function') {
+        const ctx = (error as { context?: unknown }).context;
+        if (ctx && typeof (ctx as { json?: unknown }).json === 'function') {
           try {
-            errPayload = await ctx.json();
+            errPayload = await (ctx as { json: () => Promise<unknown> }).json();
           } catch {
             // Context JSON parsing failed (e.g. invalid JSON or empty body),
             // fall back gracefully to the raw error.
