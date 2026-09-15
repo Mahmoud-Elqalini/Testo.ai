@@ -4,11 +4,33 @@
     "register": "Register",
     "email": "Email Address",
     "password": "Password",
-    "forgotPassword": "Forgot Password?"
+    "fullName": "Full Name",
+    "forgotPassword": "Forgot Password?",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "resetPassword": "Reset Password",
+    "resetDescription": "Enter your email and we'll send you a reset link.",
+    "resetSuccess": "Check your email for the password reset link.",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "setNewPassword": "Set New Password",
+    "updatePasswordButton": "Update Password",
+    "passwordUpdated": "Password updated successfully!",
+    "registerSuccess": "Account created! Check your email to confirm.",
+    "loginButton": "Sign In",
+    "registerButton": "Create Account",
+    "resetButton": "Send Reset Link",
+    "backToLogin": "Back to Login"
   },
   "nav": {
     "home": "Home",
     "dashboard": "Dashboard"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome to Testo",
+    "loggedIn": "You are logged in.",
+    "logout": "Sign Out"
   },
   "common": {
     "save": "Save",

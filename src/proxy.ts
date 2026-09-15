@@ -1,6 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { getSupabaseConfig } from './lib/supabase/config'
+import { resolveAuthRedirect } from './lib/auth-guard'
 
 export default async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -21,7 +22,13 @@ export default async function proxy(request: NextRequest) {
     },
   })
 
-  await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
+  const pathname = request.nextUrl.pathname
+
+  const redirectPath = resolveAuthRedirect(pathname, !!user)
+  if (redirectPath) {
+    return NextResponse.redirect(new URL(redirectPath, request.url))
+  }
 
   return response
 }

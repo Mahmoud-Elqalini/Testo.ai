@@ -5,6 +5,7 @@ import {
   signIn,
   signOut,
   signUp,
+  updatePassword,
 } from '../../../src/lib/auth'
 import { createClient as createSupabaseBrowserClient } from '../../../src/lib/supabase/client'
 import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
@@ -100,5 +101,28 @@ describe('auth utilities (local Supabase)', () => {
     // These must be 'ar'/'dark', not the column defaults 'en'/'light'
     expect(profile?.preferred_language).toBe('ar')
     expect(profile?.preferred_theme).toBe('dark')
+  }, 30_000)
+
+  it('updates the user password successfully', async () => {
+    const updateEmail = `auth-update-${crypto.randomUUID()}@testo.local`
+    
+    const signUpResult = await signUp(updateEmail, password)
+    testUserId = signUpResult.data.user?.id
+    expect(signUpResult.error).toBeNull()
+
+    const newPassword = 'New-testo-password-123!'
+    const updateResult = await updatePassword(newPassword)
+    expect(updateResult.error).toBeNull()
+
+    await signOut()
+
+    // Sign in with the old password should fail
+    const oldSignInResult = await signIn(updateEmail, password)
+    expect(oldSignInResult.error).not.toBeNull()
+
+    // Sign in with the new password should succeed
+    const newSignInResult = await signIn(updateEmail, newPassword)
+    expect(newSignInResult.error).toBeNull()
+    expect(newSignInResult.data.user?.email).toBe(updateEmail)
   }, 30_000)
 })

@@ -4,11 +4,33 @@
     "register": "إنشاء حساب",
     "email": "البريد الإلكتروني",
     "password": "كلمة المرور",
-    "forgotPassword": "نسيت كلمة المرور؟"
+    "fullName": "الاسم الكامل",
+    "forgotPassword": "هل نسيت كلمة المرور؟",
+    "noAccount": "ليس لديك حساب؟",
+    "hasAccount": "لديك حساب بالفعل؟",
+    "resetPassword": "إعادة تعيين كلمة المرور",
+    "resetDescription": "أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة التعيين.",
+    "resetSuccess": "تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.",
+    "newPassword": "كلمة المرور الجديدة",
+    "confirmPassword": "تأكيد كلمة المرور",
+    "setNewPassword": "تعيين كلمة المرور الجديدة",
+    "updatePasswordButton": "تحديث كلمة المرور",
+    "passwordUpdated": "تم تحديث كلمة المرور بنجاح!",
+    "registerSuccess": "تم إنشاء الحساب! تحقق من بريدك الإلكتروني للتأكيد.",
+    "loginButton": "تسجيل الدخول",
+    "registerButton": "إنشاء حساب",
+    "resetButton": "إرسال رابط الإعادة",
+    "backToLogin": "العودة لتسجيل الدخول"
   },
   "nav": {
     "home": "الرئيسية",
     "dashboard": "لوحة التحكم"
+  },
+  "dashboard": {
+    "title": "لوحة التحكم",
+    "welcome": "مرحباً بك في Testo",
+    "loggedIn": "أنت مسجل الدخول.",
+    "logout": "تسجيل الخروج"
   },
   "common": {
     "save": "حفظ",

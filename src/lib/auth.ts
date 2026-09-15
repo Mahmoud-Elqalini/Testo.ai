@@ -44,3 +44,7 @@ export function getCurrentUser() {
 export function getSession() {
   return supabase.auth.getSession()
 }
+
+export function updatePassword(newPassword: string) {
+  return supabase.auth.updateUser({ password: newPassword })
+}
