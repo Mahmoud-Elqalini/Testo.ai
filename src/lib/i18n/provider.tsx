@@ -36,7 +36,7 @@ export function I18nProvider({
   // Fix 3: synchronous initializer — avoids flash on repeat visits.
   // Priority: explicit prop > localStorage cache > hardcoded default.
   const [language, setLanguageState] = useState<Language>(
-    initialLanguage ?? readCachedLanguage() ?? "ar"
+    initialLanguage ?? "ar"
   );
 
   useEffect(() => {
@@ -56,6 +56,7 @@ export function I18nProvider({
           const lang = data.preferred_language as Language;
           setLanguageState(lang);
           localStorage.setItem(STORAGE_KEY, lang);
+          document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000`;
           return;
         }
       }
@@ -64,6 +65,7 @@ export function I18nProvider({
       const browserLang: Language = navigator.language.startsWith("en") ? "en" : "ar";
       setLanguageState(browserLang);
       localStorage.setItem(STORAGE_KEY, browserLang);
+      document.cookie = `${STORAGE_KEY}=${browserLang}; path=/; max-age=31536000`;
     };
     initLang();
   }, [initialLanguage]);
@@ -76,6 +78,7 @@ export function I18nProvider({
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
+    document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000`;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

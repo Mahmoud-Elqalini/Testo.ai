@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { I18nProvider } from "@/lib/i18n/provider";
+import { cookies } from "next/headers";
+import { I18nProvider, Language } from "@/lib/i18n/provider";
 import { ThemeProvider } from "@/lib/theme/provider";
 import { QueryProvider } from "@/lib/query/provider";
 import "./globals.css";
@@ -21,21 +22,25 @@ export const metadata: Metadata = {
 };
 
 // Root layout — Server Component.
-// dir and lang on <html> are set reactively by the I18nProvider client component.
 // suppressHydrationWarning is required because ThemeProvider mutates the <html>
 // classList on the client (to apply "dark"), causing a benign hydration mismatch.
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const cookieStore = await cookies();
+  const langCookie = cookieStore.get("testo_language")?.value;
+  const initialLang = (langCookie === "en" || langCookie === "ar") ? (langCookie as Language) : "ar";
+  const initialDir = initialLang === "ar" ? "rtl" : "ltr";
+
   return (
     <html
-      lang="ar"
-      dir="rtl"
+      lang={initialLang}
+      dir={initialDir}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[--color-background] text-[--color-foreground]">
         <QueryProvider>
           <ThemeProvider>
-            <I18nProvider>
+            <I18nProvider initialLanguage={initialLang}>
               {children}
             </I18nProvider>
           </ThemeProvider>
