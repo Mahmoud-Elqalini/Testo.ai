@@ -16,8 +16,18 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    // Best Practice: WebKit and Firefox are disabled locally to prevent 
-    // resource exhaustion/timeouts on Windows. They should be run in CI/CD.
+    ...(process.env.CI
+      ? [
+          {
+            name: 'firefox',
+            use: { ...devices['Desktop Firefox'] },
+          },
+          {
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
+          },
+        ]
+      : []),
   ],
   webServer: {
     command: 'npm run dev',
