@@ -39,6 +39,7 @@ describe('Theme Provider', () => {
       testUserId = undefined
     }
     await signOut()
+    localStorage.removeItem('testo_theme')
     // Clean up class applied to <html>
     document.documentElement.classList.remove('dark')
   })
@@ -95,6 +96,16 @@ describe('Theme Provider', () => {
     await waitFor(() => {
       expect(document.documentElement.classList.contains('dark')).toBe(false)
     }, { timeout: 3000 })
+  })
+
+  it('keeps a cached dark preference when no initialTheme is provided', async () => {
+    localStorage.setItem('testo_theme', 'dark')
+
+    render(<ThemeProvider><div>Test</div></ThemeProvider>)
+
+    await waitFor(() => {
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
   })
 
   // ─── T018-D: useTheme throws outside provider ─────────────────────────────

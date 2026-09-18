@@ -36,8 +36,9 @@ export function ThemeProvider({
   );
 
   useEffect(() => {
-    // Skip async init when an explicit prop was provided (test / SSR scenario).
-    if (initialTheme) return;
+    // An explicit prop or persisted preference already resolved the theme.
+    // Do not replace a stored dark preference with the system's light setting.
+    if (initialTheme || readCachedTheme()) return;
 
     const initTheme = async () => {
       const supabase = createClient();

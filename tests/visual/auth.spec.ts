@@ -41,7 +41,12 @@ test.describe('Auth Pages VRT', () => {
             'dir',
             locale === 'ar' ? 'rtl' : 'ltr',
           )
-          
+          if (theme === 'dark') {
+            await expect(page.locator('html')).toHaveClass(/\bdark\b/)
+          } else {
+            await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
+          }
+           
           // Wait for hydration and basic UI to render
           await page.waitForSelector('form')
           
