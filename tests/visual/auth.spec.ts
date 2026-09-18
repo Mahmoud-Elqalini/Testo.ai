@@ -13,14 +13,34 @@ test.describe('Auth Pages VRT', () => {
   for (const pageInfo of pages) {
     for (const locale of locales) {
       for (const theme of themes) {
-        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page }) => {
-          // Set local storage for i18n and theme before navigating
-          await page.addInitScript(`
-            window.localStorage.setItem('testo_language', '${locale}');
-            window.localStorage.setItem('testo_theme', '${theme}');
-          `);
+        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page, context }) => {
+          // The layout reads the language from the request cookie during SSR.
+          // Set it before navigation so the initial HTML, direction, and hydrated
+          // client state all use the locale under test.
+          await context.addCookies([
+            {
+              name: 'testo_language',
+              value: locale,
+              url: 'http://localhost:3000',
+            },
+          ]);
+
+          // Keep browser-persisted client preferences aligned with the SSR value.
+          await page.addInitScript(
+            ({ locale, theme }) => {
+              window.localStorage.setItem('testo_language', locale);
+              window.localStorage.setItem('testo_theme', theme);
+            },
+            { locale, theme },
+          );
           
           await page.goto(`http://localhost:3000${pageInfo.path}`)
+
+          await expect(page.locator('html')).toHaveAttribute('lang', locale)
+          await expect(page.locator('html')).toHaveAttribute(
+            'dir',
+            locale === 'ar' ? 'rtl' : 'ltr',
+          )
           
           // Wait for hydration and basic UI to render
           await page.waitForSelector('form')
