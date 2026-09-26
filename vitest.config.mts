@@ -7,6 +7,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    cacheDir: '.cache/vite',
     test: {
       globals: true,
       environment: 'jsdom',
@@ -14,11 +15,8 @@ export default defineConfig(({ mode }) => {
       include: ['tests/unit/**/*.test.{ts,tsx}'],
       env,
       pool: 'vmThreads',
-      poolOptions: {
-        vmThreads: {
-          singleThread: true
-        }
-      },
+      minWorkers: 1,
+      maxWorkers: 1,
       isolate: false,
       fileParallelism: false,
     },
