@@ -36,15 +36,23 @@ CREATE POLICY profiles_self_update ON profiles
   USING (id = auth.uid())
   WITH CHECK (id = auth.uid());
 
+-- Helper function to read current user role without triggering RLS recursion
+CREATE OR REPLACE FUNCTION get_my_role()
+RETURNS text
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT role FROM profiles WHERE id = auth.uid();
+$$;
+
 -- Admin: additional SELECT for students in their scope (groups + exam_attempts)
 CREATE POLICY profiles_admin_read_scoped_students ON profiles
   FOR SELECT
   TO authenticated
   USING (
     -- Only admins benefit from this policy; students already have self-select above
-    EXISTS (
-      SELECT 1 FROM profiles AS p WHERE p.id = auth.uid() AND p.role = 'admin'
-    )
+    public.get_my_role() = 'admin'
     AND (
       -- Student is in one of admin's groups
       id IN (

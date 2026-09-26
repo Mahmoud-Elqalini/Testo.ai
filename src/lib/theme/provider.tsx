@@ -7,6 +7,11 @@ export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "testo_theme";
 
+function persistTheme(theme: Theme) {
+  localStorage.setItem(STORAGE_KEY, theme);
+  document.cookie = `${STORAGE_KEY}=${theme}; path=/; max-age=31536000`;
+}
+
 /** Read the last-known theme synchronously from localStorage (Fix 3).
  *  Falls back to undefined when localStorage is unavailable (SSR, first visit). */
 function readCachedTheme(): Theme | undefined {
@@ -36,26 +41,33 @@ export function ThemeProvider({
   );
 
   useEffect(() => {
-    // An explicit prop or persisted preference already resolved the theme.
-    // Do not replace a stored dark preference with the system's light setting.
-    if (initialTheme || readCachedTheme()) return;
+    // Skip async init when an explicit prop was provided (test / SSR scenario).
+    if (initialTheme) return;
 
     const initTheme = async () => {
+      console.log("[THEME_DEBUG] initTheme started")
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
+      console.log("[THEME_DEBUG] user:", user?.id)
       if (user) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from("profiles")
           .select("preferred_theme")
           .eq("id", user.id)
           .single();
+        console.log("[THEME_DEBUG] profile data:", data, "error:", error)
         if (data?.preferred_theme) {
+          console.log("[THEME_DEBUG] Setting theme to:", data.preferred_theme)
           const t = data.preferred_theme as Theme;
           setThemeState(t);
-          localStorage.setItem(STORAGE_KEY, t);
+          persistTheme(t);
           return;
         }
       }
+
+      console.log("[THEME_DEBUG] Checking cached theme")
+      // If there's already a cached theme, we don't need to apply the unauthenticated system fallback
+      if (readCachedTheme()) return;
 
       // Logged-out: fall back to prefers-color-scheme.
       const prefersDark =
@@ -64,7 +76,7 @@ export function ThemeProvider({
           : false;
       const resolved: Theme = prefersDark ? "dark" : "light";
       setThemeState(resolved);
-      localStorage.setItem(STORAGE_KEY, resolved);
+      persistTheme(resolved);
     };
     initTheme();
   }, [initialTheme]);
@@ -79,7 +91,7 @@ export function ThemeProvider({
 
   const setTheme = async (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    persistTheme(newTheme);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {

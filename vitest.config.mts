@@ -3,8 +3,7 @@ import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
 export default defineConfig(({ mode }) => {
-  // Load .env and .env.local from the project root into process.env
-  const env = loadEnv(mode ?? 'test', process.cwd(), '')
+  const env = loadEnv(mode ?? 'test', process.cwd(), ['NEXT_PUBLIC_', 'SUPABASE_'])
 
   return {
     plugins: [react()],
@@ -14,6 +13,14 @@ export default defineConfig(({ mode }) => {
       setupFiles: ['./tests/unit/setup.ts'],
       include: ['tests/unit/**/*.test.{ts,tsx}'],
       env,
+      pool: 'vmThreads',
+      poolOptions: {
+        vmThreads: {
+          singleThread: true
+        }
+      },
+      isolate: false,
+      fileParallelism: false,
     },
   }
 })

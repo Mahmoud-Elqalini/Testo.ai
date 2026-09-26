@@ -1,22 +1,14 @@
 import { describe, it, expect, afterEach, beforeAll } from 'vitest'
 import { render, renderHook, act, waitFor } from '@testing-library/react'
 import { ThemeProvider, useTheme } from '../../../src/lib/theme/provider'
-import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { signUp, signOut } from '../../../src/lib/auth'
+import { adminClient } from '../helpers/supabase-admin'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const adminClient = createSupabaseAdminClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    storageKey: 'testo-service-role-test-client',
-  },
-})
 
 async function isSupabaseReachable(): Promise<boolean> {
   try {
-    const res = await fetch(`${supabaseUrl}/health`, { signal: AbortSignal.timeout(2000) })
+    const res = await fetch(`${supabaseUrl}/auth/v1/health`, { signal: AbortSignal.timeout(2000) })
     return res.ok
   } catch {
     return false
@@ -40,6 +32,7 @@ describe('Theme Provider', () => {
     }
     await signOut()
     localStorage.removeItem('testo_theme')
+    document.cookie = 'testo_theme=; path=/; max-age=0'
     // Clean up class applied to <html>
     document.documentElement.classList.remove('dark')
   })
@@ -74,6 +67,7 @@ describe('Theme Provider', () => {
       expect(result.current.theme).toBe('dark')
       expect(document.documentElement.classList.contains('dark')).toBe(true)
     })
+    expect(document.cookie).toContain('testo_theme=dark')
   })
 
   it('useTheme hook allows toggling from dark back to light', async () => {
@@ -116,21 +110,27 @@ describe('Theme Provider', () => {
   })
 
   // ─── T018-E: Profile integration (requires local Supabase + Docker) ───────
-  it.skipIf(!supabaseReachable)(
-    'reads preferred_theme from profile for a logged-in user',
-    async () => {
+  it('reads preferred_theme from profile for a logged-in user', async (ctx) => {
+      if (!supabaseReachable) {
+        ctx.skip()
+        return
+      }
       const email = `theme-${crypto.randomUUID()}@testo.local`
-      const { data: { user }, error: signUpError } = await signUp(email, 'Password123!')
+      const { data: { user }, error: signUpError } = await signUp(email, 'Password123!', { preferred_theme: 'dark' })
       expect(signUpError).toBeNull()
       testUserId = user?.id
 
-      await adminClient.from('profiles').update({ preferred_theme: 'dark' }).eq('id', testUserId!)
+      // Wait for the Supabase Postgres trigger to create the profile row
+      await new Promise(resolve => setTimeout(resolve, 500))
+      // A cache from this device must not suppress the authenticated profile
+      // preference that was changed elsewhere.
+      localStorage.setItem('testo_theme', 'light')
 
       render(<ThemeProvider><div>Test</div></ThemeProvider>)
 
       await waitFor(() => {
+        expect(localStorage.getItem('testo_theme')).toBe('dark')
         expect(document.documentElement.classList.contains('dark')).toBe(true)
       }, { timeout: 10000 })
-    },
-  )
+    }, 20000)
 })

@@ -2,24 +2,16 @@ import { describe, it, expect, afterEach, beforeAll } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
 import { I18nProvider } from '../../../src/lib/i18n/provider'
 import { useTranslation } from '../../../src/lib/i18n/use-translation'
-import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { signUp, signOut } from '../../../src/lib/auth'
+import { adminClient } from '../helpers/supabase-admin'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-const adminClient = createSupabaseAdminClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    storageKey: 'testo-service-role-test-client',
-  },
-})
 
 // Detect whether the local Supabase is reachable.
 // Tests that sign up real users are skipped when Docker/Supabase is not running.
 async function isSupabaseReachable(): Promise<boolean> {
   try {
-    const res = await fetch(`${supabaseUrl}/health`, { signal: AbortSignal.timeout(2000) })
+    const res = await fetch(`${supabaseUrl}/auth/v1/health`, { signal: AbortSignal.timeout(2000) })
     return res.ok
   } catch {
     return false
@@ -43,6 +35,7 @@ describe('i18n Provider and Hook', () => {
     }
     // Sign out between tests so the browser client doesn't retain sessions
     await signOut()
+    document.cookie = 'testo_language=; path=/; max-age=0'
   })
 
   // ─── T017-A: Key lookup & initial fallback ───────────────────────────────
@@ -104,6 +97,7 @@ describe('i18n Provider and Hook', () => {
 
     expect(result.current.language).toBe('ar')
     expect(result.current.t('auth.login')).toBe('تسجيل الدخول')
+    expect(document.cookie).toContain('testo_language=ar')
   })
 
   it('setLanguage updates document dir attribute', async () => {
@@ -121,16 +115,18 @@ describe('i18n Provider and Hook', () => {
   })
 
   // ─── T017-C: Profile integration (requires local Supabase + Docker) ──────
-  it.skipIf(!supabaseReachable)(
-    'reads preferred_language from profile for a logged-in user',
-    async () => {
+  it('reads preferred_language from profile for a logged-in user', async (ctx) => {
+      if (!supabaseReachable) {
+        ctx.skip()
+        return
+      }
       const email = `i18n-${crypto.randomUUID()}@testo.local`
-      const { data: { user }, error: signUpError } = await signUp(email, 'Password123!')
+      const { data: { user }, error: signUpError } = await signUp(email, 'Password123!', { preferred_language: 'en' })
       expect(signUpError).toBeNull()
       testUserId = user?.id
 
-      // Set preferred_language to 'en' in profiles table
-      await adminClient.from('profiles').update({ preferred_language: 'en' }).eq('id', testUserId!)
+      // Wait for the Supabase Postgres trigger to create the profile row
+      await new Promise(resolve => setTimeout(resolve, 500))
 
       const { result } = renderHook(() => useTranslation(), {
         wrapper: ({ children }) => <I18nProvider>{children}</I18nProvider>,
@@ -139,6 +135,5 @@ describe('i18n Provider and Hook', () => {
       await waitFor(() => {
         expect(result.current.language).toBe('en')
       }, { timeout: 10000 })
-    },
-  )
+    }, 20000)
 })

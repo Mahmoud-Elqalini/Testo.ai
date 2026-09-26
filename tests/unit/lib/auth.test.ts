@@ -8,25 +8,11 @@ import {
   updatePassword,
 } from '../../../src/lib/auth'
 import { createClient as createSupabaseBrowserClient } from '../../../src/lib/supabase/client'
-import { createClient as createSupabaseAdminClient } from '@supabase/supabase-js'
 import { afterEach, describe, expect, it } from 'vitest'
+import { adminClient } from '../helpers/supabase-admin'
 
 const password = 'Testo-auth-test-password-123!'
 const email = `auth-${crypto.randomUUID()}@testo.local`
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !serviceRoleKey) {
-  throw new Error('Local Supabase URL and service-role key are required for auth tests')
-}
-
-const adminClient = createSupabaseAdminClient(supabaseUrl, serviceRoleKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false,
-    storageKey: 'testo-service-role-test-client',
-  },
-})
 
 let testUserId: string | undefined
 
