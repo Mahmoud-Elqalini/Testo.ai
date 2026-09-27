@@ -119,17 +119,17 @@
 
 ### Tests for User Story 2 🧪
 
-- [ ] T039 [P] [US2] TDD test for group CRUD service in `tests/unit/services/group.test.ts` — test create, list, add/remove students (admin-scoped, FR-005a)
-- [ ] T040 [P] [US2] TDD test for exam permissions service in `tests/unit/services/exam-permissions.test.ts` — test grant to individual, grant to group, mixed grant, ownership cross-check (FR-005a)
+- [x] T039 [P] [US2] TDD test for group CRUD service in `tests/unit/services/group.test.ts` — test create, list, add/remove students (admin-scoped, FR-005a)
+- [x] T040 [P] [US2] TDD test for exam permissions service in `tests/unit/services/exam-permissions.test.ts` — test grant to individual, grant to group, mixed grant, ownership cross-check (FR-005a)
 
 ### Implementation for User Story 2
 
-- [ ] T041 [US2] Create group service in `src/lib/services/group-service.ts` — CRUD on `groups` and `group_students` tables (admin-scoped via RLS)
-- [ ] T042 [US2] Create exam permissions service in `src/lib/services/exam-permissions-service.ts` — manage `exam_permissions` rows, supports individual + group grants
-- [ ] T043 [US2] Create groups management page at `src/app/admin/groups/page.tsx` — list groups, create new, view members
-- [ ] T044 [US2] Create group detail page at `src/app/admin/groups/[groupId]/page.tsx` — add/remove students by email lookup
-- [ ] T045 [US2] Create exam access/permissions UI component at `src/components/admin/ExamPermissions.tsx` — student search + group selector (only own groups per FR-005a) used in exam creation/publish flow
-- [ ] T046 [P] [US2] Write Visual Regression Tests for groups UI in `tests/visual/admin-groups.spec.ts` — AR/EN × Light/Dark snapshots
+- [x] T041 [US2] Create group service in `src/lib/services/group-service.ts` — CRUD on `groups` and `group_students` tables (admin-scoped via RLS)
+- [x] T042 [US2] Create exam permissions service in `src/lib/services/exam-permissions-service.ts` — manage `exam_permissions` rows, supports individual + group grants
+- [x] T043 [US2] Create groups management page at `src/app/admin/groups/page.tsx` — list groups, create new, view members
+- [x] T044 [US2] Create group detail page at `src/app/admin/groups/[groupId]/page.tsx` — add/remove students by exact-email lookup through an Admin-only RPC
+- [x] T045 [US2] Create exam access/permissions UI component at `src/components/admin/ExamPermissions.tsx` — exact-email student search + own-group selector, embedded in exam publish flow
+- [x] T046 [P] [US2] Write Visual Regression Tests for groups UI in `tests/visual/admin-groups.spec.ts` — AR/EN × Light/Dark snapshots
 
 **Checkpoint**: An Admin can manage groups and grant exam access. Combined with US1, a full exam setup workflow works.
 

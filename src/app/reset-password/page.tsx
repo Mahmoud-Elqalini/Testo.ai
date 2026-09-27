@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
 import { createClient } from '@/lib/supabase/client'
+import type { AuthChangeEvent, AuthError, Session } from '@supabase/supabase-js'
 
 export default function ResetPasswordPage() {
   const [mode, setMode] = useState<'request' | 'confirm'>('request')
@@ -36,7 +37,7 @@ export default function ResetPasswordPage() {
     let mounted = true
     
     // Check initial session
-    getSession().then((res: any) => {
+    getSession().then((res: { data: { session: Session | null }; error: AuthError | null }) => {
       if (!mounted) return
       if (res.data?.session) {
         setMode('confirm')
@@ -45,7 +46,7 @@ export default function ResetPasswordPage() {
     })
 
     // Listen for the specific PASSWORD_RECOVERY event
-    const { data: authListener } = supabase.auth.onAuthStateChange((event: string, session: any) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (!mounted) return
       if (event === 'PASSWORD_RECOVERY' || session) {
         setMode('confirm')

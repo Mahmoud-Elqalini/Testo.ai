@@ -43,9 +43,10 @@ export default function AdminDashboardPage() {
           <h1 className="text-3xl font-bold">{t('admin.exams.title')}</h1>
           <p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('admin.exams.description')}</p>
         </div>
-        <Link href="/admin/exams/create">
-          <Button>{t('admin.exams.create')}</Button>
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/admin/groups"><Button variant="secondary">{t('admin.groups.title')}</Button></Link>
+          <Link href="/admin/exams/create"><Button>{t('admin.exams.create')}</Button></Link>
+        </div>
       </header>
 
       {loading && <p role="status">{t('common.loading')}</p>}

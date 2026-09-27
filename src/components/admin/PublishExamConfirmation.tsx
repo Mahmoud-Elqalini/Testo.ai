@@ -10,6 +10,7 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { getExam, getExamPermissionSummary, publishExam, unpublishExam } from '@/lib/services/exam-service'
 import type { Exam } from '@/lib/types'
 import type { ExamPermissionSummary } from '@/lib/services/exam-service'
+import { ExamPermissions } from './ExamPermissions'
 
 export function PublishExamConfirmation({ examId }: { examId: string }) {
   const router = useRouter()
@@ -34,6 +35,11 @@ export function PublishExamConfirmation({ examId }: { examId: string }) {
     })
     return () => { active = false }
   }, [examId])
+
+  async function refreshAudience() {
+    const result = await getExamPermissionSummary(examId)
+    if (!result.error && result.data) setAudience(result.data)
+  }
 
   async function confirm() {
     if (!exam) return
@@ -61,6 +67,8 @@ export function PublishExamConfirmation({ examId }: { examId: string }) {
 
       {exam && <p className="text-lg font-medium"><SafeText value={exam.title} /></p>}
       <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('admin.publish.description')}</p>
+
+      {exam && <ExamPermissions examId={examId} onPermissionsChanged={refreshAudience} />}
 
       {audience && (
         <div className="space-y-2 rounded-lg bg-neutral-50 p-4 text-sm dark:bg-neutral-800">

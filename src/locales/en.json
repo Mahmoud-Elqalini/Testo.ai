@@ -114,6 +114,48 @@
       "success": "Publication status updated.",
       "error": "We couldn't change the publication status."
     },
+    "groups": {
+      "title": "Student groups",
+      "description": "Organize students into groups you own.",
+      "name": "Group name",
+      "create": "Create group",
+      "manage": "Manage members",
+      "empty": "No groups yet. Create a group to organize students.",
+      "loadError": "We couldn't load this group.",
+      "createError": "We couldn't create this group.",
+      "members": "Members",
+      "addStudent": "Add a student by email",
+      "email": "Student email address",
+      "search": "Find student",
+      "searchError": "Enter a valid email address and try again.",
+      "noStudent": "No student account matches that email.",
+      "alreadyMember": "This student is already in the group.",
+      "add": "Add to group",
+      "remove": "Remove",
+      "memberChangeError": "We couldn't update group membership. An active exam attempt may prevent removal.",
+      "noMembers": "This group has no students yet.",
+      "notFound": "Group not found"
+    },
+    "permissions": {
+      "title": "Exam access",
+      "description": "Grant access to a student by exact email or to one of your groups.",
+      "email": "Student email address",
+      "grantStudent": "Grant student access",
+      "chooseGroup": "Choose one of your groups",
+      "grantGroup": "Grant group access",
+      "loadError": "We couldn't load exam access.",
+      "searchError": "Enter a valid email address and try again.",
+      "noStudent": "No student account matches that email.",
+      "changeError": "We couldn't update exam access. Access in use by an active attempt cannot be removed.",
+      "studentGranted": "Student access granted.",
+      "groupGranted": "Group access granted.",
+      "removed": "Access removed.",
+      "current": "Current access",
+      "empty": "No students or groups have access yet.",
+      "student": "Student",
+      "group": "Group",
+      "remove": "Remove access"
+    },
     "accessDenied": "This area is available to admins only."
   }
 }

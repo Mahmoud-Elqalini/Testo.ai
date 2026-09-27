@@ -57,6 +57,7 @@ async function createTestUser(role: 'admin' | 'student') {
 
   return {
     userId: data.user.id,
+    email,
     client,
     async cleanup() {
       if (role === 'admin') await signOut()

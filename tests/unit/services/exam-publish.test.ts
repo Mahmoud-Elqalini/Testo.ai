@@ -2,20 +2,26 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createExam, getExamPermissionSummary, hasExamStartedAttempts, publishExam, unpublishExam, updateExam } from '../../../src/lib/services/exam-service'
 import { createQuestion, updateQuestion } from '../../../src/lib/services/question-service'
 import { adminClient } from '../helpers/supabase-admin'
-import { createTestAdmin } from './test-context'
+import { createTestAdmin, createTestStudent } from './test-context'
 
 describe('exam publishing and immutability (local Supabase)', () => {
   let admin: Awaited<ReturnType<typeof createTestAdmin>> | undefined
+  let student: Awaited<ReturnType<typeof createTestStudent>> | undefined
 
   afterEach(async () => {
     if (admin) {
       await admin.cleanup()
       admin = undefined
     }
+    if (student) {
+      await student.cleanup()
+      student = undefined
+    }
   })
 
   it('publishes and unpublishes an owned exam', async () => {
     admin = await createTestAdmin()
+    student = await createTestStudent()
     const created = await createExam({
       title: 'Publishing test',
       start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
@@ -29,8 +35,13 @@ describe('exam publishing and immutability (local Supabase)', () => {
       .select('id')
       .single()
     expect(groupError).toBeNull()
+    const { error: memberError } = await adminClient.from('group_students').insert({
+      group_id: group!.id,
+      student_id: student.userId,
+    })
+    expect(memberError).toBeNull()
     const { error: permissionError } = await adminClient.from('exam_permissions').insert([
-      { exam_id: created.data!.id, student_id: admin.userId },
+      { exam_id: created.data!.id, student_id: student.userId },
       { exam_id: created.data!.id, group_id: group!.id },
     ])
     expect(permissionError).toBeNull()
