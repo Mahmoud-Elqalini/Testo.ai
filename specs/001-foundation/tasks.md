@@ -25,13 +25,13 @@
 
 **Purpose**: Initialize Next.js project, configure tooling, and establish the development environment.
 
-- [ ] T001 Initialize Next.js (App Router) project with TypeScript at repo root: `npx -y create-next-app@latest ./ --typescript --app --eslint --src-dir --import-alias "@/*"` — configure `tsconfig.json` path aliases
-- [ ] T002 Install core dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query` (per research.md state management decision)
-- [ ] T003 [P] Install and configure Tailwind CSS with RTL plugin (`tailwindcss-rtl` or built-in `rtl:` modifier), dark mode (`class` strategy), and custom color palette in `tailwind.config.ts`
-- [ ] T004 [P] Install and configure Vitest (`vitest`, `@testing-library/react`, `@testing-library/jest-dom`) — create `vitest.config.ts`
-- [ ] T005 [P] Install and configure Playwright for visual regression testing — create `playwright.config.ts` with multi-browser setup
-- [ ] T006 [P] Create `.env.local.example` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` placeholders, add `.env.local` to `.gitignore`
-- [ ] T007 Create project directory structure per plan.md: `src/app/`, `src/components/`, `src/lib/`, `src/locales/`, `src/styles/`, `tests/unit/`, `tests/visual/`
+- [x] T001 Initialize Next.js (App Router) project with TypeScript at repo root: `npx -y create-next-app@latest ./ --typescript --app --eslint --src-dir --import-alias "@/*"` — configure `tsconfig.json` path aliases
+- [x] T002 Install core dependencies: `@supabase/supabase-js`, `@supabase/ssr`, `@tanstack/react-query` (per research.md state management decision)
+- [x] T003 [P] Install and configure Tailwind CSS with RTL plugin (`tailwindcss-rtl` or built-in `rtl:` modifier), dark mode (`class` strategy), and custom color palette in `tailwind.config.ts`
+- [x] T004 [P] Install and configure Vitest (`vitest`, `@testing-library/react`, `@testing-library/jest-dom`) — create `vitest.config.ts`
+- [x] T005 [P] Install and configure Playwright for visual regression testing — create `playwright.config.ts` with multi-browser setup
+- [x] T006 [P] Create `.env.local.example` with `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` placeholders, add `.env.local` to `.gitignore`
+- [x] T007 Create project directory structure per plan.md: `src/app/`, `src/components/`, `src/lib/`, `src/locales/`, `src/styles/`, `tests/unit/`, `tests/visual/`
 
 **Checkpoint**: Project initializes, `npm run dev` starts without errors, Vitest and Playwright run empty suites.
 
@@ -46,36 +46,36 @@
 
 ### 2A — Supabase Client & Auth Framework
 
-- [ ] T007a Reconcile all live SQL-Editor patches applied during manual debugging into the actual migration files: verify 0003_functions_triggers_cron.sql contains SET search_path = public, pg_temp on all 6 SECURITY DEFINER functions with public.-qualified table references; verify fn_protect_profile_role() checks current_user IN ('postgres','service_role') in addition to current_setting('role', true); verify 0001_schema.sql's exam_permissions_target_check uses XOR logic; verify all status literals across all three files use explicit ::attempt_status casts. Re-run all three migration files against a clean database (local or a fresh Supabase project) to confirm they succeed standalone, with no dependency on manual live patches.
-- [ ] T008 Create Supabase browser client helper in `src/lib/supabase/client.ts` (uses `createBrowserClient` from `@supabase/ssr`)
-- [ ] T009 Create Supabase server client helper in `src/lib/supabase/server.ts` (uses `createServerClient` from `@supabase/ssr` for Server Components / Route Handlers)
-- [ ] T010 Create Supabase middleware in `src/middleware.ts` for session refresh on every request (per Supabase SSR docs)
-- [ ] T011 Implement auth utility functions in `src/lib/auth.ts`: `signUp`, `signIn`, `signOut`, `resetPassword`, `getCurrentUser`, `getSession`
-- [ ] T012 Write TDD tests for auth utilities in `tests/unit/lib/auth.test.ts` — test sign-in/sign-up/sign-out flows against a real local Postgres/Supabase instance (via Supabase CLI + Docker) rather than a mocked Supabase client. (Mocks cannot validate RLS, triggers, enum casts, and search_path behavior)
+- [x] T007a Reconcile all live SQL-Editor patches applied during manual debugging into the actual migration files: verify 0003_functions_triggers_cron.sql contains SET search_path = public, pg_temp on all 6 SECURITY DEFINER functions with public.-qualified table references; verify fn_protect_profile_role() checks current_user IN ('postgres','service_role') in addition to current_setting('role', true); verify 0001_schema.sql's exam_permissions_target_check uses XOR logic; verify all status literals across all three files use explicit ::attempt_status casts. Re-run all three migration files against a clean database (local or a fresh Supabase project) to confirm they succeed standalone, with no dependency on manual live patches.
+- [x] T008 Create Supabase browser client helper in `src/lib/supabase/client.ts` (uses `createBrowserClient` from `@supabase/ssr`)
+- [x] T009 Create Supabase server client helper in `src/lib/supabase/server.ts` (uses `createServerClient` from `@supabase/ssr` for Server Components / Route Handlers)
+- [x] T010 Create Supabase request proxy in `src/proxy.ts` (Next.js 16 convention) for session refresh on every request (per Supabase SSR docs)
+- [x] T011 Implement auth utility functions in `src/lib/auth.ts`: `signUp`, `signIn`, `signOut`, `resetPassword`, `getCurrentUser`, `getSession`
+- [x] T012 Write TDD tests for auth utilities in `tests/unit/lib/auth.test.ts` — test sign-in/sign-up/sign-out flows against a real local Postgres/Supabase instance (via Supabase CLI + Docker) rather than a mocked Supabase client. (Mocks cannot validate RLS, triggers, enum casts, and search_path behavior)
 
 ### 2B — i18n & Theming Infrastructure (Constitution IX)
 
-- [ ] T013 Create i18n dictionaries: `src/locales/en.json` (English) and `src/locales/ar.json` (Arabic) — start with shared keys for auth pages, nav, common labels
-- [ ] T014 Create i18n provider and `useTranslation` hook in `src/lib/i18n/provider.tsx` and `src/lib/i18n/use-translation.ts` — reads `preferred_language` from profile, falls back to browser locale
-- [ ] T015 Create theme provider in `src/lib/theme/provider.tsx` — manages `light`/`dark` class on `<html>`, reads `preferred_theme` from profile, falls back to `prefers-color-scheme`
-- [ ] T016 Create root layout `src/app/layout.tsx` with `dir` attribute (RTL/LTR based on language), theme class, and providers wrapping children
-- [ ] T017 [P] Write TDD tests for i18n hook in `tests/unit/lib/i18n.test.ts` — verify key lookup, fallback behavior, language switching
-- [ ] T018 [P] Write TDD tests for theme provider in `tests/unit/lib/theme.test.ts` — verify class toggling, persistence, fallback
+- [x] T013 Create i18n dictionaries: `src/locales/en.json` (English) and `src/locales/ar.json` (Arabic) — start with shared keys for auth pages, nav, common labels
+- [x] T014 Create i18n provider and `useTranslation` hook in `src/lib/i18n/provider.tsx` and `src/lib/i18n/use-translation.ts` — reads `preferred_language` from profile, falls back to browser locale
+- [x] T015 Create theme provider in `src/lib/theme/provider.tsx` — manages `light`/`dark` class on `<html>`, reads `preferred_theme` from profile, falls back to `prefers-color-scheme`
+- [x] T016 Create root layout `src/app/layout.tsx` with `dir` attribute (RTL/LTR based on language), theme class, and providers wrapping children
+- [x] T017 [P] Write TDD tests for i18n hook in `tests/unit/lib/i18n.test.ts` — verify key lookup, fallback behavior, language switching
+- [x] T018 [P] Write TDD tests for theme provider in `tests/unit/lib/theme.test.ts` — verify class toggling, persistence, fallback
 
 ### 2C — React Query Setup & Shared Utilities
 
-- [ ] T019 Configure React Query provider in `src/lib/query/provider.tsx` — wrap app with `QueryClientProvider`, configure default stale/cache times
-- [ ] T020 Create shared TypeScript types in `src/lib/types.ts` matching data-model.md entities: `Profile`, `Group`, `Exam`, `Question`, `McqChoice`, `ExamAttempt`, `Answer`, `AttemptStatus`, `UserRole`, `QuestionType`
-- [ ] T021 Create shared error handling utility in `src/lib/errors.ts` — maps Supabase/Edge Function error responses to user-friendly messages (per error-policy.md)
-- [ ] T022 [P] Create shared Edge Function caller utility in `src/lib/edge-functions.ts` — typed wrapper around `supabase.functions.invoke()` with error normalization
+- [x] T019 Configure React Query provider in `src/lib/query/provider.tsx` — wrap app with `QueryClientProvider`, configure default stale/cache times
+- [x] T020 Create shared TypeScript types in `src/lib/types.ts` matching data-model.md entities: `Profile`, `Group`, `Exam`, `Question`, `McqChoice`, `ExamAttempt`, `Answer`, `AttemptStatus`, `UserRole`, `QuestionType`
+- [x] T021 Create shared error handling utility in `src/lib/errors.ts` — maps Supabase/Edge Function error responses to user-friendly messages (per error-policy.md)
+- [x] T022 [P] Create shared Edge Function caller utility in `src/lib/edge-functions.ts` — typed wrapper around `supabase.functions.invoke()` with error normalization
 
 ### 2D — Auth Pages (Login/Register/Reset)
 
-- [ ] T023 Create login page at `src/app/login/page.tsx` — email/password form, calls `signIn`, redirects to dashboard on success
-- [ ] T024 [P] Create registration page at `src/app/register/page.tsx` — email/password/full_name form, calls `signUp`
-- [ ] T025 [P] Create password reset page at `src/app/reset-password/page.tsx` — email form, calls `resetPassword` (FR-007c)
-- [ ] T026 Create auth guard middleware logic in `src/middleware.ts` — redirect unauthenticated users to `/login`, redirect authenticated users away from `/login` (FR-007a, FR-010a)
-- [ ] T027 [P] Write Visual Regression Tests for auth pages in `tests/visual/auth.spec.ts` — capture snapshots in AR/EN × Light/Dark (4 combinations per page)
+- [x] T023 Create login page at `src/app/login/page.tsx` — email/password form, calls `signIn`, redirects to dashboard on success
+- [x] T024 [P] Create registration page at `src/app/register/page.tsx` — email/password/full_name form, calls `signUp`
+- [x] T025 [P] Create password reset page at `src/app/reset-password/page.tsx` — email form, calls `resetPassword` (FR-007c)
+- [x] T026 Create auth guard logic in `src/lib/auth-guard.ts` + `src/proxy.ts` (Next.js 16 convention) — redirect unauthenticated users to `/login`, redirect authenticated users away from `/login` (FR-007a, FR-010a)
+- [x] T027 [P] Write Visual Regression Tests for auth pages in `tests/visual/auth.spec.ts` — capture snapshots in AR/EN × Light/Dark (4 combinations per page)
 
 **Checkpoint**: Foundation ready — users can register, log in, log out, and reset passwords. i18n and theming infrastructure works. All shared types and utilities exist. User story implementation can now begin.
 
@@ -91,21 +91,21 @@
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T028 [P] [US1] TDD test for exam CRUD service in `tests/unit/services/exam.test.ts` — test create, read, update, delete exam (admin-scoped)
-- [ ] T029 [P] [US1] TDD test for question CRUD service in `tests/unit/services/question.test.ts` — test add/edit/delete MCQ (≥2 choices, 1 correct) and essay (≥1 reference answer) with validation (FR-002, FR-002a, FR-002b)
-- [ ] T030 [P] [US1] TDD test for exam publishing logic in `tests/unit/services/exam-publish.test.ts` — test publish/unpublish transitions, immutability enforcement (FR-004a)
-- [ ] T030a [P] [US1] TDD test proving privilege escalation is blocked: a user with profiles.role = 'student' MUST NOT be able to INSERT into exams, groups, group_students, exam_permissions, or questions under any circumstance, even when setting admin_id/owning fields to their own auth.uid(). Test each of these five tables explicitly. (this test MUST run against a real local Postgres/Supabase instance via Supabase CLI + Docker, not a mocked client — RLS policies cannot be validated by mocks)
+- [x] T028 [P] [US1] TDD test for exam CRUD service in `tests/unit/services/exam.test.ts` — test create, read, update, delete exam (admin-scoped)
+- [x] T029 [P] [US1] TDD test for question CRUD service in `tests/unit/services/question.test.ts` — test add/edit/delete MCQ (≥2 choices, 1 correct) and essay (≥1 reference answer) with validation (FR-002, FR-002a, FR-002b)
+- [x] T030 [P] [US1] TDD test for exam publishing logic in `tests/unit/services/exam-publish.test.ts` — test publish/unpublish transitions, immutability enforcement (FR-004a)
+- [x] T030a [P] [US1] TDD test proving privilege escalation is blocked: a user with profiles.role = 'student' MUST NOT be able to INSERT into exams, groups, group_students, exam_permissions, or questions under any circumstance, even when setting admin_id/owning fields to their own auth.uid(). Test each of these five tables explicitly. (this test MUST run against a real local Postgres/Supabase instance via Supabase CLI + Docker, not a mocked client — RLS policies cannot be validated by mocks)
 
 ### Implementation for User Story 1
 
-- [ ] T031 [US1] Create exam service in `src/lib/services/exam-service.ts` — CRUD operations on `exams` table via Supabase client (admin-scoped via RLS)
-- [ ] T032 [US1] Create question service in `src/lib/services/question-service.ts` — CRUD on `questions` table with validation: MCQ requires ≥2 choices + exactly 1 `correct_choice`; essay requires ≥1 reference answer; enforce `points` default (FR-002a); reject empty text (FR-002b)
-- [ ] T033 [US1] Create Admin dashboard page at `src/app/admin/page.tsx` — lists Admin's own exams (draft/published) with status indicators
-- [ ] T034 [US1] Create exam creation/edit page at `src/app/admin/exams/create/page.tsx` — form for title, description, start_time (datetime picker), duration_minutes
-- [ ] T035 [US1] Create question editor component at `src/components/admin/QuestionEditor.tsx` — supports MCQ (dynamic choices with add/remove, correct marking) and essay (reference answers with add/remove)
-- [ ] T036 [US1] Create exam publish action in `src/app/admin/exams/[examId]/publish/` — toggles `is_published`, shows confirmation dialog with student/group count
-- [ ] T037 [US1] Implement XSS-safe text rendering utility in `src/lib/sanitize.ts` — sanitize all user-supplied text for display (FR-002c)
-- [ ] T038 [P] [US1] Write Visual Regression Tests for exam creation UI in `tests/visual/admin-exam-create.spec.ts` — AR/EN × Light/Dark snapshots
+- [x] T031 [US1] Create exam service in `src/lib/services/exam-service.ts` — CRUD operations on `exams` table via Supabase client (admin-scoped via RLS)
+- [x] T032 [US1] Create question service in `src/lib/services/question-service.ts` — CRUD on `questions` table with validation: MCQ requires ≥2 choices + exactly 1 `correct_choice`; essay requires ≥1 reference answer; enforce `points` default (FR-002a); reject empty text (FR-002b)
+- [x] T033 [US1] Create Admin dashboard page at `src/app/admin/page.tsx` — lists Admin's own exams (draft/published) with status indicators
+- [x] T034 [US1] Create exam creation/edit page at `src/app/admin/exams/create/page.tsx` — form for title, description, start_time (datetime picker), duration_minutes
+- [x] T035 [US1] Create question editor component at `src/components/admin/QuestionEditor.tsx` — supports MCQ (dynamic choices with add/remove, correct marking) and essay (reference answers with add/remove)
+- [x] T036 [US1] Create exam publish action in `src/app/admin/exams/[examId]/publish/` — toggles `is_published`, shows confirmation dialog with student/group count
+- [x] T037 [US1] Implement XSS-safe text rendering utility in `src/lib/sanitize.ts` — sanitize all user-supplied text for display (FR-002c)
+- [x] T038 [P] [US1] Write Visual Regression Tests for exam creation UI in `tests/visual/admin-exam-create.spec.ts` — AR/EN × Light/Dark snapshots
 
 **Checkpoint**: An Admin can create exams with mixed question types and publish them. Immutability is enforced by existing DB triggers.
 

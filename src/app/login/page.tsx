@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signIn } from '@/lib/auth'
+import { SecureAuthContextError, signIn } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
@@ -32,7 +32,11 @@ export default function LoginPage() {
       
       router.push('/dashboard')
     } catch (err) {
-      setError(normalizeError(err).message)
+      setError(
+        err instanceof SecureAuthContextError
+          ? t('auth.secureContextRequired')
+          : normalizeError(err).message,
+      )
     } finally {
       setLoading(false)
     }

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { signUp } from '@/lib/auth'
+import { SecureAuthContextError, signUp } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { useTheme } from '@/lib/theme/provider'
 import { normalizeError } from '@/lib/errors'
@@ -45,7 +45,11 @@ export default function RegisterPage() {
         setSuccess(true)
       }
     } catch (err) {
-      setError(normalizeError(err).message)
+      setError(
+        err instanceof SecureAuthContextError
+          ? t('auth.secureContextRequired')
+          : normalizeError(err).message,
+      )
     } finally {
       setLoading(false)
     }

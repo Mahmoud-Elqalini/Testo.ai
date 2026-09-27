@@ -75,7 +75,7 @@ BEGIN
   ) THEN
     IF EXISTS (
       SELECT 1 FROM exam_attempts
-      WHERE exam_id = OLD.id AND status != 'pending'
+      WHERE exam_id = OLD.id AND status != 'pending'::attempt_status
     ) THEN
       RAISE EXCEPTION 'Cannot modify exam content/timing after any attempt has started (FR-004a)'
         USING ERRCODE = 'check_violation';
@@ -101,7 +101,7 @@ BEGIN
 
   IF EXISTS (
     SELECT 1 FROM exam_attempts
-    WHERE exam_id = v_exam_id AND status != 'pending'
+    WHERE exam_id = v_exam_id AND status != 'pending'::attempt_status
   ) THEN
     RAISE EXCEPTION 'Cannot modify questions after any attempt has started (FR-004a)'
       USING ERRCODE = 'check_violation';
@@ -290,7 +290,7 @@ BEGIN
       finished_at = now()
   FROM public.exams e
   WHERE ea.exam_id = e.id
-    AND ea.status = 'in_progress'
+    AND ea.status = 'in_progress'::attempt_status
     AND now() >= e.start_time + (e.duration_minutes * interval '1 minute');
 
   -- Clause 2: pending → abandoned (FR-020b)
@@ -298,7 +298,7 @@ BEGIN
   SET status = 'abandoned'::attempt_status
   FROM public.exams e
   WHERE ea.exam_id = e.id
-    AND ea.status = 'pending'
+    AND ea.status = 'pending'::attempt_status
     AND now() >= e.start_time + (e.duration_minutes * interval '1 minute');
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp;

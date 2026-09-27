@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { resetPassword, updatePassword, getSession } from '@/lib/auth'
+import { resetPassword, updatePassword, getSession, SecureAuthContextError } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
@@ -68,7 +68,11 @@ export default function ResetPasswordPage() {
       if (resetError) throw resetError
       setRequestSuccess(true)
     } catch (err) {
-      setError(normalizeError(err).message)
+      setError(
+        err instanceof SecureAuthContextError
+          ? t('auth.secureContextRequired')
+          : normalizeError(err).message,
+      )
     } finally {
       setIsSubmitting(false)
     }

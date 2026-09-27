@@ -45,19 +45,15 @@ export function ThemeProvider({
     if (initialTheme) return;
 
     const initTheme = async () => {
-      console.log("[THEME_DEBUG] initTheme started")
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      console.log("[THEME_DEBUG] user:", user?.id)
       if (user) {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from("profiles")
           .select("preferred_theme")
           .eq("id", user.id)
           .single();
-        console.log("[THEME_DEBUG] profile data:", data, "error:", error)
         if (data?.preferred_theme) {
-          console.log("[THEME_DEBUG] Setting theme to:", data.preferred_theme)
           const t = data.preferred_theme as Theme;
           setThemeState(t);
           persistTheme(t);
@@ -65,7 +61,6 @@ export function ThemeProvider({
         }
       }
 
-      console.log("[THEME_DEBUG] Checking cached theme")
       // If there's already a cached theme, we don't need to apply the unauthenticated system fallback
       if (readCachedTheme()) return;
 
