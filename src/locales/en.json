@@ -31,6 +31,7 @@
     "title": "Dashboard",
     "welcome": "Welcome to Testo",
     "loggedIn": "You are logged in.",
+    "joinGroup": "Join a group",
     "logout": "Sign Out"
   },
   "common": {
@@ -134,7 +135,32 @@
       "remove": "Remove",
       "memberChangeError": "We couldn't update group membership. An active exam attempt may prevent removal.",
       "noMembers": "This group has no students yet.",
-      "notFound": "Group not found"
+      "notFound": "Group not found",
+      "invitation": {
+        "title": "Group invitation",
+        "description": "Create a reusable code that students can use to join this group.",
+        "create": "Create invitation code",
+        "rotate": "Rotate code",
+        "rotateConfirm": "Create a new code? The current code will stop working immediately.",
+        "revoke": "Revoke code",
+        "revokeConfirm": "Revoke this code? Students will no longer be able to join with it.",
+        "status": "Status",
+        "active": "Active",
+        "revokedStatus": "Revoked",
+        "expired": "Expired",
+        "inactive": "Unavailable",
+        "expires": "Expires",
+        "notAvailable": "Not available",
+        "shareOnce": "Copy and share this code now. It will not be shown again.",
+        "copy": "Copy code",
+        "copied": "Code copied.",
+        "copyError": "We couldn't copy the code. Select and copy it manually.",
+        "loadError": "We couldn't load invitation status.",
+        "actionError": "We couldn't update the invitation. Try again.",
+        "created": "Invitation code created.",
+        "rotated": "Invitation code rotated. Share the new code with students.",
+        "revoked": "Invitation code revoked."
+      }
     },
     "permissions": {
       "title": "Exam access",
@@ -157,5 +183,18 @@
       "remove": "Remove access"
     },
     "accessDenied": "This area is available to admins only."
+  },
+  "student": {
+    "joinGroup": {
+      "title": "Join a group",
+      "description": "Enter the invitation code shared by your group admin.",
+      "codeLabel": "Invitation code",
+      "codePlaceholder": "Paste your code",
+      "help": "The code is not case-sensitive.",
+      "submit": "Join group",
+      "invalidCode": "This code is invalid or no longer available. Check it and try again.",
+      "joined": "You joined the group successfully.",
+      "error": "We couldn't process the code. Try again."
+    }
   }
 }

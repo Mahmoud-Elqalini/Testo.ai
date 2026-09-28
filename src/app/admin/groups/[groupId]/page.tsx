@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import GroupInvitation from '@/components/admin/GroupInvitation'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { addStudentToGroup, getGroup, listGroupStudents, removeStudentFromGroup, searchStudentsByEmail, type GroupStudent } from '@/lib/services/group-service'
 import type { Group } from '@/lib/types'
@@ -74,6 +75,7 @@ export default function AdminGroupDetailPage() {
         {match && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800"><p><span className="font-semibold">{match.full_name || match.email}</span><span className="ms-2 text-sm text-neutral-600 dark:text-neutral-300">{match.email}</span></p><Button type="button" loading={working} onClick={() => void add(match)}>{t('admin.groups.add')}</Button></div>}
         {message && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{message}</p>}
       </Card>
+      {group && <GroupInvitation groupId={groupId} />}
       {members.length === 0 ? <Card className="p-8 text-center text-neutral-600 dark:text-neutral-300">{t('admin.groups.noMembers')}</Card> :
         <ul className="grid gap-3">{members.map((member) => <li key={member.id}><Card className="flex flex-wrap items-center justify-between gap-3 p-4"><p><span className="font-medium">{member.full_name || member.email}</span><span className="ms-2 text-sm text-neutral-600 dark:text-neutral-300">{member.email}</span></p><Button type="button" variant="ghost" loading={working} onClick={() => void remove(member.id)}>{t('admin.groups.remove')}</Button></Card></li>)}</ul>}
     </main>

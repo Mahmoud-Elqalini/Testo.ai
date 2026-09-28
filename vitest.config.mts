@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config'
+import path from 'node:path'
 import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -7,6 +8,9 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: { '@': path.resolve(process.cwd(), 'src') },
+    },
     cacheDir: '.cache/vite',
     test: {
       globals: true,
