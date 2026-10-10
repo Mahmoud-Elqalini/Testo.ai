@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const webPort = process.env.TEST_WEB_PORT ?? '3000';
+const runCrossBrowser = process.env.PLAYWRIGHT_CROSS_BROWSER === 'true';
 
 export default defineConfig({
   testDir: './tests/visual',
@@ -18,7 +19,7 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    ...(process.env.CI
+    ...(runCrossBrowser
       ? [
           {
             name: 'firefox',
