@@ -39,7 +39,10 @@ export default function DashboardPage() {
         <p className="text-lg">{t('dashboard.welcome')}</p>
         <p className="text-sm text-neutral-500">{t('dashboard.loggedIn')}</p>
 
-        {isStudent && <Link href="/student/join-group" className="block rounded-md bg-[var(--color-primary-600)] px-4 py-3 font-medium text-white hover:bg-[var(--color-primary-700)]">{t('dashboard.joinGroup')}</Link>}
+        {isStudent && <div className="space-y-3">
+          <Link href="/student" className="block rounded-md bg-[var(--color-primary-600)] px-4 py-3 font-medium text-white hover:bg-[var(--color-primary-700)]">{t('dashboard.studentExams')}</Link>
+          <Link href="/student/join-group" className="block rounded-md bg-[var(--color-primary-600)] px-4 py-3 font-medium text-white hover:bg-[var(--color-primary-700)]">{t('dashboard.joinGroup')}</Link>
+        </div>}
         
         <Button onClick={handleLogout} variant="secondary" fullWidth>
           {t('dashboard.logout')}

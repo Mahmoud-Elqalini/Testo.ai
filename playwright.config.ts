@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const webPort = process.env.TEST_WEB_PORT ?? '3000';
+
 export default defineConfig({
   testDir: './tests/visual',
   fullyParallel: true,
@@ -8,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: `http://localhost:${webPort}`,
     trace: 'on-first-retry',
   },
   projects: [
@@ -30,8 +32,8 @@ export default defineConfig({
       : []),
   ],
   webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
+    command: `npm run dev -- --hostname 127.0.0.1 --port ${webPort}`,
+    url: `http://127.0.0.1:${webPort}`,
     reuseExistingServer: !process.env.CI,
   },
 });

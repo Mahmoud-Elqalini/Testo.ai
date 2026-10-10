@@ -76,6 +76,7 @@ interface GetExamQuestionsResponse {
   attempt_id: string;
   remaining_seconds: number;           // server-recomputed on every call
   questions: ExamQuestion[];
+  answers: { question_id: string; mcq_answer: string | null; essay_answer: string | null }[]; // own saved answers for reload recovery
 }
 
 // TYPE-LEVEL ASSERTION (enforced at build time):

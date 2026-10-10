@@ -36,6 +36,20 @@ jobs:
         echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=$(supabase status -o json | jq -r .ANON_KEY)" >> .env.local
         echo "SUPABASE_SERVICE_ROLE_KEY=$(supabase status -o json | jq -r .SERVICE_ROLE_KEY)" >> .env.local
 
+    - name: Serve Supabase Edge Functions
+      run: |
+        supabase functions serve > /tmp/supabase-functions.log 2>&1 &
+        for attempt in $(seq 1 60); do
+          status=$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:54321/functions/v1/start-attempt)
+          if [ "$status" = "401" ] || [ "$status" = "400" ]; then exit 0; fi
+          sleep 2
+        done
+        cat /tmp/supabase-functions.log
+        exit 1
+
+    - name: Run unit and Supabase integration tests
+      run: npm test
+
       
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps

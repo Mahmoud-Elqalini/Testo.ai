@@ -145,31 +145,31 @@
 
 > **NOTE:** These Edge Function tests MUST run against a real local Postgres/Supabase instance (via Supabase CLI + Docker) rather than a mocked Supabase client. RLS policies, triggers, enum casts, and search_path behavior cannot be validated by mocks — as demonstrated during live debugging.
 
-- [ ] T047 [P] [US3] TDD test for `start-attempt` Edge Function in `tests/unit/edge-functions/start-attempt.test.ts` — test all 7 validation steps per contract, success with session creation, session takeover (FR-021a), idempotency
-- [ ] T048 [P] [US3] TDD test for `get-exam-questions` Edge Function in `tests/unit/edge-functions/get-exam-questions.test.ts` — test validation steps, verify response NEVER contains `correct_choice` or `reference_answers` (Principle II)
-- [ ] T049 [P] [US3] TDD test for `save-answer` Edge Function in `tests/unit/edge-functions/save-answer.test.ts` — test validation steps, time re-validation (FR-016), UPSERT idempotency, session check
-- [ ] T050 [P] [US3] TDD test for `submit-attempt` Edge Function in `tests/unit/edge-functions/submit-attempt.test.ts` — test validation, `in_progress` → `submitted`, idempotency for already-submitted, rejection for `auto_submitted`/`abandoned`/`voided`
+- [ ] T047 [P] [US3] TDD integration tests for `start-attempt` in `tests/unit/edge-functions/start-attempt.test.ts` — verify authenticated ownership, UUID validation, successful start, session takeover, and generic denials against local Supabase
+- [ ] T048 [P] [US3] TDD integration tests for `get-exam-questions` in `tests/unit/edge-functions/get-exam-questions.test.ts` — verify session validation and that responses never contain `correct_choice` or `reference_answers`
+- [ ] T049 [P] [US3] TDD integration tests for `save-answer` in `tests/unit/edge-functions/save-answer.test.ts` — verify session and question validation, answer UPSERT idempotency, and saved timestamp
+- [ ] T050 [P] [US3] TDD integration tests for `submit-attempt` in `tests/unit/edge-functions/submit-attempt.test.ts` — verify `in_progress` → `submitted`, duplicate submission, and closed-attempt denial
 
 ### Implementation for User Story 3 — Edge Functions
 
-- [ ] T051 [US3] Create shared Edge Function utilities in `supabase/functions/_shared/` — Supabase service-role client init, error response helper (per error-policy.md), denial logging (per DenialLog interface), UUID validation
-- [ ] T052 [US3] Implement `start-attempt` Edge Function in `supabase/functions/start-attempt/index.ts` — per start-attempt.md contract: validate token + auth.uid binding, time window check, atomic SELECT FOR UPDATE + UPDATE, session takeover with logging, return `remaining_seconds` + `exam_ends_at`
-- [ ] T053 [US3] Implement `get-exam-questions` Edge Function in `supabase/functions/get-exam-questions/index.ts` — per get-exam-questions.md contract: validate attempt ownership + session + status + time window, return safe columns only (`id, type, text, points, order, mcq_choices` with filtered `{id, text}` only)
-- [ ] T054 [US3] Implement `save-answer` Edge Function in `supabase/functions/save-answer/index.ts` — per save-answer.md contract: validate all checks including per-request time re-validation (FR-016), UPSERT answer row, return `saved_at` timestamp
-- [ ] T055 [US3] Implement `submit-attempt` Edge Function in `supabase/functions/submit-attempt/index.ts` — per submit-attempt.md contract: validate ownership + session, transition `in_progress` → `submitted`, set `finished_at`, handle idempotent re-submit
+- [x] T051 [US3] Create shared Edge Function utilities in `supabase/functions/_shared/http.ts` — JWT verification, service-role client, uniform errors, denial logging, and UUID validation
+- [x] T052 [US3] Implement `start-attempt` Edge Function and its transaction-safe database operation — verify student ownership and schedule, rotate session ID, retain first `started_at`, and return the server deadline
+- [x] T053 [US3] Implement `get-exam-questions` Edge Function — validate ownership, session, status, and deadline; explicitly filter choice fields and return the student's saved answers
+- [x] T054 [US3] Implement `save-answer` Edge Function — revalidate time on every request, validate question/answer type, and transactionally upsert the answer
+- [x] T055 [US3] Implement `submit-attempt` Edge Function — validate ownership and session, atomically transition to `submitted`, and support idempotent retries
 
 ### Implementation for User Story 3 — Frontend
 
-- [ ] T056 [US3] Create student dashboard page at `src/app/student/page.tsx` — list upcoming exams (published + permitted), past attempts with status
-- [ ] T057 [US3] Create exam-taking page at `src/app/student/exam/[attemptId]/page.tsx` — calls `start-attempt`, displays countdown timer (informational per Principle I), renders questions from `get-exam-questions`
-- [ ] T058 [US3] Create MCQ answer component at `src/components/exam/McqQuestion.tsx` — radio selection triggers debounced `save-answer` call (on selection change)
-- [ ] T059 [US3] Create essay answer component at `src/components/exam/EssayQuestion.tsx` — textarea with debounced `save-answer` call (after typing pause / on blur, per FR-014)
-- [ ] T060 [US3] Create save-status indicator component at `src/components/exam/SaveStatus.tsx` — shows per-question status: "Saving...", "Saved ✓", "Unsynced ⚠️" (FR-015)
-- [ ] T061 [US3] Implement offline queue in `src/lib/offline-queue.ts` — queue failed save-answer calls locally, show unsynced state, retry on reconnect, reject server-side if window closed (FR-016)
-- [ ] T062 [US3] Create submit exam button/modal at `src/components/exam/SubmitExam.tsx` — confirmation dialog, calls `submit-attempt`, shows success/already-submitted state
-- [ ] T063 [US3] Implement countdown timer component at `src/components/exam/CountdownTimer.tsx` — displays remaining time from `remaining_seconds` (informational), visual warning at low time
-- [ ] T064 [US3] Implement session takeover handling in exam-taking page — if `was_takeover: true` from `start-attempt`, show notification to student; handle stale-session 403 errors gracefully
-- [ ] T065 [P] [US3] Write Visual Regression Tests for exam-taking UI in `tests/visual/student-exam.spec.ts` — AR/EN × Light/Dark snapshots for question display, timer, save indicators
+- [x] T056 [US3] Create student dashboard at `src/app/student/page.tsx` — show permitted upcoming exams and past attempts with status
+- [x] T057 [US3] Create exam-taking page at `src/app/student/exam/[attemptId]/page.tsx` — start attempt, show server deadline timer, and load student-safe questions
+- [x] T058 [US3] Create MCQ answer component at `src/components/exam/McqQuestion.tsx` — accessible radio choices with debounced save
+- [x] T059 [US3] Create essay answer component at `src/components/exam/EssayQuestion.tsx` — bounded text area with debounced save
+- [x] T060 [US3] Create per-question save status at `src/components/exam/SaveStatus.tsx` — saving, saved, and unsynced states
+- [x] T061 [US3] Implement offline answer queue in `src/lib/offline-queue.ts` — keep the latest answer per question/session, show unsynced state, retry on reconnect, and rely on server deadline checks
+- [x] T062 [US3] Create submit confirmation in `src/components/exam/SubmitExam.tsx` — confirms, calls `submit-attempt`, and handles result/error states
+- [x] T063 [US3] Implement countdown timer in `src/components/exam/CountdownTimer.tsx` — server deadline display with a low-time warning
+- [x] T064 [US3] Implement takeover and stale-session handling in the exam page with a notification and generic access denial recovery
+- [x] T065 [P] [US3] Add visual regression snapshots for the question, timer, and save indicator across AR/EN × Light/Dark in `tests/visual/student-exam.spec.ts`
 
 **Checkpoint**: A student can take a complete exam end-to-end with autosave, offline handling, and manual submission. Combined with US1+US2, the full exam lifecycle works.
 
@@ -367,3 +367,4 @@ Since this is a solo project:
 - Database migration files exist but MUST be reconciled and verified via T007a before any other work begins — do not assume they are correct as-is.
 - Edge Functions are the primary backend work in this feature
 - Constitution compliance is checked at every phase via tests and audit tasks
+- US3 Edge Function integration tests are authored but remain pending a successful local Edge Runtime run; the SQL transaction and offline queue tests pass, and CI now starts the runtime before running Vitest.

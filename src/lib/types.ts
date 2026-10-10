@@ -86,6 +86,22 @@ export interface GetExamQuestionsResponse {
   attempt_id: string;
   remaining_seconds: number;
   questions: ExamQuestion[];
+  answers: Pick<Answer, 'question_id' | 'mcq_answer' | 'essay_answer'>[];
+}
+
+export interface StartAttemptResponse {
+  attempt_id: string;
+  session_id: string;
+  was_takeover: boolean;
+  remaining_seconds: number;
+  exam_ends_at: string;
+}
+
+export interface SubmitAttemptResponse {
+  attempt_id: string;
+  status: 'submitted';
+  finished_at: string;
+  already_submitted: boolean;
 }
 
 /**

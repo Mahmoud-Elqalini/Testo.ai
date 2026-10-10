@@ -19,35 +19,37 @@
 ```typescript
 // Content-Type: application/json
 interface StartAttemptRequest {
-  access_token: string;  // From the emailed exam link (FR-009)
+  attempt_id: string; // UUID from the student's own RLS-visible attempt row
 }
 ```
 
+The client identifies the attempt by ID and the function binds it to the authenticated JWT user. It does not send `access_token`: authenticated users cannot read that column, and this foundation does not implement email delivery for access links.
+
 ## Validation Checks (strict order)
 
-Every check that fails returns `403 Access denied` (uniform — see error-policy.md).
+Security-sensitive checks return uniform `403 Access denied`; malformed or missing fields return `400 validation_error` (see error-policy.md).
 The internal `denial_reason` logged server-side is noted in parentheses.
 
 | Step | Check | Denial Reason (logged) |
 |---|---|---|
 | 1 | `auth.uid()` is present (Supabase middleware) | Returns `401` (handled by Supabase, not this function) |
-| 2 | `access_token` is present and non-empty in request body | `"token_not_found"` |
-| 3 | An `exam_attempts` row exists with this `access_token` | `"token_not_found"` |
-| 4 | The attempt's `student_id` matches `auth.uid()` | `"owner_mismatch"` |
+| 2 | `attempt_id` is present and a valid UUID | `400 validation_error` |
+| 3 | An `exam_attempts` row exists with this `id` and `student_id = auth.uid()` | `"owner_mismatch"` |
+| 4 | The exam is published | `"exam_not_published"` |
 | 5 | The attempt's `status` is `'pending'` OR `'in_progress'` | `"status_not_startable"` |
 | 6 | Join to `exams`: `now() >= exam.start_time` | `"outside_exam_window"` |
 | 7 | Join to `exams`: `now() < exam.start_time + (exam.duration_minutes * interval '1 minute')` | `"outside_exam_window"` |
 
 ## Success Action (atomic read-and-update)
 
-Inside the Edge Function, the transaction logic must read the old session state before overwriting it:
+The Edge Function verifies the JWT and passes the authenticated user ID to `fn_start_attempt` in `0008_student_attempt_operations.sql`. That security-definer function locks and updates the attempt in one transaction, reading the old session before overwriting it:
 
 ```sql
 -- 1. Read existing state
 SELECT ea.id, ea.session_id INTO v_attempt_id, v_old_session_id
 FROM exam_attempts ea
 JOIN exams e ON e.id = ea.exam_id
-WHERE ea.access_token = :access_token
+WHERE ea.id = :attempt_id
   AND ea.student_id = auth.uid()
   AND ea.status IN ('pending', 'in_progress')
   AND now() >= e.start_time AND now() < e.start_time + (e.duration_minutes * interval '1 minute')
@@ -94,7 +96,7 @@ interface StartAttemptResponse {
 ## Idempotency and Session Takeover
 
 This function is **NOT idempotent** for the initial start, but it **is idempotent for session takeover**.
-Calling it twice with the same `access_token` while the attempt is `pending` or `in_progress` will succeed both times. The second call will overwrite the `session_id`, acting as a session takeover (FR-021a), but `started_at` will remain locked to the first call's timestamp. If the status is no longer `pending` or `in_progress` (e.g. `submitted`), it returns `403`.
+Calling it twice with the same `attempt_id` while the attempt is `pending` or `in_progress` will succeed both times. The second call will overwrite the `session_id`, acting as a session takeover (FR-021a), but `started_at` will remain locked to the first call's timestamp. If the status is no longer `pending` or `in_progress` (e.g. `submitted`), it returns `403`.
 
 **Visibility distinction (Recovery vs. Takeover)**:
 - **Recovery**: If the client lost the network response during the very first call, they simply retry `start-attempt`. It will succeed, overwrite the first session, and return `was_takeover: true`. The client should quietly accept the new session.
