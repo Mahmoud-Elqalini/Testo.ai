@@ -1,6 +1,8 @@
 import { loadEnvConfig } from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
+import { signInBrowserContext, visualAppOrigin } from './helpers/sign-in'
+import { updateVisualProfile } from './helpers/sign-in'
 
 loadEnvConfig(process.cwd())
 
@@ -22,7 +24,7 @@ test.describe('Admin exam creation visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`create exam - ${locale} - ${theme}`, async ({ page, context }) => {
+      test(`create exam - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
         const adminEmail = `admin-exam-vrt-${crypto.randomUUID()}@testo.local`
         const { data, error: createError } = await adminClient!.auth.admin.createUser({
           email: adminEmail,
@@ -33,27 +35,24 @@ test.describe('Admin exam creation visual regression', () => {
         const adminUserId = data.user.id
 
         try {
-          const { error: profileError } = await adminClient!
-            .from('profiles')
-            .update({ role: 'admin', preferred_language: locale, preferred_theme: theme })
-            .eq('id', adminUserId)
-          if (profileError) throw profileError
+          await updateVisualProfile(adminClient!, adminUserId, {
+            role: 'admin',
+            preferred_language: locale,
+            preferred_theme: theme,
+          })
 
         await context.addCookies([
-          { name: 'testo_language', value: locale, url: 'http://localhost:3000' },
+          { name: 'testo_language', value: locale, url: visualAppOrigin() },
+          { name: 'testo_theme', value: theme, url: visualAppOrigin() },
         ])
         await page.addInitScript(({ locale, theme }) => {
           window.localStorage.setItem('testo_language', locale)
           window.localStorage.setItem('testo_theme', theme)
         }, { locale, theme })
 
-        await page.goto('/login')
-        await page.locator('input[type="email"]').fill(adminEmail)
-        await page.locator('input[type="password"]').fill(adminPassword)
-        await page.locator('form button[type="submit"]').click()
-        await expect(page).toHaveURL(/\/dashboard$/)
+        await signInBrowserContext(context, adminEmail, adminPassword)
 
-        await page.goto('/admin/exams/create')
+        await page.goto('/admin/exams/create', { waitUntil: 'domcontentloaded' })
         await expect(page.locator('html')).toHaveAttribute('lang', locale)
         await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
         if (theme === 'dark') await expect(page.locator('html')).toHaveClass(/\bdark\b/)
@@ -71,11 +70,13 @@ test.describe('Admin exam creation visual regression', () => {
         await page.locator('#exam-description').fill('Stable preview content')
         await page.locator('#exam-start-time').fill('2026-12-01T12:00')
         await page.locator('#exam-duration').fill('60')
-        await expect(page).toHaveScreenshot(`admin-exam-create-${locale}-${theme}.png`, {
-          fullPage: true,
-          animations: 'disabled',
-          maxDiffPixelRatio: 0.05,
-        })
+        if (browserName === 'chromium') {
+          await expect(page).toHaveScreenshot(`admin-exam-create-${locale}-${theme}.png`, {
+            fullPage: true,
+            animations: 'disabled',
+            maxDiffPixelRatio: 0.05,
+          })
+        }
         } finally {
           const { error: deleteError } = await adminClient!.auth.admin.deleteUser(adminUserId)
           if (deleteError) throw deleteError

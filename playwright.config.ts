@@ -1,7 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const webPort = process.env.TEST_WEB_PORT ?? '3000';
-const runCrossBrowser = process.env.PLAYWRIGHT_CROSS_BROWSER === 'true';
 
 export default defineConfig({
   testDir: './tests/visual',
@@ -11,7 +10,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
   use: {
-    baseURL: `http://localhost:${webPort}`,
+    baseURL: `http://127.0.0.1:${webPort}`,
     trace: 'on-first-retry',
   },
   projects: [
@@ -19,18 +18,14 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-    ...(runCrossBrowser
-      ? [
-          {
-            name: 'firefox',
-            use: { ...devices['Desktop Firefox'] },
-          },
-          {
-            name: 'webkit',
-            use: { ...devices['Desktop Safari'] },
-          },
-        ]
-      : []),
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
   ],
   webServer: {
     command: `npm run dev -- --hostname 127.0.0.1 --port ${webPort}`,

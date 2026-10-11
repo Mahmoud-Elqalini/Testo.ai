@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies, headers } from "next/headers";
 import { I18nProvider, Language } from "@/lib/i18n/provider";
-import { ThemeProvider } from "@/lib/theme/provider";
+import { ThemeProvider, type Theme } from "@/lib/theme/provider";
 import { QueryProvider } from "@/lib/query/provider";
 import "./globals.css";
 
@@ -55,7 +55,10 @@ function getLanguageFromAcceptLanguage(
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [cookieStore, headersList] = await Promise.all([cookies(), headers()]);
   const langCookie = cookieStore.get("testo_language")?.value;
+  const themeCookie = cookieStore.get("testo_theme")?.value;
   const cookieLanguage = langCookie === "en" || langCookie === "ar" ? langCookie : undefined;
+  const initialTheme: Theme | undefined =
+    themeCookie === "light" || themeCookie === "dark" ? themeCookie : undefined;
   const initialLang =
     cookieLanguage ??
     getLanguageFromAcceptLanguage(headersList.get("accept-language")) ??
@@ -66,12 +69,12 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang={initialLang}
       dir={initialDir}
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${initialTheme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[--color-background] text-[--color-foreground]">
         <QueryProvider>
-          <ThemeProvider>
+          <ThemeProvider initialTheme={initialTheme}>
             <I18nProvider initialLanguage={initialLang}>
               {children}
             </I18nProvider>

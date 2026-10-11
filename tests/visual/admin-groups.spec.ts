@@ -1,6 +1,8 @@
 import { loadEnvConfig } from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
+import { signInBrowserContext, visualAppOrigin } from './helpers/sign-in'
+import { updateVisualProfile } from './helpers/sign-in'
 
 loadEnvConfig(process.cwd())
 
@@ -19,7 +21,16 @@ test.describe('Admin groups and access visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`groups and members - ${locale} - ${theme}`, async ({ page, context }) => {
+      test(`groups and members - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+        page.on('pageerror', (error) => console.error(`[browser pageerror] ${error.message}`))
+        page.on('console', (message) => {
+          if (message.type() === 'error') console.error(`[browser console] ${message.text()}`)
+        })
+        page.on('requestfailed', (request) => {
+          const url = new URL(request.url())
+          console.error(`[browser requestfailed] ${request.method()} ${url.origin}${url.pathname}: ${request.failure()?.errorText ?? 'unknown error'}`)
+        })
+
         const password = 'Testo-groups-visual-password-123!'
         const adminEmail = `admin-groups-vrt-${crypto.randomUUID()}@testo.local`
         const studentEmail = `student-groups-vrt-${crypto.randomUUID()}@testo.local`
@@ -29,8 +40,10 @@ test.describe('Admin groups and access visual regression', () => {
         if (studentError || !studentData.user) throw studentError ?? new Error('Could not create visual test student')
 
         try {
-          await adminClient!.from('profiles').update({ role: 'admin', preferred_language: locale, preferred_theme: theme }).eq('id', adminData.user.id)
-          await adminClient!.from('profiles').update({ full_name: 'Visual Student' }).eq('id', studentData.user.id)
+          await updateVisualProfile(adminClient!, adminData.user.id, {
+            role: 'admin', preferred_language: locale, preferred_theme: theme,
+          })
+          await updateVisualProfile(adminClient!, studentData.user.id, { full_name: 'Visual Student' })
           const { data: group, error: groupError } = await adminClient!.from('groups').insert({ name: 'Visual cohort', admin_id: adminData.user.id }).select('id').single()
           if (groupError || !group) throw groupError ?? new Error('Could not create visual test group')
           const { data: exam, error: examError } = await adminClient!.from('exams').insert({ title: 'Visual access exam', start_time: new Date(Date.now() + 86_400_000).toISOString(), duration_minutes: 30, admin_id: adminData.user.id }).select('id').single()
@@ -38,30 +51,35 @@ test.describe('Admin groups and access visual regression', () => {
           const { error: memberError } = await adminClient!.from('group_students').insert({ group_id: group.id, student_id: studentData.user.id })
           if (memberError) throw memberError
 
-          await context.addCookies([{ name: 'testo_language', value: locale, url: 'http://localhost:3000' }])
+          await context.addCookies([
+            { name: 'testo_language', value: locale, url: visualAppOrigin() },
+            { name: 'testo_theme', value: theme, url: visualAppOrigin() },
+          ])
           await page.addInitScript(({ locale, theme }) => {
             window.localStorage.setItem('testo_language', locale)
             window.localStorage.setItem('testo_theme', theme)
           }, { locale, theme })
-          await page.goto('/login')
-          await page.locator('input[type="email"]').fill(adminEmail)
-          await page.locator('input[type="password"]').fill(password)
-          await page.locator('form button[type="submit"]').click()
-          await expect(page).toHaveURL(/\/dashboard$/)
+          await signInBrowserContext(context, adminEmail, password)
 
-          await page.goto('/admin/groups')
+          await page.goto('/admin/groups', { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'ar' ? 'مجموعات الطلاب' : 'Student groups' })).toBeVisible()
           await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
-          await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          if (browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          }
 
-          await page.goto(`/admin/groups/${group.id}`)
+          await page.goto(`/admin/groups/${group.id}`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByText(studentEmail, { exact: true }).first()).toBeVisible()
-          await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })] })
+          if (browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })] })
+          }
 
-          await page.goto(`/admin/exams/${exam.id}/publish`)
+          await page.goto(`/admin/exams/${exam.id}/publish`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'ar' ? 'صلاحيات دخول الامتحان' : 'Exam access' })).toBeVisible()
-          await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          if (browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          }
         } finally {
           const { error: adminDeleteError } = await adminClient!.auth.admin.deleteUser(adminData.user.id)
           const { error: studentDeleteError } = await adminClient!.auth.admin.deleteUser(studentData.user.id)

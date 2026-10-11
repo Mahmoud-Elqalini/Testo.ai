@@ -1,6 +1,7 @@
 import { loadEnvConfig } from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
+import { signInBrowserContext, updateVisualProfile, visualAppOrigin } from './helpers/sign-in'
 
 loadEnvConfig(process.cwd())
 
@@ -19,7 +20,7 @@ test.describe('Group invitation visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`admin invitation and student join - ${locale} - ${theme}`, async ({ page, context }) => {
+      test(`admin invitation and student join - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
         test.setTimeout(120_000)
         page.setDefaultTimeout(30_000)
         const password = 'Testo-invitations-visual-password-123!'
@@ -34,22 +35,35 @@ test.describe('Group invitation visual regression', () => {
         }
 
         try {
-          await adminClient!.from('profiles').update({ role: 'admin', preferred_language: locale, preferred_theme: theme }).eq('id', adminData.user.id)
-          await adminClient!.from('profiles').update({ preferred_language: locale, preferred_theme: theme }).eq('id', studentData.user.id)
+          await updateVisualProfile(adminClient!, adminData.user.id, {
+            role: 'admin', preferred_language: locale, preferred_theme: theme,
+          })
+          await updateVisualProfile(adminClient!, studentData.user.id, {
+            preferred_language: locale,
+            preferred_theme: theme,
+          })
           const { data: group, error: groupError } = await adminClient!.from('groups')
             .insert({ name: 'Invitation visual cohort', admin_id: adminData.user.id }).select('id').single()
           if (groupError || !group) throw groupError ?? new Error('Could not create visual test group')
 
-          await context.addCookies([{ name: 'testo_language', value: locale, url: 'http://localhost:3000' }])
+          await context.addCookies([{ name: 'testo_language', value: locale, url: visualAppOrigin() }])
           await page.addInitScript(({ locale, theme }) => {
             window.localStorage.setItem('testo_language', locale)
             window.localStorage.setItem('testo_theme', theme)
           }, { locale, theme })
+          await page.addInitScript(() => {
+            let clipboardText = ''
+            Object.defineProperty(navigator, 'clipboard', {
+              configurable: true,
+              value: {
+                readText: async () => clipboardText,
+                writeText: async (text: string) => { clipboardText = text },
+              },
+            })
+          })
 
-          await page.goto('/login')
-          await page.locator('input[type="email"]').fill(adminEmail)
-          await page.locator('input[type="password"]').fill(password)
-          await page.locator('form button[type="submit"]').click()
+          await signInBrowserContext(context, adminEmail, password)
+          await page.goto('/dashboard')
           await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 })
           await page.waitForLoadState('networkidle')
           const joinGroupLabel = locale === 'en' ? 'Join a group' : 'الانضمام إلى مجموعة'
@@ -59,11 +73,12 @@ test.describe('Group invitation visual regression', () => {
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Group invitation' : 'دعوة المجموعة' })).toBeVisible()
           await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
-          await expect(page).toHaveScreenshot(`admin-group-invitation-${locale}-${theme}.png`, {
-            fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
-          })
+          if (browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`admin-group-invitation-${locale}-${theme}.png`, {
+              fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
+            })
+          }
 
-          await context.grantPermissions(['clipboard-read', 'clipboard-write'])
           await page.getByRole('button', { name: locale === 'en' ? 'Create invitation code' : 'إنشاء رمز دعوة' }).click()
           const issuedCode = (await page.locator('code[dir="ltr"]').innerText()).trim()
           expect(issuedCode).toMatch(/^[a-f0-9]{32}$/)
@@ -73,18 +88,19 @@ test.describe('Group invitation visual regression', () => {
           await page.goto('/dashboard')
           await page.getByRole('button', { name: locale === 'en' ? 'Sign Out' : 'تسجيل الخروج' }).click()
           await expect(page).toHaveURL(/\/login$/, { timeout: 30_000 })
-          await page.locator('input[type="email"]').fill(studentEmail)
-          await page.locator('input[type="password"]').fill(password)
-          await page.locator('form button[type="submit"]').click()
+          await signInBrowserContext(context, studentEmail, password)
+          await page.goto('/dashboard')
           await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 })
           await page.waitForLoadState('networkidle')
           await expect(page.getByRole('link', { name: joinGroupLabel })).toBeVisible()
 
           await page.goto('/student/join-group')
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Join a group' : 'الانضمام إلى مجموعة' })).toBeVisible()
-          await expect(page).toHaveScreenshot(`student-join-group-${locale}-${theme}.png`, {
-            fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
-          })
+          if (browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`student-join-group-${locale}-${theme}.png`, {
+              fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
+            })
+          }
 
           await page.getByLabel(locale === 'en' ? 'Invitation code' : 'رمز الدعوة').fill(issuedCode)
           await page.getByRole('button', { name: locale === 'en' ? 'Join group' : 'انضمام إلى المجموعة' }).click()

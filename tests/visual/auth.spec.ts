@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { visualAppOrigin } from './helpers/sign-in'
 
 const pages = [
   { name: 'login', path: '/login' },
@@ -13,7 +14,7 @@ test.describe('Auth Pages VRT', () => {
   for (const pageInfo of pages) {
     for (const locale of locales) {
       for (const theme of themes) {
-        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page, context }) => {
+        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
           // The layout reads the language from the request cookie during SSR.
           // Set it before navigation so the initial HTML, direction, and hydrated
           // client state all use the locale under test.
@@ -21,7 +22,12 @@ test.describe('Auth Pages VRT', () => {
             {
               name: 'testo_language',
               value: locale,
-              url: 'http://localhost:3000',
+              url: visualAppOrigin(),
+            },
+            {
+              name: 'testo_theme',
+              value: theme,
+              url: visualAppOrigin(),
             },
           ]);
 
@@ -34,7 +40,7 @@ test.describe('Auth Pages VRT', () => {
             { locale, theme },
           );
           
-          await page.goto(`http://localhost:3000${pageInfo.path}`)
+          await page.goto(pageInfo.path, { waitUntil: 'domcontentloaded' })
 
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
           await expect(page.locator('html')).toHaveAttribute(
@@ -47,16 +53,19 @@ test.describe('Auth Pages VRT', () => {
             await expect(page.locator('html')).not.toHaveClass(/\bdark\b/)
           }
            
-          // Wait for hydration and basic UI to render
-          await page.waitForSelector('form')
+          await expect(page.locator('form')).toBeVisible()
+          if (pageInfo.path === '/login') {
+            await expect(page.locator('form button[type="submit"]')).toBeEnabled()
+          }
           
-          // Wait for any animations to finish
-          await page.waitForTimeout(500)
-          
-          await expect(page).toHaveScreenshot(`${pageInfo.name}-${locale}-${theme}.png`, {
-            fullPage: true,
-            maxDiffPixelRatio: 0.05,
-          })
+          // Firefox/WebKit reference images are maintained on Linux. Windows
+          // uses different rendering and has no checked-in baselines for them.
+          if (process.platform !== 'win32' || browserName === 'chromium') {
+            await expect(page).toHaveScreenshot(`${pageInfo.name}-${locale}-${theme}.png`, {
+              fullPage: true,
+              maxDiffPixelRatio: 0.05,
+            })
+          }
         })
       }
     }

@@ -2,6 +2,7 @@ import { loadEnvConfig } from '@next/env'
 import { createServerClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
+import { visualAppOrigin } from './helpers/sign-in'
 
 loadEnvConfig(process.cwd())
 
@@ -60,7 +61,7 @@ test.describe('Student exam-taking visual regression', () => {
           status: 200, contentType: 'application/json', body: JSON.stringify({ saved: true, question_id: question.data!.id, saved_at: new Date().toISOString() }),
         }))
 
-        await context.addCookies([{ name: 'testo_language', value: locale, url: 'http://localhost:3000' }])
+        await context.addCookies([{ name: 'testo_language', value: locale, url: visualAppOrigin() }])
         await page.addInitScript(({ locale, theme }) => {
           window.localStorage.setItem('testo_language', locale)
           window.localStorage.setItem('testo_theme', theme)
@@ -78,8 +79,7 @@ test.describe('Student exam-taking visual regression', () => {
         })
         const { error: signInError } = await authClient.auth.signInWithPassword({ email, password })
         if (signInError) throw signInError
-        const port = process.env.TEST_WEB_PORT ?? '3000'
-        await context.addCookies([...cookieJar].map(([name, value]) => ({ name, value, url: `http://localhost:${port}` })))
+        await context.addCookies([...cookieJar].map(([name, value]) => ({ name, value, url: visualAppOrigin() })))
         await page.goto(`/student/exam/${attemptId}`)
         await expect(page.getByText('Which option matches the sample?')).toBeVisible({ timeout: 30_000 })
         await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')

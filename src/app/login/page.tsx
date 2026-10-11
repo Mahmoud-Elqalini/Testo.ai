@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { SecureAuthContextError, signIn } from '@/lib/auth'
@@ -14,10 +14,15 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
   const router = useRouter()
   const { t } = useTranslation()
+
+  useEffect(() => {
+    setHydrated(true)
+  }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -69,7 +74,7 @@ export default function LoginPage() {
           
           {error && <p className="text-sm font-medium text-red-500">{error}</p>}
           
-          <Button type="submit" fullWidth loading={loading}>
+          <Button type="submit" fullWidth loading={loading} disabled={!hydrated}>
             {t('auth.loginButton')}
           </Button>
         </form>
