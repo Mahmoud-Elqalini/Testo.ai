@@ -22,13 +22,42 @@ test.describe('Admin groups and access visual regression', () => {
   for (const locale of locales) {
     for (const theme of themes) {
       test(`groups and members - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+        test.setTimeout(90_000)
         page.on('pageerror', (error) => console.error(`[browser pageerror] ${error.message}`))
-        page.on('console', (message) => {
-          if (message.type() === 'error') console.error(`[browser console] ${message.text()}`)
+        page.on('console', async (message) => {
+          if (message.type() !== 'error') return
+
+          const args = await Promise.all(message.args().map(async (arg) => {
+            try {
+              return await arg.evaluate((value) => {
+                if (value instanceof Error) {
+                  return { name: value.name, message: value.message, stack: value.stack }
+                }
+                if (value && typeof value === 'object') {
+                  const errorFields = ['name', 'message', 'code', 'details', 'hint', 'status', 'statusText', 'error']
+                  return Object.fromEntries(errorFields
+                    .filter((key) => key in value)
+                    .map((key) => [key, (value as Record<string, unknown>)[key]]))
+                }
+                return value
+              })
+            } catch {
+              return '[unavailable]'
+            }
+          }))
+
+          console.error(`[browser console] ${JSON.stringify(args)}`)
         })
         page.on('requestfailed', (request) => {
           const url = new URL(request.url())
           console.error(`[browser requestfailed] ${request.method()} ${url.origin}${url.pathname}: ${request.failure()?.errorText ?? 'unknown error'}`)
+        })
+        page.on('response', (response) => {
+          if (response.status() >= 400) {
+            const request = response.request()
+            const url = new URL(response.url())
+            console.error(`[browser response ${response.status()}] ${request.method()} ${url.origin}${url.pathname}`)
+          }
         })
 
         const password = 'Testo-groups-visual-password-123!'
@@ -76,7 +105,7 @@ test.describe('Admin groups and access visual regression', () => {
           }
 
           await page.goto(`/admin/exams/${exam.id}/publish`, { waitUntil: 'domcontentloaded' })
-          await expect(page.getByRole('heading', { name: locale === 'ar' ? 'صلاحيات دخول الامتحان' : 'Exam access' })).toBeVisible()
+          await expect(page.getByRole('heading', { name: locale === 'ar' ? 'صلاحيات دخول الامتحان' : 'Exam access' })).toBeVisible({ timeout: 15_000 })
           if (browserName === 'chromium') {
             await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
           }

@@ -56,6 +56,41 @@ describe('exam permissions service (local Supabase)', () => {
     expect((await listExamPermissions(examId)).data).toHaveLength(1)
   }, 30_000)
 
+  it('shows a published exam to a group member but not to a non-member', async () => {
+    admin = await createTestAdmin()
+    student = await createTestStudent()
+    groupStudent = await createTestStudent()
+
+    const exam = await createExam({
+      title: 'Group visibility exam',
+      start_time: new Date(Date.now() + 3600_000).toISOString(),
+      duration_minutes: 30,
+    })
+    expect(exam.error).toBeNull()
+    examId = exam.data!.id
+
+    const group = await createGroup({ name: 'Visibility cohort' })
+    expect(group.error).toBeNull()
+    expect((await addStudentToGroup(group.data!.id, groupStudent.userId)).error).toBeNull()
+    expect((await grantExamGroupAccess(examId, group.data!.id)).error).toBeNull()
+
+    const { error: publishError } = await adminClient
+      .from('exams')
+      .update({ is_published: true })
+      .eq('id', examId)
+    expect(publishError).toBeNull()
+
+    const [memberResult, nonMemberResult] = await Promise.all([
+      groupStudent.client.from('exams').select('id').eq('id', examId),
+      student.client.from('exams').select('id').eq('id', examId),
+    ])
+
+    expect(memberResult.error).toBeNull()
+    expect(memberResult.data).toEqual([{ id: examId }])
+    expect(nonMemberResult.error).toBeNull()
+    expect(nonMemberResult.data).toEqual([])
+  }, 30_000)
+
   it('rejects a group not owned by the exam admin and invalid permission targets', async () => {
     admin = await createTestAdmin()
     student = await createTestStudent()
