@@ -34,4 +34,19 @@ describe('start-attempt Edge Function (local Supabase)', () => {
     const result = await fixture.student.client.functions.invoke('start-attempt', { body: { attempt_id: 'invalid' } })
     expect(await responseBody(result.error)).toMatchObject({ status: 400, body: { error: 'validation_error' } })
   }, 30_000)
+
+  it('rejects the stale session after a takeover', async () => {
+    fixture = await createAttemptFixture()
+    const first = await fixture.student.client.functions.invoke('start-attempt', { body: { attempt_id: fixture.attemptId } })
+    expect(first.error).toBeNull()
+    const staleSessionId = first.data.session_id
+
+    const second = await fixture.student.client.functions.invoke('start-attempt', { body: { attempt_id: fixture.attemptId } })
+    expect(second.error).toBeNull()
+    expect(second.data.was_takeover).toBe(true)
+
+    const query = new URLSearchParams({ attempt_id: fixture.attemptId, session_id: staleSessionId })
+    const stale = await fixture.student.client.functions.invoke(`get-exam-questions?${query}`, { method: 'GET' })
+    expect(await responseBody(stale.error)).toEqual({ status: 403, body: { error: 'access_denied', message: 'Access denied.' } })
+  }, 30_000)
 })

@@ -1,14 +1,20 @@
 import { createTestAdmin, createTestStudent } from '../services/test-context'
 import { adminClient } from '../helpers/supabase-admin'
 
-export async function createAttemptFixture(options: { startsInMs?: number; status?: string; sessionId?: string } = {}) {
+export async function createAttemptFixture(options: {
+  startsInMs?: number;
+  durationMinutes?: number;
+  status?: string;
+  sessionId?: string;
+  withEssayQuestion?: boolean;
+} = {}) {
   const admin = await createTestAdmin()
   const student = await createTestStudent()
   const startTime = new Date(Date.now() + (options.startsInMs ?? -60_000)).toISOString()
   const { data: exam, error: examError } = await adminClient.from('exams').insert({
     title: `Attempt test ${crypto.randomUUID()}`,
     start_time: startTime,
-    duration_minutes: 30,
+    duration_minutes: options.durationMinutes ?? 30,
     admin_id: admin.userId,
     is_published: true,
   }).select('id').single()
@@ -24,6 +30,21 @@ export async function createAttemptFixture(options: { startsInMs?: number; statu
     reference_answers: [{ id: 'ref1', text: 'private reference' }],
   }).select('id').single()
   if (questionError || !question) throw questionError ?? new Error('Question was not created')
+
+  let essayQuestionId: string | undefined
+  if (options.withEssayQuestion) {
+    const { data: essay, error: essayError } = await adminClient.from('questions').insert({
+      exam_id: exam.id,
+      type: 'essay',
+      text: 'Explain your reasoning.',
+      points: 5,
+      order: 2,
+      reference_answers: [{ id: 'ref2', text: 'Expected explanation' }],
+    }).select('id').single()
+    if (essayError || !essay) throw essayError ?? new Error('Essay question was not created')
+    essayQuestionId = essay.id
+  }
+
   const { data: attempt, error: attemptError } = await adminClient.from('exam_attempts').insert({
     exam_id: exam.id,
     student_id: student.userId,
@@ -34,7 +55,7 @@ export async function createAttemptFixture(options: { startsInMs?: number; statu
   if (attemptError || !attempt) throw attemptError ?? new Error('Attempt was not created')
 
   return {
-    admin, student, examId: exam.id, questionId: question.id, attemptId: attempt.id,
+    admin, student, examId: exam.id, questionId: question.id, essayQuestionId, attemptId: attempt.id,
     async cleanup() { await student.cleanup(); await admin.cleanup() },
   }
 }

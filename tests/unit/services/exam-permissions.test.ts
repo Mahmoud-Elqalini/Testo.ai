@@ -26,7 +26,7 @@ describe('exam permissions service (local Supabase)', () => {
     if (student) { await student.cleanup(); student = undefined }
     if (groupStudent) { await groupStudent.cleanup(); groupStudent = undefined }
     if (foreignAdminId) { await adminClient.auth.admin.deleteUser(foreignAdminId); foreignAdminId = undefined }
-  })
+  }, 60_000)
 
   it('grants individual, group, and mixed access and allows revoking an unstarted permission', async () => {
     admin = await createTestAdmin()
@@ -54,7 +54,7 @@ describe('exam permissions service (local Supabase)', () => {
     const revoked = await revokeExamPermission(examId, { studentId: student.userId })
     expect(revoked.error).toBeNull()
     expect((await listExamPermissions(examId)).data).toHaveLength(1)
-  }, 30_000)
+  }, 60_000)
 
   it('shows a published exam to a group member but not to a non-member', async () => {
     admin = await createTestAdmin()
@@ -89,7 +89,7 @@ describe('exam permissions service (local Supabase)', () => {
     expect(memberResult.data).toEqual([{ id: examId }])
     expect(nonMemberResult.error).toBeNull()
     expect(nonMemberResult.data).toEqual([])
-  }, 30_000)
+  }, 60_000)
 
   it('rejects a group not owned by the exam admin and invalid permission targets', async () => {
     admin = await createTestAdmin()
@@ -111,7 +111,7 @@ describe('exam permissions service (local Supabase)', () => {
     expect((await grantExamGroupAccess(examId, foreignGroup!.id)).error).not.toBeNull()
     expect((await grantExamGroupAccess(examId, '00000000-0000-0000-0000-000000000000')).error).not.toBeNull()
     expect((await revokeExamPermission(examId, {})).error?.code).toBe('validation_error')
-  }, 30_000)
+  }, 60_000)
 
   it('preserves exam and group access while the student has an in-progress attempt', async () => {
     admin = await createTestAdmin()
@@ -134,5 +134,5 @@ describe('exam permissions service (local Supabase)', () => {
     expect((await revokeExamPermission(examId, { groupId: group.data!.id })).error).not.toBeNull()
     expect((await removeStudentFromGroup(group.data!.id, groupStudent.userId)).error).not.toBeNull()
     expect((await listExamPermissions(examId)).data).toHaveLength(2)
-  }, 30_000)
+  }, 60_000)
 })

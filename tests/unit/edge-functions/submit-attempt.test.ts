@@ -26,4 +26,13 @@ describe('submit-attempt Edge Function (local Supabase)', () => {
     const result = await fixture.student.client.functions.invoke('submit-attempt', { body: { attempt_id: fixture.attemptId, session_id: sessionId } })
     expect(await responseBody(result.error)).toEqual({ status: 403, body: { error: 'access_denied', message: 'Access denied.' } })
   }, 30_000)
+
+  it('denies submission with a stale session identifier', async () => {
+    fixture = await createAttemptFixture()
+    await fixture.student.client.functions.invoke('start-attempt', { body: { attempt_id: fixture.attemptId } })
+    const result = await fixture.student.client.functions.invoke('submit-attempt', {
+      body: { attempt_id: fixture.attemptId, session_id: crypto.randomUUID() },
+    })
+    expect(await responseBody(result.error)).toEqual({ status: 403, body: { error: 'access_denied', message: 'Access denied.' } })
+  }, 30_000)
 })

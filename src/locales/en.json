@@ -186,6 +186,21 @@
     "accessDenied": "This area is available to admins only."
   },
   "student": {
+    "results": {
+      "view": "View result",
+      "title": "Exam result",
+      "status": "Attempt status",
+      "score": "Score",
+      "percentage": "Percentage",
+      "breakdown": "Question breakdown",
+      "yourAnswer": "Your answer",
+      "correctAnswer": "Correct answer",
+      "unanswered": "No answer",
+      "essayScore": "Essay score: {score}%",
+      "pendingTitle": "Grading in progress",
+      "pendingDescription": "Your exam is closed. The score and question breakdown will appear here when grading is complete.",
+      "unavailable": "This result is unavailable or you don't have permission to view it."
+    },
     "exam": {
       "dashboardTitle": "My exams",
       "dashboardDescription": "Review your upcoming exams and previous attempts.",

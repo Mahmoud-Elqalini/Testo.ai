@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -18,6 +19,7 @@ import type { ExamQuestion, GetExamQuestionsResponse } from '@/lib/types'
 type DraftAnswer = { mcq_answer: string | null; essay_answer: string | null }
 
 export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: string; examTitle: string | null }) {
+  const router = useRouter()
   const { t, language } = useTranslation()
   const [data, setData] = useState<GetExamQuestionsResponse | null>(null)
   const [sessionId, setSessionId] = useState<string | null>(null)
@@ -81,6 +83,14 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
     const timer = window.setInterval(update, 1000)
     return () => window.clearInterval(timer)
   }, [endsAt])
+
+  useEffect(() => {
+    if (remainingSeconds !== 0 || submitted) return
+    for (const timeout of pendingSaves.current.values()) window.clearTimeout(timeout)
+    pendingSaves.current.clear()
+    const redirect = window.setTimeout(() => router.replace('/student'), 3_000)
+    return () => window.clearTimeout(redirect)
+  }, [remainingSeconds, router, submitted])
 
   const persistAnswer = useCallback(async (payload: SaveAnswerInput) => {
     if (!navigator.onLine) {

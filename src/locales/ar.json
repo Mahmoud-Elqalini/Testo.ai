@@ -186,6 +186,21 @@
     "accessDenied": "هذا القسم مخصص للمشرفين فقط."
   },
   "student": {
+    "results": {
+      "view": "عرض النتيجة",
+      "title": "نتيجة الامتحان",
+      "status": "حالة المحاولة",
+      "score": "الدرجة",
+      "percentage": "النسبة المئوية",
+      "breakdown": "تفصيل درجات الأسئلة",
+      "yourAnswer": "إجابتك",
+      "correctAnswer": "الإجابة الصحيحة",
+      "unanswered": "بلا إجابة",
+      "essayScore": "درجة السؤال المقالي: {score}٪",
+      "pendingTitle": "التصحيح جارٍ",
+      "pendingDescription": "أُغلقت محاولتك. ستظهر الدرجة وتفاصيل الأسئلة هنا بعد اكتمال التصحيح.",
+      "unavailable": "النتيجة غير متاحة أو ليس لديك صلاحية لعرضها."
+    },
     "exam": {
       "dashboardTitle": "امتحاناتي",
       "dashboardDescription": "راجع امتحاناتك القادمة ومحاولاتك السابقة.",

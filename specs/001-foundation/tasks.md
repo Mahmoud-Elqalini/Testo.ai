@@ -145,10 +145,10 @@
 
 > **NOTE:** These Edge Function tests MUST run against a real local Postgres/Supabase instance (via Supabase CLI + Docker) rather than a mocked Supabase client. RLS policies, triggers, enum casts, and search_path behavior cannot be validated by mocks — as demonstrated during live debugging.
 
-- [ ] T047 [P] [US3] TDD integration tests for `start-attempt` in `tests/unit/edge-functions/start-attempt.test.ts` — verify authenticated ownership, UUID validation, successful start, session takeover, and generic denials against local Supabase
-- [ ] T048 [P] [US3] TDD integration tests for `get-exam-questions` in `tests/unit/edge-functions/get-exam-questions.test.ts` — verify session validation and that responses never contain `correct_choice` or `reference_answers`
-- [ ] T049 [P] [US3] TDD integration tests for `save-answer` in `tests/unit/edge-functions/save-answer.test.ts` — verify session and question validation, answer UPSERT idempotency, and saved timestamp
-- [ ] T050 [P] [US3] TDD integration tests for `submit-attempt` in `tests/unit/edge-functions/submit-attempt.test.ts` — verify `in_progress` → `submitted`, duplicate submission, and closed-attempt denial
+- [x] T047 [P] [US3] TDD integration tests for `start-attempt` in `tests/unit/edge-functions/start-attempt.test.ts` — verify authenticated ownership, UUID validation, successful start, session takeover, and generic denials against local Supabase
+- [x] T048 [P] [US3] TDD integration tests for `get-exam-questions` in `tests/unit/edge-functions/get-exam-questions.test.ts` — verify session validation and that responses never contain `correct_choice` or `reference_answers`
+- [x] T049 [P] [US3] TDD integration tests for `save-answer` in `tests/unit/edge-functions/save-answer.test.ts` — verify session and question validation, answer UPSERT idempotency, and saved timestamp
+- [x] T050 [P] [US3] TDD integration tests for `submit-attempt` in `tests/unit/edge-functions/submit-attempt.test.ts` — verify `in_progress` → `submitted`, duplicate submission, and closed-attempt denial
 
 ### Implementation for User Story 3 — Edge Functions
 
@@ -170,6 +170,8 @@
 - [x] T063 [US3] Implement countdown timer in `src/components/exam/CountdownTimer.tsx` — server deadline display with a low-time warning
 - [x] T064 [US3] Implement takeover and stale-session handling in the exam page with a notification and generic access denial recovery
 - [x] T065 [P] [US3] Add visual regression snapshots for the question, timer, and save indicator across AR/EN × Light/Dark in `tests/visual/student-exam.spec.ts`
+- [x] T065a [US3] Add functional browser coverage for a mixed MCQ/essay attempt that goes offline, shows unsynced answers, and automatically syncs them after reconnecting to local Supabase in `tests/visual/student-exam-offline.spec.ts`
+- [x] T065b [US3] Add functional browser coverage for manual submission through the student UI, verifying the saved answer and `submitted` attempt status in local Supabase in `tests/visual/student-exam-submit.spec.ts`
 
 **Checkpoint**: A student can take a complete exam end-to-end with autosave, offline handling, and manual submission. Combined with US1+US2, the full exam lifecycle works.
 
@@ -185,13 +187,13 @@
 
 > **NOTE:** Like US3, these tests MUST run against a real local Postgres/Supabase instance (via Supabase CLI + Docker) rather than mocked.
 
-- [ ] T066 [P] [US4] TDD test for expired-attempt sweep function in `tests/unit/db/sweep-expired-attempts.test.ts` — test `in_progress` → `auto_submitted` and `pending` → `abandoned` transitions by programmatically creating a test attempt, advancing/simulating time past the deadline (or directly invoking fn_sweep_expired_attempts()), and verifying the status transition and `finished_at` value.
-- [ ] T067 [P] [US4] TDD test verifying re-access denial after `auto_submitted` in `tests/unit/edge-functions/post-expiry-denial.test.ts` — `start-attempt` returns 403 for `auto_submitted`/`abandoned` attempts
+- [x] T066 [P] [US4] TDD test for expired-attempt sweep function in `tests/unit/db/sweep-expired-attempts.test.ts` — test `in_progress` → `auto_submitted` and `pending` → `abandoned` transitions by programmatically creating a test attempt, advancing/simulating time past the deadline (or directly invoking fn_sweep_expired_attempts()), and verifying the status transition and `finished_at` value.
+- [x] T067 [P] [US4] TDD test verifying re-access denial after `auto_submitted` in `tests/unit/edge-functions/post-expiry-denial.test.ts` — `start-attempt` returns 403 for `auto_submitted`/`abandoned` attempts
 
 ### Implementation for User Story 4
 
-- [ ] T069 [US4] Implement client-side timer expiry handling in exam-taking page — when countdown reaches 0, show "Time's up" message, disable all inputs, redirect to results/dashboard after brief delay
-- [ ] T070 [US4] Implement student-side UI for `abandoned` vs `auto_submitted` distinction in `src/app/student/page.tsx` — past attempts list shows correct status label and icon
+- [x] T069 [US4] Implement client-side timer expiry handling in exam-taking page — when countdown reaches 0, show "Time's up" message, disable all inputs, redirect to results/dashboard after brief delay
+- [x] T070 [US4] Implement student-side UI for `abandoned` vs `auto_submitted` distinction in `src/app/student/page.tsx` — past attempts list shows correct status label and icon
 
 **Checkpoint**: Attempts auto-close server-side regardless of client connectivity. The full attempt lifecycle (`pending` → `in_progress` → `submitted`/`auto_submitted`/`abandoned`) is fully functional.
 
@@ -205,15 +207,15 @@
 
 ### Tests for User Story 5 🧪
 
-- [ ] T071 [P] [US5] TDD test for results service in `tests/unit/services/results.test.ts` — test score computation, per-question breakdown, pending-grading state detection
-- [ ] T072 [P] [US5] TDD test for RLS on answers/attempts in `tests/unit/db/results-rls.test.ts` — verify student can only see own attempt scores, never another student's
+- [x] T071 [P] [US5] TDD test for results service in `tests/unit/services/results.test.ts` — test score computation, per-question breakdown, pending-grading state detection
+- [x] T072 [P] [US5] TDD test for RLS on answers/attempts in `tests/unit/db/results-rls.test.ts` — verify student can only see own attempt scores, never another student's
 
 ### Implementation for User Story 5
 
-- [ ] T073 [US5] Create results service in `src/lib/services/results-service.ts` — fetches attempt with answers and scores, computes total, detects pending-grading state
-- [ ] T074 [US5] Create results page at `src/app/student/results/[attemptId]/page.tsx` — displays total score, per-question breakdown (MCQ: selected vs correct after grading; essay: score), or "Grading in progress" pending state (FR-022)
-- [ ] T075 [US5] Create result summary card component at `src/components/results/ResultCard.tsx` — shows attempt status, score, date, exam title
-- [ ] T076 [P] [US5] Write Visual Regression Tests for results page in `tests/visual/student-results.spec.ts` — AR/EN × Light/Dark, both graded and pending states
+- [x] T073 [US5] Create results service in `src/lib/services/results-service.ts` — fetches attempt with answers and scores, computes total, detects pending-grading state
+- [x] T074 [US5] Create results page at `src/app/student/results/[attemptId]/page.tsx` — displays total score, per-question breakdown (MCQ: selected vs correct after grading; essay: score), or "Grading in progress" pending state (FR-022)
+- [x] T075 [US5] Create result summary card component at `src/components/results/ResultCard.tsx` — shows attempt status, score, date, exam title
+- [x] T076 [P] [US5] Write Visual Regression Tests for results page in `tests/visual/student-results.spec.ts` — Chromium, Firefox, and WebKit × AR/EN × Light/Dark × graded/pending; browser-specific baselines captured and reviewed
 
 **Checkpoint**: Students can view their own results with full per-question breakdown.
 
@@ -367,4 +369,4 @@ Since this is a solo project:
 - Database migration files exist but MUST be reconciled and verified via T007a before any other work begins — do not assume they are correct as-is.
 - Edge Functions are the primary backend work in this feature
 - Constitution compliance is checked at every phase via tests and audit tasks
-- US3 Edge Function integration tests are authored but remain pending a successful local Edge Runtime run; the SQL transaction and offline queue tests pass, and CI now starts the runtime before running Vitest.
+- US3 Edge Function integration tests T047–T050 pass against local Supabase; the SQL transaction and offline queue tests pass, and CI starts the runtime before running Vitest.

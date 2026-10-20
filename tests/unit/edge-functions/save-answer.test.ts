@@ -29,4 +29,13 @@ describe('save-answer Edge Function (local Supabase)', () => {
     const invalid = await fixture.student.client.functions.invoke('save-answer', { body: { attempt_id: fixture.attemptId, session_id: started.data.session_id, question_id: crypto.randomUUID(), mcq_answer: null, essay_answer: 'Answer' } })
     expect(await responseBody(invalid.error)).toMatchObject({ status: 400, body: { error: 'validation_error' } })
   }, 30_000)
+
+  it('rejects an answer after the exam deadline has passed (FR-016)', async () => {
+    const sessionId = crypto.randomUUID()
+    fixture = await createAttemptFixture({ startsInMs: -120_000, durationMinutes: 1, status: 'in_progress', sessionId })
+    const result = await fixture.student.client.functions.invoke('save-answer', {
+      body: { attempt_id: fixture.attemptId, session_id: sessionId, question_id: fixture.questionId, mcq_answer: 'a', essay_answer: null },
+    })
+    expect(await responseBody(result.error)).toEqual({ status: 403, body: { error: 'access_denied', message: 'Access denied.' } })
+  }, 30_000)
 })
