@@ -21,7 +21,8 @@ export default function LoginPage() {
   const { t } = useTranslation()
 
   useEffect(() => {
-    setHydrated(true)
+    const timer = window.setTimeout(() => setHydrated(true), 0)
+    return () => window.clearTimeout(timer)
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {

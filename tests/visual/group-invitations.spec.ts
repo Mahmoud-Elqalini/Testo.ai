@@ -63,13 +63,12 @@ test.describe('Group invitation visual regression', () => {
           })
 
           await signInBrowserContext(context, adminEmail, password)
-          await page.goto('/dashboard')
+          await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
           await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 })
-          await page.waitForLoadState('networkidle')
           const joinGroupLabel = locale === 'en' ? 'Join a group' : 'الانضمام إلى مجموعة'
           await expect(page.getByRole('link', { name: joinGroupLabel })).toHaveCount(0)
 
-          await page.goto(`/admin/groups/${group.id}`)
+          await page.goto(`/admin/groups/${group.id}`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Group invitation' : 'دعوة المجموعة' })).toBeVisible()
           await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
@@ -80,18 +79,20 @@ test.describe('Group invitation visual regression', () => {
           })
 
           await page.getByRole('button', { name: locale === 'en' ? 'Create invitation code' : 'إنشاء رمز دعوة' }).click()
-          const issuedCode = (await page.locator('code[dir="ltr"]').innerText()).trim()
+          const invitationCode = page.locator('code[dir="ltr"]')
+          await expect(invitationCode).toBeVisible()
+          const issuedCode = (await invitationCode.textContent())?.trim() ?? ''
           expect(issuedCode).toMatch(/^[a-f0-9]{32}$/)
           await page.getByRole('button', { name: locale === 'en' ? 'Copy code' : 'نسخ الرمز' }).click()
           await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(issuedCode)
 
-          await page.goto('/dashboard')
+          await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
           await page.getByRole('button', { name: locale === 'en' ? 'Sign Out' : 'تسجيل الخروج' }).click()
           await expect(page).toHaveURL(/\/login$/, { timeout: 30_000 })
+          await context.clearCookies()
           await signInBrowserContext(context, studentEmail, password)
-          await page.goto('/dashboard')
+          await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
           await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 })
-          await page.waitForLoadState('networkidle')
           await expect(page.getByRole('link', { name: joinGroupLabel })).toBeVisible()
 
           await page.goto('/student/join-group')

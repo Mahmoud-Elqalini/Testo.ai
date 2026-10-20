@@ -27,7 +27,9 @@ export default function StudentResultPage({ attemptId }: { attemptId: string }) 
 
   useEffect(() => {
     let active = true
-    void load(() => active)
+    void Promise.resolve().then(() => {
+      if (active) void load(() => active)
+    })
     return () => { active = false }
   }, [load])
 

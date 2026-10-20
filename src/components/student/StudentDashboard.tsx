@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { SafeText } from '@/components/shared/SafeText'
+import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { createClient } from '@/lib/supabase/client'
 import type { Exam, ExamAttempt } from '@/lib/types'
@@ -48,12 +49,23 @@ export default function StudentDashboard() {
   const openAttempts = attempts.filter((attempt) => attempt.status === 'pending' || attempt.status === 'in_progress')
   const closedAttempts = attempts.filter((attempt) => attempt.status !== 'pending' && attempt.status !== 'in_progress')
 
-  return (
-    <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-10 sm:px-6">
+  const featuredAttempt = openAttempts[0]
+  const featuredUpcoming = upcoming.find((exam) => !attempts.some((attempt) => attempt.exam_id === exam.id))
+
+  return <WorkspaceLayout role="student" active="dashboard"><main className="space-y-7">
       <header className="flex flex-wrap items-start justify-between gap-4">
-        <div><h1 className="text-3xl font-bold">{t('student.exam.dashboardTitle')}</h1><p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('student.exam.dashboardDescription')}</p></div>
+        <div><p className="mb-2 text-[10px] font-bold tracking-[.14em] text-neutral-600">{t('nav.dashboard').toLocaleUpperCase(language)}</p><h1 className="text-[27px] font-semibold leading-tight tracking-[-.04em] sm:text-[30px]">{t('student.exam.dashboardTitle')}</h1><p className="mt-2 text-[13px] text-neutral-600 dark:text-neutral-300">{t('student.exam.dashboardDescription')}</p></div>
         <Link href="/student/join-group"><Button variant="secondary">{t('dashboard.joinGroup')}</Button></Link>
       </header>
+      {!loading && !error && <>
+        <section className="testo-admin-metrics" aria-label={t('student.exam.dashboardTitle')}>
+          {[{label:t('student.exam.upcomingCount'),value:upcoming.length,icon:'▦'},{label:t('student.exam.inProgressCount'),value:openAttempts.length,icon:'◉'},{label:t('student.exam.completedCount'),value:closedAttempts.length,icon:'✓'},{label:t('student.exam.totalAttempts'),value:attempts.length,icon:'▤'}].map((metric) => <article key={metric.label} className="testo-metric-card"><span aria-hidden="true">{metric.icon}</span><p>{metric.label}</p><strong>{metric.value}</strong></article>)}
+        </section>
+        <section className="testo-student-grid">
+          {(featuredAttempt || featuredUpcoming) ? <article className="testo-feature-card"><span className="text-[10px] font-bold tracking-[.14em]">{t('student.exam.available').toLocaleUpperCase(language)}</span><h2><SafeText value={featuredAttempt?.exam?.title ?? featuredUpcoming?.title ?? ''} /></h2><p>{t('admin.exams.starts')}: {formatDate(featuredAttempt?.exam?.start_time ?? featuredUpcoming!.start_time)}</p><p>{t('admin.exams.duration')}: {featuredAttempt?.exam?.duration_minutes ?? featuredUpcoming?.duration_minutes} {t('admin.exams.minutes')}</p>{featuredAttempt ? <Link href={`/student/exam/${featuredAttempt.id}`}>{featuredAttempt.status === 'in_progress' ? t('student.exam.continue') : t('student.exam.start')} →</Link> : <p>{featuredUpcoming?.active ? t('student.exam.preparing') : t('student.exam.notOpen')}</p>}</article> : <article className="testo-feature-card"><span className="text-[10px] font-bold tracking-[.14em]">{t('student.exam.available').toLocaleUpperCase(language)}</span><h2>{t('student.exam.noAvailable')}</h2><p>{t('student.exam.dashboardDescription')}</p></article>}
+          <Card className="flex flex-col justify-center gap-3 p-6"><span className="text-2xl text-primary-600">✓</span><h2 className="font-semibold">{t('student.exam.pastAttempts')}</h2><p className="text-sm text-neutral-600">{closedAttempts.length} · {t('student.exam.dashboardDescription')}</p><Link className="text-sm font-semibold text-primary-700 hover:underline dark:text-primary-300" href="#past-attempts-title">{t('student.exam.pastAttempts')} →</Link></Card>
+        </section>
+      </>}
       {loading && <p role="status">{t('common.loading')}</p>}
       {error && <Card className="space-y-4 p-6" role="alert"><p>{t('student.exam.loadError')}</p><Button variant="secondary" onClick={() => void load()}>{t('common.retry')}</Button></Card>}
       {!loading && !error && <>
@@ -84,6 +96,5 @@ export default function StudentDashboard() {
           </Card></li>)}</ul>
         </section>
       </>}
-    </main>
-  )
+    </main></WorkspaceLayout>
 }

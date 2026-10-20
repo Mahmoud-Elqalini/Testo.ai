@@ -95,19 +95,21 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
       })
       await signInBrowserContext(context, studentEmail, password)
 
-      await page.goto(`/student/exam/${attemptId}`)
+      await page.goto(`/student/exam/${attemptId}`, { waitUntil: 'domcontentloaded' })
       await expect(page.getByText('Choose the correct sample option.')).toBeVisible({ timeout: 30_000 })
-      await expect(page.getByText('Explain your reasoning in a sentence.')).toBeVisible()
 
       await context.setOffline(true)
       await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(false)
 
       await page.getByRole('radio', { name: /First answer/ }).check()
+      await expect(page.locator('[role="status"]').getByText('Not synced', { exact: true })).toBeVisible({ timeout: 10_000 })
+      await page.getByRole('button', { name: 'Next' }).click()
+      await expect(page.getByText('Explain your reasoning in a sentence.')).toBeVisible()
       const essayInput = page.getByRole('textbox')
       await essayInput.fill('My answer remains available after reconnecting.')
       await essayInput.press('Tab')
 
-      await expect(page.locator('[role="status"]').getByText('Not synced', { exact: true })).toHaveCount(2, { timeout: 10_000 })
+      await expect(page.locator('[role="status"]').getByText('Not synced', { exact: true })).toBeVisible({ timeout: 10_000 })
 
       const { data: beforeReconnect, error: beforeReconnectError } = await adminClient!.from('answers')
         .select('id')
@@ -117,7 +119,9 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
 
       await context.setOffline(false)
       await expect.poll(() => page.evaluate(() => navigator.onLine)).toBe(true)
-      await expect(page.locator('[role="status"]').getByText('Saved', { exact: true })).toHaveCount(2, { timeout: 20_000 })
+      await expect(page.locator('[role="status"]').getByText('Saved', { exact: true })).toBeVisible({ timeout: 20_000 })
+      await page.getByRole('button', { name: 'Previous' }).click()
+      await expect(page.locator('[role="status"]').getByText('Saved', { exact: true })).toBeVisible({ timeout: 10_000 })
 
       const { data: savedAnswers, error: savedAnswersError } = await adminClient!.from('answers')
         .select('question_id, mcq_answer, essay_answer')

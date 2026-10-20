@@ -79,7 +79,7 @@ test.describe('Student exam-taking visual regression', () => {
         const { error: signInError } = await authClient.auth.signInWithPassword({ email, password })
         if (signInError) throw signInError
         await context.addCookies([...cookieJar].map(([name, value]) => ({ name, value, url: visualAppOrigin() })))
-        await page.goto(`/student/exam/${attemptId}`)
+        await page.goto(`/student/exam/${attemptId}`, { waitUntil: 'domcontentloaded' })
         await expect(page.getByText('Which option matches the sample?')).toBeVisible({ timeout: 30_000 })
         await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
         await expect(page.locator('html')).toHaveAttribute('lang', locale)

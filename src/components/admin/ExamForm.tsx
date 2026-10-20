@@ -23,7 +23,7 @@ function defaultStartTime() {
 
 export function ExamForm({ examId }: { examId?: string }) {
   const router = useRouter()
-  const { t } = useTranslation()
+  const { t, language } = useTranslation()
   const [exam, setExam] = useState<Exam | null>(null)
   const [contentLocked, setContentLocked] = useState(false)
   const [title, setTitle] = useState('')
@@ -97,7 +97,8 @@ export function ExamForm({ examId }: { examId?: string }) {
   if (loading) return <p role="status">{t('common.loading')}</p>
 
   return (
-    <Card className="w-full max-w-3xl space-y-6 p-6 sm:p-8">
+    <div className="testo-setup-layout">
+    <Card className="testo-setup-card w-full space-y-6 p-6 sm:p-8">
       <div>
         <Link className="text-sm text-primary-600 hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
         <h1 className="mt-4 text-2xl font-bold">
@@ -167,5 +168,13 @@ export function ExamForm({ examId }: { examId?: string }) {
         </Button>}
       </form>
     </Card>
+    <aside className="testo-setup-summary">
+      <div><span className="testo-setup-step is-active">1</span><div><strong>{language === 'ar' ? 'تفاصيل الاختبار' : 'Exam details'}</strong><small>{language === 'ar' ? 'العنوان والموعد والمدة' : 'Title, schedule and duration'}</small></div></div>
+      <div><span className="testo-setup-step">2</span><div><strong>{t('admin.exams.manageQuestions')}</strong><small>{language === 'ar' ? 'أضف أسئلة الاختيار والمقالي' : 'Add MCQ and essay questions'}</small></div></div>
+      <div><span className="testo-setup-step">3</span><div><strong>{language === 'ar' ? 'الوصول والنشر' : 'Access and publish'}</strong><small>{language === 'ar' ? 'امنح الطلاب صلاحية ثم انشر' : 'Grant access, then publish'}</small></div></div>
+      <section><span>{language === 'ar' ? 'معاينة الموعد' : 'Schedule overview'}</span><strong>{title.trim() || t('admin.exams.createTitle')}</strong><small>{startTime ? new Intl.DateTimeFormat(language,{dateStyle:'medium',timeStyle:'short'}).format(new Date(startTime)) : t('admin.exams.startTimeLabel')}</small><small>{duration} {t('admin.exams.minutes')}</small></section>
+      <p>{language === 'ar' ? 'يتطلب دخول الطلاب إلى الاختبار تسجيل الدخول. يمكنك إدارة الصلاحيات قبل النشر.' : 'Students sign in to access exams. You can manage permissions before publishing.'}</p>
+    </aside>
+    </div>
   )
 }

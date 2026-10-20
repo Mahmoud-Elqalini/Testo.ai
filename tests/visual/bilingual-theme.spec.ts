@@ -24,7 +24,7 @@ test.describe('Global bilingual and theme controls', () => {
             localStorage.setItem('testo_theme', selectedTheme)
           }, { selectedLocale: locale, selectedTheme: theme })
 
-          await page.goto(pageInfo.path)
+          await page.goto(pageInfo.path, { waitUntil: 'domcontentloaded' })
           if (pageInfo.name === 'home') {
             await expect(page.getByRole('heading', { name: locale === 'en' ? 'Exams, organized and ready' : 'امتحاناتك، منظمة وجاهزة' })).toBeVisible()
           }

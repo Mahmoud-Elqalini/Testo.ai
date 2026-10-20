@@ -1,9 +1,6 @@
 import { ExamForm } from '@/components/admin/ExamForm'
+import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 
 export default function CreateExamPage() {
-  return (
-    <main className="mx-auto flex w-full max-w-5xl justify-center px-4 py-10 sm:px-6">
-      <ExamForm />
-    </main>
-  )
+  return <WorkspaceLayout role="admin" active="exams"><main className="mx-auto w-full max-w-6xl"><ExamForm /></main></WorkspaceLayout>
 }

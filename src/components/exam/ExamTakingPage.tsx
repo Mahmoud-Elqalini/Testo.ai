@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { SafeText } from '@/components/shared/SafeText'
+import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 import CountdownTimer from '@/components/exam/CountdownTimer'
 import EssayQuestion from '@/components/exam/EssayQuestion'
 import McqQuestion from '@/components/exam/McqQuestion'
@@ -34,6 +35,8 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
   const [submitError, setSubmitError] = useState(false)
   const [sessionInvalid, setSessionInvalid] = useState(false)
   const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [reviewedQuestions, setReviewedQuestions] = useState<string[]>([])
   const pendingSaves = useRef(new Map<string, number>())
 
   const loadExam = useCallback(async () => {
@@ -161,11 +164,17 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
   const timeExpired = remainingSeconds === 0
   const inputsDisabled = timeExpired || sessionInvalid
   const title = examTitle ?? t('student.exam.examTitle')
+  const answeredCount = data?.questions.filter((question) => {
+    const answer = answers[question.id]
+    return Boolean(answer?.mcq_answer || answer?.essay_answer?.trim())
+  }).length ?? 0
+  const currentQuestion = data?.questions[currentIndex]
+  const numberLabel = (value: number) => new Intl.NumberFormat(language).format(value)
 
-  return <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-    <header className="flex flex-wrap items-start justify-between gap-4">
-      <div><Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><h1 className="mt-3 text-2xl font-bold">{title}</h1></div>
-      {endsAt && !submitted && <CountdownTimer endsAt={endsAt} />}
+  return <WorkspaceLayout role="student" active="exam-room" focusMode><main className="testo-exam-room mx-auto w-full max-w-none space-y-6">
+    <header className="testo-exam-heading">
+      <div><Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><p className="mt-3 testo-exam-eyebrow">{t('student.exam.questionCount').replace('{count}', numberLabel(data?.questions.length ?? 0))}</p><h1 className="mt-1 text-2xl font-bold">{title}</h1></div>
+      <div className="testo-exam-secure">◈ <span>{t('student.exam.autosaveHint')}</span></div>
     </header>
 
     {loading && <p role="status">{t('student.exam.loadingExam')}</p>}
@@ -176,22 +185,27 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
     {submitted && <Card className="space-y-4 p-6"><h2 className="text-xl font-semibold">{t('student.exam.submittedTitle')}</h2><p>{t('student.exam.submittedDescription')}</p><Link href="/student"><Button>{t('student.exam.backToDashboard')}</Button></Link></Card>}
 
     {!loading && !loadError && !submitted && data && <>
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.exam.questionCount').replace('{count}', String(data.questions.length))}</p><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.exam.autosaveHint')}</p></div>
-      <section className="space-y-4" aria-label={t('student.exam.questions')}>
-        {data.questions.map((question, index) => {
-          const answer = answers[question.id] ?? { mcq_answer: null, essay_answer: null }
-          return <Card key={question.id} className="space-y-5 p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3"><h2 className="min-w-0 flex-1 text-lg font-semibold"><span className="me-2 text-neutral-600 dark:text-neutral-300">{index + 1}.</span><SafeText value={question.text} /></h2><span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs dark:bg-neutral-800">{question.points.toLocaleString(language)} {t('student.exam.points')}</span></div>
-            {question.type === 'mcq'
-              ? <McqQuestion question={question} value={answer.mcq_answer} onChange={(value) => changeAnswer(question, { mcq_answer: value, essay_answer: null })} disabled={inputsDisabled} labels={{ choices: t('student.exam.choices'), clear: t('student.exam.clearAnswer') }} />
-              : <EssayQuestion questionId={question.id} value={answer.essay_answer ?? ''} onChange={(value) => changeAnswer(question, { mcq_answer: null, essay_answer: value })} onBlur={(value) => changeAnswer(question, { mcq_answer: null, essay_answer: value }, true)} disabled={inputsDisabled} />}
-            <div className="flex justify-end"><SaveStatus state={saveStates[question.id] ?? 'idle'} /></div>
-          </Card>
-        })}
-      </section>
+      <div className="testo-exam-statusbar"><span>{t('student.exam.questionCount').replace('{count}', numberLabel(data.questions.length))}</span><span className="testo-exam-autosave">● {t('student.exam.autosaveHint')}</span>{endsAt && !submitted && <CountdownTimer endsAt={endsAt} />}</div>
+      {currentQuestion && <div className="testo-exam-layout">
+        <section className="testo-question-panel" aria-label={t('student.exam.questions')}>
+          <div className="testo-question-head"><div><p>{t('student.exam.questionOf').replace('{current}', numberLabel(currentIndex + 1)).replace('{total}', numberLabel(data.questions.length))}</p><div className="testo-question-progress"><span style={{ width: `${((currentIndex + 1) / data.questions.length) * 100}%` }} /></div></div><div className="testo-question-tools"><span>{currentQuestion.points.toLocaleString(language)} {t('student.exam.points')}</span><button type="button" aria-pressed={reviewedQuestions.includes(currentQuestion.id)} onClick={() => setReviewedQuestions((items) => items.includes(currentQuestion.id) ? items.filter((id) => id !== currentQuestion.id) : [...items, currentQuestion.id])}>{reviewedQuestions.includes(currentQuestion.id) ? t('student.exam.unmarkReview') : t('student.exam.markReview')}</button></div></div>
+          <div className="testo-question-body"><h2><SafeText value={currentQuestion.text} /></h2><p className="testo-question-hint">{t('student.exam.choices')}</p>
+            {currentQuestion.type === 'mcq'
+              ? <McqQuestion question={currentQuestion} value={answers[currentQuestion.id]?.mcq_answer ?? null} onChange={(value) => changeAnswer(currentQuestion, { mcq_answer: value, essay_answer: null })} disabled={inputsDisabled} labels={{ choices: t('student.exam.choices'), clear: t('student.exam.clearAnswer') }} />
+              : <EssayQuestion questionId={currentQuestion.id} value={answers[currentQuestion.id]?.essay_answer ?? ''} onChange={(value) => changeAnswer(currentQuestion, { mcq_answer: null, essay_answer: value })} onBlur={(value) => changeAnswer(currentQuestion, { mcq_answer: null, essay_answer: value }, true)} disabled={inputsDisabled} />}
+            <div className="mt-5 flex justify-end"><SaveStatus state={saveStates[currentQuestion.id] ?? 'idle'} /></div>
+          </div>
+          <footer className="testo-question-footer"><Button variant="secondary" disabled={currentIndex === 0} onClick={() => setCurrentIndex((index) => Math.max(0, index - 1))}>{t('student.exam.previous')}</Button><span>{numberLabel(answeredCount)} / {numberLabel(data.questions.length)} · {t('student.exam.autosaveHint')}</span><Button disabled={currentIndex >= data.questions.length - 1} onClick={() => setCurrentIndex((index) => Math.min(data.questions.length - 1, index + 1))}>{t('student.exam.next')}</Button></footer>
+        </section>
+        <aside className="testo-question-nav"><div className="testo-question-nav-head"><div><h2>{t('student.exam.questions')}</h2><p>{numberLabel(answeredCount)} / {numberLabel(data.questions.length)}</p></div><strong>{Math.round(answeredCount / data.questions.length * 100)}%</strong></div><div className="testo-question-numbers">{data.questions.map((question, index) => {
+          const answer = answers[question.id]
+          const answered = Boolean(answer?.mcq_answer || answer?.essay_answer?.trim())
+          const marked = reviewedQuestions.includes(question.id)
+          return <button key={question.id} type="button" aria-label={`${t('student.exam.questions')} ${numberLabel(index + 1)}${marked ? `, ${t('student.exam.markReview')}` : ''}`} aria-current={index === currentIndex ? 'step' : undefined} onClick={() => setCurrentIndex(index)} className={`${index === currentIndex ? 'is-current ' : ''}${answered ? 'is-answered ' : ''}${marked ? 'is-reviewed' : ''}`}>{numberLabel(index + 1)}{marked && <i />}</button>
+        })}</div><div className="testo-question-legend"><span><i className="is-filled" />{t('student.exam.answered')}</span><span><i />{t('student.exam.unanswered')}</span></div><div className="testo-question-completion"><strong>{numberLabel(answeredCount)} / {numberLabel(data.questions.length)}</strong><span>{t('student.exam.autosaveHint')}</span></div><div className="testo-question-submit"><SubmitExam disabled={hasUnsynced || inputsDisabled} loading={submitLoading} onSubmit={onSubmit} /></div></aside>
+      </div>}
       {submitError && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{t('student.exam.submitError')}</p>}
       {hasUnsynced && <p role="status" className="text-sm text-amber-700 dark:text-amber-300">{t('student.exam.syncBeforeSubmit')}</p>}
-      <div className="flex justify-end border-t border-neutral-200 pt-5 dark:border-neutral-800"><SubmitExam disabled={hasUnsynced || inputsDisabled} loading={submitLoading} onSubmit={onSubmit} /></div>
     </>}
-  </main>
+  </main></WorkspaceLayout>
 }

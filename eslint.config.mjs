@@ -17,6 +17,7 @@ const eslintConfig = defineConfig([
     "coverage/**",
     "supabase/**",
     ".specify/**",
+    "Testo-Clarifier/**",
   ]),
 ]);
 

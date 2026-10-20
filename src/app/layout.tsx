@@ -6,6 +6,7 @@ import { ThemeProvider, type Theme } from "@/lib/theme/provider";
 import { QueryProvider } from "@/lib/query/provider";
 import { PreferenceSwitcher } from "@/components/shared/PreferenceSwitcher";
 import "./globals.css";
+import "./workspace.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
