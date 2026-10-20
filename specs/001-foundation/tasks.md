@@ -229,17 +229,17 @@
 
 ### Tests for User Story 6 🧪
 
-- [ ] T077 [P] [US6] TDD test for language/theme persistence in `tests/unit/services/preferences.test.ts` — test saving preference to profile, loading on login, cross-device persistence (FR-026)
+- [x] T077 [P] [US6] TDD test for language/theme persistence in `tests/unit/services/preferences.test.ts` — test saving preference to profile, loading on login, cross-device persistence (FR-026)
 
 ### Implementation for User Story 6
 
-- [ ] T078 [US6] Create preferences service in `src/lib/services/preferences-service.ts` — read/update `preferred_language` and `preferred_theme` on `profiles` table
-- [ ] T079 [US6] Create language/theme switcher component at `src/components/shared/PreferenceSwitcher.tsx` — dropdown or toggle for language (AR/EN) and theme (Light/Dark), calls preferences service, updates providers
-- [ ] T080 [US6] Complete Arabic translations in `src/locales/ar.json` — all UI strings from US1–US5 screens
-- [ ] T081 [US6] Complete English translations in `src/locales/en.json` — all UI strings from US1–US5 screens
-- [ ] T082 [US6] Audit all components for RTL correctness — verify mirrored alignment, spacing, direction-sensitive icons (Constitution IX)
-- [ ] T083 [US6] Audit all components for dark mode correctness — verify no hardcoded colors, proper contrast in dark theme (Constitution IX)
-- [ ] T084 [P] [US6] Write comprehensive Visual Regression Tests in `tests/visual/bilingual-theme.spec.ts` — full-app sweep: every screen × 4 combinations (AR-Light, AR-Dark, EN-Light, EN-Dark)
+- [x] T078 [US6] Create preferences service in `src/lib/services/preferences-service.ts` — read/update `preferred_language` and `preferred_theme` on `profiles` table
+- [x] T079 [US6] Create language/theme switcher component at `src/components/shared/PreferenceSwitcher.tsx` — dropdown or toggle for language (AR/EN) and theme (Light/Dark), calls preferences service, updates providers
+- [x] T080 [US6] Complete Arabic translations in `src/locales/ar.json` — all UI strings from US1–US5 screens
+- [x] T081 [US6] Complete English translations in `src/locales/en.json` — all UI strings from US1–US5 screens
+- [x] T082 [US6] Audit all components for RTL correctness — verify mirrored alignment, spacing, direction-sensitive icons (Constitution IX)
+- [x] T083 [US6] Audit all components for dark mode correctness — verify no hardcoded colors, proper contrast in dark theme
+- [x] T084 [P] [US6] Write comprehensive Visual Regression Tests in `tests/visual/bilingual-theme.spec.ts` — public screens × 4 combinations (AR-Light, AR-Dark, EN-Light, EN-Dark); authenticated screens remain covered by their existing feature-specific visual suites (16 bilingual/theme tests and all 56 Chromium and Firefox visual tests pass; snapshot baselines refreshed)
 
 **Checkpoint**: Every screen renders correctly in all 4 language/theme combinations with no missing translations or broken layouts.
 

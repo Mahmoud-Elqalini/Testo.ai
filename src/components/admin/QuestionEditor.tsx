@@ -148,7 +148,7 @@ export function QuestionEditor({ examId }: { examId: string }) {
           {questions.map((question, index) => (
             <li key={question.id} className="flex flex-wrap items-start justify-between gap-3 rounded-lg border border-neutral-200 p-4 dark:border-neutral-700">
               <div className="min-w-0 space-y-1">
-                <p className="text-xs font-semibold uppercase text-neutral-500">{index + 1}. {t(`admin.questions.${question.type}`)} · {question.points} {t('admin.questions.pointsAbbr')}</p>
+                <p className="text-xs font-semibold uppercase text-neutral-600 dark:text-neutral-300">{index + 1}. {t(`admin.questions.${question.type}`)} · {question.points} {t('admin.questions.pointsAbbr')}</p>
                 <p className="break-words font-medium"><SafeText value={question.text} /></p>
               </div>
               {!contentLocked && (

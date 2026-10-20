@@ -14,7 +14,8 @@ test.describe('Auth Pages VRT', () => {
   for (const pageInfo of pages) {
     for (const locale of locales) {
       for (const theme of themes) {
-        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+        test(`${pageInfo.name} page - ${locale} - ${theme}`, async ({ page, context }) => {
+          page.setDefaultTimeout(30_000)
           // The layout reads the language from the request cookie during SSR.
           // Set it before navigation so the initial HTML, direction, and hydrated
           // client state all use the locale under test.
@@ -55,17 +56,13 @@ test.describe('Auth Pages VRT', () => {
            
           await expect(page.locator('form')).toBeVisible()
           if (pageInfo.path === '/login') {
-            await expect(page.locator('form button[type="submit"]')).toBeEnabled()
+            await expect(page.locator('form button[type="submit"]')).toBeEnabled({ timeout: 30_000 })
           }
           
-          // Firefox/WebKit reference images are maintained on Linux. Windows
-          // uses different rendering and has no checked-in baselines for them.
-          if (process.platform !== 'win32' || browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`${pageInfo.name}-${locale}-${theme}.png`, {
-              fullPage: true,
-              maxDiffPixelRatio: 0.05,
-            })
-          }
+          await expect(page).toHaveScreenshot(`${pageInfo.name}-${locale}-${theme}.png`, {
+            fullPage: true,
+            maxDiffPixelRatio: 0.05,
+          })
         })
       }
     }

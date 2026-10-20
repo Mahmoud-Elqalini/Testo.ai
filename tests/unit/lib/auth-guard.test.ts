@@ -8,6 +8,7 @@ describe('Auth Guard Routing Logic', () => {
   })
 
   it('allows unauthenticated users on public routes', () => {
+    expect(resolveAuthRedirect('/', false)).toBeNull()
     expect(resolveAuthRedirect('/login', false)).toBeNull()
     expect(resolveAuthRedirect('/register', false)).toBeNull()
     expect(resolveAuthRedirect('/reset-password', false)).toBeNull()

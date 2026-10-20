@@ -37,7 +37,7 @@ export default function DashboardPage() {
       <Card className="w-full max-w-md p-8 text-center space-y-6">
         <h1 className="text-3xl font-bold text-primary-600">{t('dashboard.title')}</h1>
         <p className="text-lg">{t('dashboard.welcome')}</p>
-        <p className="text-sm text-neutral-500">{t('dashboard.loggedIn')}</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('dashboard.loggedIn')}</p>
 
         {isStudent && <div className="space-y-3">
           <Link href="/student" className="block rounded-md bg-[var(--color-primary-600)] px-4 py-3 font-medium text-white hover:bg-[var(--color-primary-700)]">{t('dashboard.studentExams')}</Link>

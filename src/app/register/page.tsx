@@ -108,7 +108,7 @@ export default function RegisterPage() {
           </Button>
         </form>
         
-        <div className="mt-6 flex justify-center text-sm text-neutral-500">
+        <div className="mt-6 flex justify-center text-sm text-neutral-600 dark:text-neutral-300">
           <div>
             {t('auth.hasAccount')}{' '}
             <Link href="/login" className="font-semibold text-primary-600 hover:underline">

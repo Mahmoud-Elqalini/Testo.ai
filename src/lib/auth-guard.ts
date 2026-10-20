@@ -1,4 +1,4 @@
-const PUBLIC_PATHS = new Set(['/login', '/register', '/reset-password']);
+const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/reset-password']);
 
 /**
  * Pure function to resolve auth redirects.

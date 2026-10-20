@@ -62,7 +62,7 @@ export default function AdminGroupDetailPage() {
   return (
     <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-10 sm:px-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <div><Link href="/admin/groups" className="text-sm text-primary-700 hover:underline dark:text-primary-300">← {t('admin.groups.title')}</Link><h1 className="mt-3 text-3xl font-bold">{group?.name ?? t('admin.groups.notFound')}</h1><p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('admin.groups.members')} ({members.length})</p></div>
+        <div><Link href="/admin/groups" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('admin.groups.title')}</Link><h1 className="mt-3 text-3xl font-bold">{group?.name ?? t('admin.groups.notFound')}</h1><p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('admin.groups.members')} ({members.length})</p></div>
         <Link href="/admin/groups"><Button variant="secondary">{t('common.back')}</Button></Link>
       </header>
       <Card className="space-y-4 p-5">

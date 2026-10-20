@@ -59,7 +59,7 @@ export function PublishExamConfirmation({ examId }: { examId: string }) {
   return (
     <Card className="w-full max-w-xl space-y-5 p-6 sm:p-8">
       <div>
-        <Link className="text-sm text-primary-600 hover:underline" href="/admin">← {t('common.back')}</Link>
+        <Link className="text-sm text-primary-600 hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
         <h1 className="mt-4 text-2xl font-bold">
           {exam?.is_published ? t('admin.publish.unpublishTitle') : t('admin.publish.title')}
         </h1>

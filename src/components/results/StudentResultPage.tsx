@@ -34,7 +34,7 @@ export default function StudentResultPage({ attemptId }: { attemptId: string }) 
   const formatNumber = (value: number) => new Intl.NumberFormat(language, { maximumFractionDigits: 2 }).format(value)
 
   return <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
-    <Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">← {t('student.exam.backToDashboard')}</Link>
+    <Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link>
     {loading && <p role="status">{t('common.loading')}</p>}
     {loadError && !loading && <Card className="space-y-4 p-6" role="alert">
       <p>{t('student.results.unavailable')}</p>
@@ -55,12 +55,12 @@ export default function StudentResultPage({ attemptId }: { attemptId: string }) 
             const correct = question.choices.find(({ id }) => id === question.correctChoice)?.text
             return <li key={question.id}><Card className="space-y-4 p-5">
               <div className="flex flex-wrap items-start justify-between gap-3">
-                <h3 className="min-w-0 flex-1 text-lg font-semibold"><span className="me-2 text-neutral-500">{index + 1}.</span><SafeText value={question.text} /></h3>
+                <h3 className="min-w-0 flex-1 text-lg font-semibold"><span className="me-2 text-neutral-600 dark:text-neutral-300">{index + 1}.</span><SafeText value={question.text} /></h3>
                 <span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-sm dark:bg-neutral-800">{formatNumber(question.earnedPoints)} / {formatNumber(question.points)}</span>
               </div>
               {question.type === 'mcq' ? <dl className="grid gap-3 sm:grid-cols-2">
-                <div><dt className="text-sm text-neutral-500">{t('student.results.yourAnswer')}</dt><dd className="mt-1 font-medium">{selected ? <SafeText value={selected} /> : t('student.results.unanswered')}</dd></div>
-                <div><dt className="text-sm text-neutral-500">{t('student.results.correctAnswer')}</dt><dd className="mt-1 font-medium"><SafeText value={correct ?? t('student.results.unavailable')} /></dd></div>
+                <div><dt className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.yourAnswer')}</dt><dd className="mt-1 font-medium">{selected ? <SafeText value={selected} /> : t('student.results.unanswered')}</dd></div>
+                <div><dt className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.correctAnswer')}</dt><dd className="mt-1 font-medium"><SafeText value={correct ?? t('student.results.unavailable')} /></dd></div>
               </dl> : <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.essayScore').replace('{score}', formatNumber(question.normalizedScore * 100))}</p>}
             </Card></li>
           })}

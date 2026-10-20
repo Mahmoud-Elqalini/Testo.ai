@@ -4,6 +4,7 @@ import { cookies, headers } from "next/headers";
 import { I18nProvider, Language } from "@/lib/i18n/provider";
 import { ThemeProvider, type Theme } from "@/lib/theme/provider";
 import { QueryProvider } from "@/lib/query/provider";
+import { PreferenceSwitcher } from "@/components/shared/PreferenceSwitcher";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -76,6 +77,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <QueryProvider>
           <ThemeProvider initialTheme={initialTheme}>
             <I18nProvider initialLanguage={initialLang}>
+              <PreferenceSwitcher />
               {children}
             </I18nProvider>
           </ThemeProvider>

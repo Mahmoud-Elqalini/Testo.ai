@@ -20,7 +20,7 @@ test.describe('Group invitation visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`admin invitation and student join - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+      test(`admin invitation and student join - ${locale} - ${theme}`, async ({ page, context }) => {
         test.setTimeout(120_000)
         page.setDefaultTimeout(30_000)
         const password = 'Testo-invitations-visual-password-123!'
@@ -73,11 +73,11 @@ test.describe('Group invitation visual regression', () => {
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Group invitation' : 'دعوة المجموعة' })).toBeVisible()
           await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
-          if (browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`admin-group-invitation-${locale}-${theme}.png`, {
-              fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
-            })
-          }
+          await expect(page.getByRole('button', { name: locale === 'en' ? 'Create invitation code' : 'إنشاء رمز دعوة' })).toBeVisible()
+          await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
+          await expect(page).toHaveScreenshot(`admin-group-invitation-${locale}-${theme}.png`, {
+            fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
+          })
 
           await page.getByRole('button', { name: locale === 'en' ? 'Create invitation code' : 'إنشاء رمز دعوة' }).click()
           const issuedCode = (await page.locator('code[dir="ltr"]').innerText()).trim()
@@ -96,11 +96,10 @@ test.describe('Group invitation visual regression', () => {
 
           await page.goto('/student/join-group')
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Join a group' : 'الانضمام إلى مجموعة' })).toBeVisible()
-          if (browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`student-join-group-${locale}-${theme}.png`, {
-              fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
-            })
-          }
+          await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
+          await expect(page).toHaveScreenshot(`student-join-group-${locale}-${theme}.png`, {
+            fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05,
+          })
 
           await page.getByLabel(locale === 'en' ? 'Invitation code' : 'رمز الدعوة').fill(issuedCode)
           await page.getByRole('button', { name: locale === 'en' ? 'Join group' : 'انضمام إلى المجموعة' }).click()

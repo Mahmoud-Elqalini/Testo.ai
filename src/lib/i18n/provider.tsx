@@ -1,7 +1,9 @@
 "use client";
 
 import React, { createContext, useState, useEffect, ReactNode } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createClient } from "../supabase/client";
+import { getUserPreferences, updateUserPreferences } from "../services/preferences-service";
 import en from "../../locales/en.json";
 import ar from "../../locales/ar.json";
 
@@ -20,7 +22,7 @@ function readCachedLanguage(): Language | undefined {
 
 interface I18nContextProps {
   language: Language;
-  setLanguage: (lang: Language) => void;
+  setLanguage: (lang: Language) => Promise<void>;
   t: (key: string) => string;
 }
 
@@ -40,27 +42,29 @@ export function I18nProvider({
   );
 
   useEffect(() => {
-    // Skip async init when an explicit prop was provided (test / SSR scenario).
-    if (initialLanguage) return;
+    let active = true;
+    const applyProfileLanguage = async (userId: string) => {
+      try {
+        const preferences = await getUserPreferences(userId);
+        if (!active || !preferences) return;
+        const lang = preferences.preferred_language;
+        setLanguageState(lang);
+        localStorage.setItem(STORAGE_KEY, lang);
+        document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000; samesite=lax`;
+      } catch {
+        // Keep the server or browser preference if the profile is temporarily unavailable.
+      }
+    };
 
     const initLang = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("preferred_language")
-          .eq("id", user.id)
-          .single();
-        if (data?.preferred_language) {
-          const lang = data.preferred_language as Language;
-          setLanguageState(lang);
-          localStorage.setItem(STORAGE_KEY, lang);
-          document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000`;
-          return;
-        }
+        await applyProfileLanguage(user.id);
+        return;
       }
 
+      if (initialLanguage) return;
       // If there's already a cached language, keep it instead of applying the browser fallback.
       if (readCachedLanguage()) return;
 
@@ -70,7 +74,19 @@ export function I18nProvider({
       localStorage.setItem(STORAGE_KEY, browserLang);
       document.cookie = `${STORAGE_KEY}=${browserLang}; path=/; max-age=31536000`;
     };
-    initLang();
+    void initLang();
+
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      if (session?.user) {
+        const userId = session.user.id;
+        window.setTimeout(() => void applyProfileLanguage(userId), 0);
+      }
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [initialLanguage]);
 
   useEffect(() => {
@@ -81,11 +97,11 @@ export function I18nProvider({
   const setLanguage = async (lang: Language) => {
     setLanguageState(lang);
     localStorage.setItem(STORAGE_KEY, lang);
-    document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000`;
+    document.cookie = `${STORAGE_KEY}=${lang}; path=/; max-age=31536000; samesite=lax`;
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase.from("profiles").update({ preferred_language: lang }).eq("id", user.id);
+      await updateUserPreferences(user.id, { preferred_language: lang }, supabase);
     }
   };
 

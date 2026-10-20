@@ -99,7 +99,7 @@ export function ExamForm({ examId }: { examId?: string }) {
   return (
     <Card className="w-full max-w-3xl space-y-6 p-6 sm:p-8">
       <div>
-        <Link className="text-sm text-primary-600 hover:underline" href="/admin">← {t('common.back')}</Link>
+        <Link className="text-sm text-primary-600 hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
         <h1 className="mt-4 text-2xl font-bold">
           {examId ? t('admin.exams.editTitle') : t('admin.exams.createTitle')}
         </h1>

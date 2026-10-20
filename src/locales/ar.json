@@ -13,6 +13,7 @@
     "resetSuccess": "تحقق من بريدك الإلكتروني للحصول على رابط إعادة تعيين كلمة المرور.",
     "newPassword": "كلمة المرور الجديدة",
     "confirmPassword": "تأكيد كلمة المرور",
+    "passwordMismatch": "كلمتا المرور غير متطابقتين.",
     "setNewPassword": "تعيين كلمة المرور الجديدة",
     "updatePasswordButton": "تحديث كلمة المرور",
     "passwordUpdated": "تم تحديث كلمة المرور بنجاح!",
@@ -22,6 +23,22 @@
     "secureContextRequired": "لإتمام المصادقة بأمان، افتح Testo عبر HTTPS (أو localhost) باستخدام متصفح يدعم Web Crypto.",
     "resetButton": "إرسال رابط الإعادة",
     "backToLogin": "العودة لتسجيل الدخول"
+  },
+  "preferences": {
+    "controls": "تفضيلات العرض",
+    "language": "اللغة",
+    "arabic": "العربية",
+    "english": "الإنجليزية",
+    "theme": "المظهر",
+    "light": "فاتح",
+    "dark": "داكن",
+    "saveError": "تعذر حفظ التفضيل في حسابك، لكنه ما زال مطبقًا على هذا الجهاز."
+  },
+  "home": {
+    "title": "امتحاناتك، منظمة وجاهزة",
+    "description": "أنشئ امتحانات آمنة وخضها ضمن مساحة عمل واضحة.",
+    "login": "تسجيل الدخول",
+    "register": "إنشاء حساب"
   },
   "nav": {
     "home": "الرئيسية",
@@ -36,6 +53,7 @@
     "logout": "تسجيل الخروج"
   },
   "common": {
+    "backArrow": "→",
     "save": "حفظ",
     "cancel": "إلغاء",
     "loading": "جاري التحميل...",

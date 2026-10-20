@@ -21,36 +21,17 @@ test.describe('Admin groups and access visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`groups and members - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+      test(`groups and members - ${locale} - ${theme}`, async ({ page, context }) => {
         test.setTimeout(90_000)
+        page.setDefaultTimeout(30_000)
+        page.setDefaultNavigationTimeout(30_000)
         page.on('pageerror', (error) => console.error(`[browser pageerror] ${error.message}`))
-        page.on('console', async (message) => {
-          if (message.type() !== 'error') return
-
-          const args = await Promise.all(message.args().map(async (arg) => {
-            try {
-              return await arg.evaluate((value) => {
-                if (value instanceof Error) {
-                  return { name: value.name, message: value.message, stack: value.stack }
-                }
-                if (value && typeof value === 'object') {
-                  const errorFields = ['name', 'message', 'code', 'details', 'hint', 'status', 'statusText', 'error']
-                  return Object.fromEntries(errorFields
-                    .filter((key) => key in value)
-                    .map((key) => [key, (value as Record<string, unknown>)[key]]))
-                }
-                return value
-              })
-            } catch {
-              return '[unavailable]'
-            }
-          }))
-
-          console.error(`[browser console] ${JSON.stringify(args)}`)
-        })
         page.on('requestfailed', (request) => {
+          const errorText = request.failure()?.errorText ?? 'unknown error'
+          // Page navigations intentionally cancel outstanding chunk and API requests.
+          if (/NS_BINDING_ABORTED|ERR_ABORTED|CANCELLED/i.test(errorText)) return
           const url = new URL(request.url())
-          console.error(`[browser requestfailed] ${request.method()} ${url.origin}${url.pathname}: ${request.failure()?.errorText ?? 'unknown error'}`)
+          console.error(`[browser requestfailed] ${request.method()} ${url.origin}${url.pathname}: ${errorText}`)
         })
         page.on('response', (response) => {
           if (response.status() >= 400) {
@@ -94,22 +75,24 @@ test.describe('Admin groups and access visual regression', () => {
           await expect(page.getByRole('heading', { name: locale === 'ar' ? 'مجموعات الطلاب' : 'Student groups' })).toBeVisible()
           await expect(page.locator('html')).toHaveAttribute('dir', locale === 'ar' ? 'rtl' : 'ltr')
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
-          if (browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
-          }
+          // Wait for the Supabase-backed list before capturing or navigating away.
+          await expect(page.getByText('Visual cohort', { exact: true })).toBeVisible({ timeout: 30_000 })
+          await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
+          await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
 
           await page.goto(`/admin/groups/${group.id}`, { waitUntil: 'domcontentloaded' })
-          await expect(page.getByText(studentEmail, { exact: true }).first()).toBeVisible()
-          if (browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })] })
-          }
+          await expect(page.getByText(studentEmail, { exact: true }).first()).toBeVisible({ timeout: 30_000 })
+          await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
+          await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })] })
 
           await page.goto(`/admin/exams/${exam.id}/publish`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'ar' ? 'صلاحيات دخول الامتحان' : 'Exam access' })).toBeVisible({ timeout: 15_000 })
-          if (browserName === 'chromium') {
-            await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
-          }
+          await expect(page.getByRole('option', { name: 'Visual cohort' })).toBeAttached({ timeout: 30_000 })
+          await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
+          await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
         } finally {
+          // Stop auth/profile requests before deleting the user backing this session.
+          if (!page.isClosed()) await page.close()
           const { error: adminDeleteError } = await adminClient!.auth.admin.deleteUser(adminData.user.id)
           const { error: studentDeleteError } = await adminClient!.auth.admin.deleteUser(studentData.user.id)
           if (adminDeleteError) throw adminDeleteError

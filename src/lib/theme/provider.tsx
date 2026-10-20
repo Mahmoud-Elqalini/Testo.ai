@@ -1,7 +1,9 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createClient } from "../supabase/client";
+import { getUserPreferences, updateUserPreferences } from "../services/preferences-service";
 
 export type Theme = "light" | "dark";
 
@@ -9,7 +11,7 @@ const STORAGE_KEY = "testo_theme";
 
 function persistTheme(theme: Theme) {
   localStorage.setItem(STORAGE_KEY, theme);
-  document.cookie = `${STORAGE_KEY}=${theme}; path=/; max-age=31536000`;
+  document.cookie = `${STORAGE_KEY}=${theme}; path=/; max-age=31536000; samesite=lax`;
 }
 
 /** Read the last-known theme synchronously from localStorage (Fix 3).
@@ -22,7 +24,7 @@ function readCachedTheme(): Theme | undefined {
 
 interface ThemeContextProps {
   theme: Theme;
-  setTheme: (theme: Theme) => void;
+  setTheme: (theme: Theme) => Promise<void>;
 }
 
 export const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
@@ -41,26 +43,27 @@ export function ThemeProvider({
   );
 
   useEffect(() => {
-    // Skip async init when an explicit prop was provided (test / SSR scenario).
-    if (initialTheme) return;
-
+    let active = true;
+    const applyProfileTheme = async (userId: string) => {
+      try {
+        const preferences = await getUserPreferences(userId);
+        if (!active || !preferences) return;
+        const savedTheme = preferences.preferred_theme;
+        setThemeState(savedTheme);
+        persistTheme(savedTheme);
+      } catch {
+        // Keep the server or browser preference if the profile is temporarily unavailable.
+      }
+    };
     const initTheme = async () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("preferred_theme")
-          .eq("id", user.id)
-          .single();
-        if (data?.preferred_theme) {
-          const t = data.preferred_theme as Theme;
-          setThemeState(t);
-          persistTheme(t);
-          return;
-        }
+        await applyProfileTheme(user.id);
+        return;
       }
 
+      if (initialTheme) return;
       // If there's already a cached theme, we don't need to apply the unauthenticated system fallback
       if (readCachedTheme()) return;
 
@@ -73,7 +76,19 @@ export function ThemeProvider({
       setThemeState(resolved);
       persistTheme(resolved);
     };
-    initTheme();
+    void initTheme();
+
+    const supabase = createClient();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      if (session?.user) {
+        const userId = session.user.id;
+        window.setTimeout(() => void applyProfileTheme(userId), 0);
+      }
+    });
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, [initialTheme]);
 
   useEffect(() => {
@@ -90,7 +105,7 @@ export function ThemeProvider({
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-      await supabase.from("profiles").update({ preferred_theme: newTheme }).eq("id", user.id);
+      await updateUserPreferences(user.id, { preferred_theme: newTheme }, supabase);
     }
   };
 

@@ -13,6 +13,7 @@
     "resetSuccess": "Check your email for the password reset link.",
     "newPassword": "New Password",
     "confirmPassword": "Confirm Password",
+    "passwordMismatch": "Passwords do not match.",
     "setNewPassword": "Set New Password",
     "updatePasswordButton": "Update Password",
     "passwordUpdated": "Password updated successfully!",
@@ -22,6 +23,22 @@
     "secureContextRequired": "For secure authentication, open Testo over HTTPS (or localhost) in a browser with Web Crypto support.",
     "resetButton": "Send Reset Link",
     "backToLogin": "Back to Login"
+  },
+  "preferences": {
+    "controls": "Display preferences",
+    "language": "Language",
+    "arabic": "Arabic",
+    "english": "English",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "saveError": "Your preference could not be saved to your account. It is still applied on this device."
+  },
+  "home": {
+    "title": "Exams, organized and ready",
+    "description": "Create and take secure exams in one clear workspace.",
+    "login": "Sign in",
+    "register": "Create an account"
   },
   "nav": {
     "home": "Home",
@@ -36,6 +53,7 @@
     "logout": "Sign Out"
   },
   "common": {
+    "backArrow": "←",
     "save": "Save",
     "cancel": "Cancel",
     "loading": "Loading...",

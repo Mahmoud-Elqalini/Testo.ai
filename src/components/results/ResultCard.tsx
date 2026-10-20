@@ -13,9 +13,9 @@ export default function ResultCard({ result }: { result: Extract<StudentResult, 
   return <Card className="space-y-4 p-6">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-medium text-neutral-500">{t('student.results.title')}</p>
+        <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{t('student.results.title')}</p>
         <h1 className="text-2xl font-bold"><SafeText value={result.examTitle} /></h1>
-        <p className="mt-1 text-sm text-neutral-500">{date}</p>
+        <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{date}</p>
       </div>
       <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm dark:bg-neutral-800">
         {t(`student.exam.status.${result.attemptStatus}`)}

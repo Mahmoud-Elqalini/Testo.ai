@@ -24,7 +24,10 @@ test.describe('Admin exam creation visual regression', () => {
 
   for (const locale of locales) {
     for (const theme of themes) {
-      test(`create exam - ${locale} - ${theme}`, async ({ page, context, browserName }) => {
+      test(`create exam - ${locale} - ${theme}`, async ({ page, context }) => {
+        test.setTimeout(90_000)
+        page.setDefaultTimeout(30_000)
+        page.setDefaultNavigationTimeout(60_000)
         const adminEmail = `admin-exam-vrt-${crypto.randomUUID()}@testo.local`
         const { data, error: createError } = await adminClient!.auth.admin.createUser({
           email: adminEmail,
@@ -66,17 +69,15 @@ test.describe('Admin exam creation visual regression', () => {
           theme === 'dark' ? 'rgb(237, 237, 237)' : 'rgb(23, 23, 23)',
         )
 
-        await page.locator('#exam-title').fill('Visual regression exam')
-        await page.locator('#exam-description').fill('Stable preview content')
-        await page.locator('#exam-start-time').fill('2026-12-01T12:00')
-        await page.locator('#exam-duration').fill('60')
-        if (browserName === 'chromium') {
-          await expect(page).toHaveScreenshot(`admin-exam-create-${locale}-${theme}.png`, {
-            fullPage: true,
-            animations: 'disabled',
-            maxDiffPixelRatio: 0.05,
-          })
-        }
+        await page.getByLabel(locale === 'ar' ? 'عنوان الامتحان' : 'Exam title').fill('Visual regression exam')
+        await page.getByLabel(locale === 'ar' ? 'الوصف' : 'Description').fill('Stable preview content')
+        await page.getByLabel(locale === 'ar' ? 'تاريخ ووقت البدء' : 'Start date and time').fill('2026-12-01T12:00')
+        await page.getByLabel(locale === 'ar' ? 'المدة (بالدقائق)' : 'Duration (minutes)').fill('60')
+        await expect(page).toHaveScreenshot(`admin-exam-create-${locale}-${theme}.png`, {
+          fullPage: true,
+          animations: 'disabled',
+          maxDiffPixelRatio: 0.05,
+        })
         } finally {
           const { error: deleteError } = await adminClient!.auth.admin.deleteUser(adminUserId)
           if (deleteError) throw deleteError

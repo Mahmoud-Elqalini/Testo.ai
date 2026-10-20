@@ -15,7 +15,6 @@ const themes = ['light', 'dark'] as const
 
 test.describe('Student exam-taking visual regression', () => {
   test.skip(!hasCredentials, 'Local Supabase service-role credentials are required for this visual test.')
-  test.skip(({ browserName }) => browserName !== 'chromium', 'Student exam snapshots are maintained in Chromium.')
 
   for (const locale of locales) for (const theme of themes) {
     test(`exam attempt - ${locale} - ${theme}`, async ({ page, context }) => {

@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
     setError(null)
     
     if (newPassword !== confirmPassword) {
-      setError("Passwords do not match") 
+      setError(t('auth.passwordMismatch'))
       setIsSubmitting(false)
       return
     }
@@ -165,7 +165,7 @@ export default function ResetPasswordPage() {
       <Card className="w-full max-w-md p-8">
         <div className="mb-8 text-center">
           <h1 className="text-2xl font-bold">{t('auth.resetPassword')}</h1>
-          <p className="mt-2 text-sm text-neutral-500">{t('auth.resetDescription')}</p>
+          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{t('auth.resetDescription')}</p>
         </div>
         
         <form onSubmit={handleRequest} className="space-y-4">

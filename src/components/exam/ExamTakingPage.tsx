@@ -164,7 +164,7 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
 
   return <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8 sm:px-6">
     <header className="flex flex-wrap items-start justify-between gap-4">
-      <div><Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">← {t('student.exam.backToDashboard')}</Link><h1 className="mt-3 text-2xl font-bold">{title}</h1></div>
+      <div><Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><h1 className="mt-3 text-2xl font-bold">{title}</h1></div>
       {endsAt && !submitted && <CountdownTimer endsAt={endsAt} />}
     </header>
 
@@ -176,12 +176,12 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
     {submitted && <Card className="space-y-4 p-6"><h2 className="text-xl font-semibold">{t('student.exam.submittedTitle')}</h2><p>{t('student.exam.submittedDescription')}</p><Link href="/student"><Button>{t('student.exam.backToDashboard')}</Button></Link></Card>}
 
     {!loading && !loadError && !submitted && data && <>
-      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-neutral-500">{t('student.exam.questionCount').replace('{count}', String(data.questions.length))}</p><p className="text-sm text-neutral-500">{t('student.exam.autosaveHint')}</p></div>
+      <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.exam.questionCount').replace('{count}', String(data.questions.length))}</p><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.exam.autosaveHint')}</p></div>
       <section className="space-y-4" aria-label={t('student.exam.questions')}>
         {data.questions.map((question, index) => {
           const answer = answers[question.id] ?? { mcq_answer: null, essay_answer: null }
           return <Card key={question.id} className="space-y-5 p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3"><h2 className="min-w-0 flex-1 text-lg font-semibold"><span className="me-2 text-neutral-500">{index + 1}.</span><SafeText value={question.text} /></h2><span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs dark:bg-neutral-800">{question.points.toLocaleString(language)} {t('student.exam.points')}</span></div>
+            <div className="flex flex-wrap items-start justify-between gap-3"><h2 className="min-w-0 flex-1 text-lg font-semibold"><span className="me-2 text-neutral-600 dark:text-neutral-300">{index + 1}.</span><SafeText value={question.text} /></h2><span className="shrink-0 rounded-full bg-neutral-100 px-3 py-1 text-xs dark:bg-neutral-800">{question.points.toLocaleString(language)} {t('student.exam.points')}</span></div>
             {question.type === 'mcq'
               ? <McqQuestion question={question} value={answer.mcq_answer} onChange={(value) => changeAnswer(question, { mcq_answer: value, essay_answer: null })} disabled={inputsDisabled} labels={{ choices: t('student.exam.choices'), clear: t('student.exam.clearAnswer') }} />
               : <EssayQuestion questionId={question.id} value={answer.essay_answer ?? ''} onChange={(value) => changeAnswer(question, { mcq_answer: null, essay_answer: value })} onBlur={(value) => changeAnswer(question, { mcq_answer: null, essay_answer: value }, true)} disabled={inputsDisabled} />}

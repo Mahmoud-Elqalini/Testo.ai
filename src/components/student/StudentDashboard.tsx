@@ -62,12 +62,12 @@ export default function StudentDashboard() {
           {openAttempts.length === 0 && upcoming.length === 0 && <Card className="p-6 text-neutral-600 dark:text-neutral-300">{t('student.exam.noAvailable')}</Card>}
           <ul className="grid gap-4 sm:grid-cols-2">
             {openAttempts.map((attempt) => <li key={attempt.id}><Card className="h-full space-y-4 p-5">
-              <div><h3 className="break-words text-lg font-semibold"><SafeText value={attempt.exam?.title ?? t('student.exam.untitled')} /></h3><p className="mt-1 text-sm text-neutral-500">{t('admin.exams.starts')}: {attempt.exam ? formatDate(attempt.exam.start_time) : '—'}</p></div>
+              <div><h3 className="break-words text-lg font-semibold"><SafeText value={attempt.exam?.title ?? t('student.exam.untitled')} /></h3><p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{t('admin.exams.starts')}: {attempt.exam ? formatDate(attempt.exam.start_time) : '—'}</p></div>
               <p className="text-sm">{attempt.status === 'in_progress' ? t('student.exam.resume') : t('student.exam.ready')}</p>
               <Link href={`/student/exam/${attempt.id}`}><Button>{attempt.status === 'in_progress' ? t('student.exam.continue') : t('student.exam.start')}</Button></Link>
             </Card></li>)}
             {upcoming.filter((exam) => !attempts.some((attempt) => attempt.exam_id === exam.id)).map((exam) => <li key={exam.id}><Card className="h-full space-y-4 p-5">
-              <div><h3 className="break-words text-lg font-semibold"><SafeText value={exam.title} /></h3><p className="mt-1 text-sm text-neutral-500">{t('admin.exams.starts')}: {formatDate(exam.start_time)}</p></div>
+              <div><h3 className="break-words text-lg font-semibold"><SafeText value={exam.title} /></h3><p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{t('admin.exams.starts')}: {formatDate(exam.start_time)}</p></div>
               <p className="text-sm">{exam.active ? t('student.exam.preparing') : t('student.exam.notOpen')}</p>
             </Card></li>)}
           </ul>
@@ -76,7 +76,7 @@ export default function StudentDashboard() {
           <h2 id="past-attempts-title" className="text-xl font-semibold">{t('student.exam.pastAttempts')}</h2>
           {closedAttempts.length === 0 && <Card className="p-6 text-neutral-600 dark:text-neutral-300">{t('student.exam.noPast')}</Card>}
           <ul className="grid gap-3">{closedAttempts.map((attempt) => <li key={attempt.id}><Card className="flex flex-wrap items-center justify-between gap-3 p-4">
-            <div><p className="font-medium"><SafeText value={attempt.exam?.title ?? t('student.exam.untitled')} /></p><p className="text-sm text-neutral-500">{attempt.finished_at ? formatDate(attempt.finished_at) : t('student.exam.noFinishTime')}</p></div>
+            <div><p className="font-medium"><SafeText value={attempt.exam?.title ?? t('student.exam.untitled')} /></p><p className="text-sm text-neutral-600 dark:text-neutral-300">{attempt.finished_at ? formatDate(attempt.finished_at) : t('student.exam.noFinishTime')}</p></div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm dark:bg-neutral-800">{t(`student.exam.status.${attempt.status}`)}</span>
               {(attempt.status === 'submitted' || attempt.status === 'auto_submitted') && <Link href={`/student/results/${attempt.id}`}><Button variant="secondary">{t('student.results.view')}</Button></Link>}

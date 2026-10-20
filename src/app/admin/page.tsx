@@ -78,7 +78,7 @@ export default function AdminDashboardPage() {
                 {exam.description && (
                   <p className="break-words text-sm text-neutral-600 dark:text-neutral-300"><SafeText value={exam.description} /></p>
                 )}
-                <p className="text-sm text-neutral-500">
+                <p className="text-sm text-neutral-600 dark:text-neutral-300">
                   {t('admin.exams.starts')}: {new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(exam.start_time))}
                   {' · '}{t('admin.exams.duration')}: {exam.duration_minutes} {t('admin.exams.minutes')}
                 </p>

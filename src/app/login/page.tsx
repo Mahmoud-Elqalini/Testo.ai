@@ -79,7 +79,7 @@ export default function LoginPage() {
           </Button>
         </form>
         
-        <div className="mt-6 flex flex-col items-center space-y-2 text-sm text-neutral-500">
+        <div className="mt-6 flex flex-col items-center space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
           <Link href="/reset-password" className="hover:text-primary-600 hover:underline">
             {t('auth.forgotPassword')}
           </Link>
