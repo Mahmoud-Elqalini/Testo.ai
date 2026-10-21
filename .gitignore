@@ -55,3 +55,6 @@ next-env.d.ts
 
 # standalone sub-projects
 /Testo-Clarifier/
+/dist/
+.vinext/
+.cloudflare/
