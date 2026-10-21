@@ -2,7 +2,7 @@ import { bindings, defineConfig, defineWorker } from "cf/config";
 
 export default defineConfig({
   worker: defineWorker({
-    name: "testo",
+    name: "testo-ai",
     entrypoint: "vinext/server/fetch-handler",
     compatibilityDate: "2026-10-21",
     compatibilityFlags: ["nodejs_compat"],
