@@ -21,7 +21,7 @@ export default defineConfig({
     compatibilityDate: "2026-10-21",
     compatibilityFlags: ["nodejs_compat"],
     observability: {
-      enabled: true,
+      enabled: false,
       logs: {
         enabled: true,
         invocationLogs: true,
