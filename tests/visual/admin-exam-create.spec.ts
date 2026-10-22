@@ -1,10 +1,10 @@
-import { loadEnvConfig } from '@next/env'
+import nextEnv from '@next/env'
 import { createClient } from '@supabase/supabase-js'
 import { expect, test } from '@playwright/test'
 import { signInBrowserContext, visualAppOrigin } from './helpers/sign-in'
 import { updateVisualProfile } from './helpers/sign-in'
 
-loadEnvConfig(process.cwd())
+nextEnv.loadEnvConfig(process.cwd())
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY
