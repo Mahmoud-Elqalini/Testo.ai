@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import type { ReactNode } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from '@/lib/i18n/use-translation'
+import { useTheme } from '@/lib/theme/provider'
 
 type WorkspaceLayoutProps = {
   role: 'admin' | 'student'
@@ -16,7 +17,11 @@ type WorkspaceLayoutProps = {
 }
 
 export function WorkspaceLayout({ role, active, children, focusMode = false, dashboardHref, dashboardMode = false, userName = '', onSignOut }: WorkspaceLayoutProps) {
-  const { t, language } = useTranslation()
+  const { t, language, setLanguage } = useTranslation()
+  const { theme, setTheme } = useTheme()
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const menuButtonRef = useRef<HTMLButtonElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
   const admin = role === 'admin'
   const links = dashboardMode
     ? [
@@ -39,20 +44,77 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
         { key: 'groups', href: '/student/join-group', label: t('dashboard.joinGroup'), icon: '♧' },
       ]
 
+  useEffect(() => {
+    if (!mobileMenuOpen) return
+    const menuButton = menuButtonRef.current
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    closeButtonRef.current?.focus()
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false)
+    }
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      document.body.style.overflow = previousOverflow
+      window.removeEventListener('keydown', closeOnEscape)
+      menuButton?.focus()
+    }
+  }, [mobileMenuOpen])
+
+  const keepFocusInMobileMenu = (event: ReactKeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'Tab') return
+    const focusable = event.currentTarget.querySelectorAll<HTMLElement>(
+      'a[href],button:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])',
+    )
+    if (focusable.length === 0) return
+    const first = focusable[0]
+    const last = focusable[focusable.length - 1]
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault()
+      last.focus()
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault()
+      first.focus()
+    }
+  }
+
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`testo-workspace${focusMode ? ' testo-workspace-focus' : ''}${dashboardMode ? ' testo-workspace-dashboard' : ''}`}>
-      {!focusMode && <aside className="testo-sidebar">
+      {!focusMode && dashboardMode && <header className="testo-mobile-header">
+        <Link className="testo-mobile-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')}>
+          <span className="testo-brand-mark">T</span><strong>Testo</strong>
+        </Link>
+        <div className="testo-mobile-header-actions">
+          <button type="button" className="testo-mobile-language" onClick={() => void setLanguage(language === 'en' ? 'ar' : 'en').catch(() => {})} aria-label={t('preferences.language')}>
+            {language === 'en' ? 'AR' : 'EN'}
+          </button>
+          <button ref={menuButtonRef} type="button" className="testo-mobile-menu-button" onClick={() => setMobileMenuOpen(true)} aria-label={t('common.menu')} aria-expanded={mobileMenuOpen} aria-controls="testo-mobile-navigation">
+            <span aria-hidden="true"><i /><i /><i /></span>
+          </button>
+        </div>
+      </header>}
+      {!focusMode && dashboardMode && mobileMenuOpen && <button className="testo-mobile-backdrop" type="button" aria-label={t('common.close')} onClick={() => setMobileMenuOpen(false)} />}
+      {!focusMode && <aside id={dashboardMode ? 'testo-mobile-navigation' : undefined} className={`testo-sidebar${dashboardMode && mobileMenuOpen ? ' is-open' : ''}`} role={dashboardMode && mobileMenuOpen ? 'dialog' : undefined} aria-modal={dashboardMode && mobileMenuOpen ? true : undefined} aria-label={dashboardMode && mobileMenuOpen ? t('nav.dashboard') : undefined} onKeyDown={dashboardMode && mobileMenuOpen ? keepFocusInMobileMenu : undefined}>
+        {dashboardMode && <div className="testo-mobile-drawer-header">
+          <Link className="testo-mobile-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')} onClick={() => setMobileMenuOpen(false)}>
+            <span className="testo-brand-mark">T</span><strong>Testo</strong>
+          </Link>
+          <button ref={closeButtonRef} type="button" className="testo-mobile-close-button" onClick={() => setMobileMenuOpen(false)} aria-label={t('common.close')}>×</button>
+        </div>}
         <Link className="testo-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')}>
           <span className="testo-brand-mark">T</span><span><strong>Testo</strong>{!dashboardMode && <small>{language === 'ar' ? 'مساحة المدرسة' : 'School workspace'}</small>}</span>
         </Link>
         {!dashboardMode && <p className="testo-nav-label">{t('nav.dashboard')}</p>}
         <nav className="testo-nav" aria-label={t('nav.dashboard')}>
-          {links.map((item) => item.href ? <Link key={item.key} className={`testo-nav-item${active === item.key ? ' is-active' : ''}`} href={item.href}>
+          {links.map((item) => item.href ? <Link key={item.key} className={`testo-nav-item${active === item.key ? ' is-active' : ''}`} href={item.href} onClick={() => setMobileMenuOpen(false)}>
             <span className="testo-nav-icon" aria-hidden="true"><WorkspaceIcon name={item.key} /></span><span>{item.label}</span>
           </Link> : <span key={item.key} className="testo-nav-item is-disabled" aria-disabled="true" title={t('dashboard.comingSoon')}>
             <span className="testo-nav-icon" aria-hidden="true"><WorkspaceIcon name={item.key} /></span><span>{item.label}</span><small>{t('dashboard.comingSoon')}</small>
           </span>)}
         </nav>
+        {dashboardMode && <button type="button" className="testo-mobile-theme-toggle" onClick={() => void setTheme(theme === 'light' ? 'dark' : 'light').catch(() => {})} aria-label={t('preferences.theme')} aria-pressed={theme === 'dark'}>
+          <span>{t('preferences.theme')}</span><strong>{theme === 'light' ? t('preferences.light') : t('preferences.dark')}</strong>
+        </button>}
         <div className="testo-sidebar-spacer" />
         {dashboardMode ? <>
           <div className="testo-account-card">

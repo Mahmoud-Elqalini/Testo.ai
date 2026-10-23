@@ -105,6 +105,8 @@
     "logout": "Sign Out"
   },
   "common": {
+    "menu": "Open navigation menu",
+    "close": "Close navigation menu",
     "backArrow": "←",
     "save": "Save",
     "cancel": "Cancel",

@@ -78,6 +78,13 @@ Reference shadow: `0 10px 30px rgba(31, 44, 65, 0.045)` in light mode; use a sub
 
 - New users and users without a saved preference start in **light** theme. Respect an existing saved theme preference and let users switch to dark from the existing theme option. Theme changes must use the shared theme provider/tokens and persist according to the existing preference flow; do not add a competing per-page theme setting.
 
+### Mobile account navigation
+
+- On the unified account dashboard, replace the desktop sidebar with a compact top bar containing the Testo mark, a short language toggle, and a hamburger button. Do not show duplicate preference controls on mobile.
+- Open navigation as a start-aligned off-canvas drawer over a dimmed, softly blurred scrim. The drawer contains a branded close row, the same authorized application links and active state as desktop, a theme switch, and the account/sign-out card.
+- Support close button, scrim click, and Escape. Lock background scrolling while open, move keyboard focus into the drawer, keep Tab focus inside it, and return focus to the menu button after closing. Mirror the drawer from the left in English to the right in Arabic RTL.
+- Keep the desktop shell and its existing preference controls intact. Use shared theme tokens, logical CSS properties, visible focus styles, and reduced-motion behavior for the mobile drawer.
+
 ### Exam taking
 
 - Use a calm, low-distraction workspace and a restrained green action/progress accent.
