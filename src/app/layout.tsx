@@ -7,6 +7,7 @@ import { QueryProvider } from "@/lib/query/provider";
 import { PreferenceSwitcher } from "@/components/shared/PreferenceSwitcher";
 import "./globals.css";
 import "./workspace.css";
+import "./auth.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

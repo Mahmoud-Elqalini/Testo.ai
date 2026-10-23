@@ -7,8 +7,8 @@ import { resetPassword, updatePassword, getSession, SecureAuthContextError } fro
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 import { createClient } from '@/lib/supabase/client'
 import type { AuthChangeEvent, AuthError, Session } from '@supabase/supabase-js'
 
@@ -104,21 +104,14 @@ export default function ResetPasswordPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <p>{t('common.loading')}</p>
-      </div>
+      <AuthLayout title={t('auth.resetPassword')}><p className="auth-loading">{t('common.loading')}</p></AuthLayout>
     )
   }
 
   if (mode === 'confirm') {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8">
-          <div className="mb-8 text-center">
-            <h1 className="text-2xl font-bold">{t('auth.setNewPassword')}</h1>
-          </div>
-          
-          <form onSubmit={handleConfirm} className="space-y-4">
+      <AuthLayout title={t('auth.setNewPassword')}>
+          <form onSubmit={handleConfirm}>
             <FormField
               id="newPassword"
               type="password"
@@ -136,39 +129,32 @@ export default function ResetPasswordPage() {
               required
             />
             
-            {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+            {error && <p role="alert" className="auth-message">{error}</p>}
             
             <Button type="submit" fullWidth loading={isSubmitting}>
               {t('auth.updatePasswordButton')}
             </Button>
           </form>
-        </Card>
-      </div>
+      </AuthLayout>
     )
   }
 
   if (requestSuccess) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
-          <h2 className="mb-4 text-xl font-bold text-green-600">{t('auth.resetSuccess')}</h2>
+      <AuthLayout title={t('auth.resetPassword')} compact>
+        <div className="auth-success text-center">
+          <h2>{t('auth.resetSuccess')}</h2>
           <Link href="/login">
             <Button variant="secondary" fullWidth>{t('auth.backToLogin')}</Button>
           </Link>
-        </Card>
-      </div>
+        </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">{t('auth.resetPassword')}</h1>
-          <p className="mt-2 text-sm text-neutral-600 dark:text-neutral-300">{t('auth.resetDescription')}</p>
-        </div>
-        
-        <form onSubmit={handleRequest} className="space-y-4">
+    <AuthLayout title={t('auth.resetPassword')} description={t('auth.resetDescription')}>
+        <form onSubmit={handleRequest}>
           <FormField
             id="email"
             type="email"
@@ -178,19 +164,18 @@ export default function ResetPasswordPage() {
             required
           />
           
-          {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+          {error && <p role="alert" className="auth-message">{error}</p>}
           
           <Button type="submit" fullWidth loading={isSubmitting}>
             {t('auth.resetButton')}
           </Button>
         </form>
         
-        <div className="mt-6 flex justify-center text-sm">
-          <Link href="/login" className="font-semibold text-primary-600 hover:underline">
+        <div className="mt-5 flex justify-center text-sm">
+          <Link href="/login" className="font-semibold">
             {t('auth.backToLogin')}
           </Link>
         </div>
-      </Card>
-    </div>
+    </AuthLayout>
   )
 }

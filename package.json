@@ -48,5 +48,8 @@
     "vite": "^8.3.0",
     "vitest": "^4.1.11"
   },
-  "type": "module"
+  "type": "module",
+  "overrides": {
+    "fflate": "0.7.5"
+  }
 }

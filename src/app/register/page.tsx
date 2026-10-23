@@ -8,8 +8,8 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { useTheme } from '@/lib/theme/provider'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 
 export default function RegisterPage() {
   const [fullName, setFullName] = useState('')
@@ -57,25 +57,20 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="flex min-h-screen items-center justify-center p-4">
-        <Card className="w-full max-w-md p-8 text-center">
-          <h2 className="mb-4 text-xl font-bold text-green-600">{t('auth.registerSuccess')}</h2>
+      <AuthLayout title={t('auth.register')} compact>
+        <div className="auth-success text-center">
+          <h2>{t('auth.registerSuccess')}</h2>
           <Link href="/login">
             <Button variant="secondary" fullWidth>{t('auth.backToLogin')}</Button>
           </Link>
-        </Card>
-      </div>
+        </div>
+      </AuthLayout>
     )
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">{t('auth.register')}</h1>
-        </div>
-        
-        <form onSubmit={handleRegister} className="space-y-4">
+    <AuthLayout title={t('auth.register')} footer={<div>{t('auth.hasAccount')}<Link href="/login" className="font-semibold">{t('auth.login')}</Link></div>}>
+        <form onSubmit={handleRegister}>
           <FormField
             id="fullName"
             type="text"
@@ -101,22 +96,13 @@ export default function RegisterPage() {
             required
           />
           
-          {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+          {error && <p role="alert" className="auth-message">{error}</p>}
           
           <Button type="submit" fullWidth loading={loading}>
             {t('auth.registerButton')}
           </Button>
         </form>
         
-        <div className="mt-6 flex justify-center text-sm text-neutral-600 dark:text-neutral-300">
-          <div>
-            {t('auth.hasAccount')}{' '}
-            <Link href="/login" className="font-semibold text-primary-600 hover:underline">
-              {t('auth.login')}
-            </Link>
-          </div>
-        </div>
-      </Card>
-    </div>
+    </AuthLayout>
   )
 }

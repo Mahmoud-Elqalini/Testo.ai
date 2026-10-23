@@ -7,8 +7,8 @@ import { SecureAuthContextError, signIn } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
 import { FormField } from '@/components/ui/form-field'
+import { AuthLayout } from '@/components/auth/AuthLayout'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -49,13 +49,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center p-4">
-      <Card className="w-full max-w-md p-8">
-        <div className="mb-8 text-center">
-          <h1 className="text-2xl font-bold">{t('auth.login')}</h1>
-        </div>
-        
-        <form onSubmit={handleLogin} className="space-y-4">
+    <AuthLayout title={t('auth.login')} footer={<div>{t('auth.noAccount')}<Link href="/register" className="font-semibold">{t('auth.register')}</Link></div>}>
+        <form onSubmit={handleLogin}>
           <FormField
             id="email"
             type="email"
@@ -73,25 +68,18 @@ export default function LoginPage() {
             required
           />
           
-          {error && <p className="text-sm font-medium text-red-500">{error}</p>}
+          {error && <p role="alert" className="auth-message">{error}</p>}
           
           <Button type="submit" fullWidth loading={loading} disabled={!hydrated}>
             {t('auth.loginButton')}
           </Button>
         </form>
         
-        <div className="mt-6 flex flex-col items-center space-y-2 text-sm text-neutral-600 dark:text-neutral-300">
-          <Link href="/reset-password" className="hover:text-primary-600 hover:underline">
+        <div className="mt-5 flex justify-end text-sm">
+          <Link href="/reset-password">
             {t('auth.forgotPassword')}
           </Link>
-          <div>
-            {t('auth.noAccount')}{' '}
-            <Link href="/register" className="font-semibold text-primary-600 hover:underline">
-              {t('auth.register')}
-            </Link>
-          </div>
         </div>
-      </Card>
-    </div>
+    </AuthLayout>
   )
 }
