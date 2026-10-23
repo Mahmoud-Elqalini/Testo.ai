@@ -83,3 +83,52 @@
 @media(max-width:700px){.testo-workspace-dashboard .testo-sidebar{position:relative;top:auto;width:100%;height:auto;min-height:0;padding:12px 14px;border:0;border-bottom:1px solid var(--t-border);}.testo-workspace-dashboard .testo-brand{padding:0 2px 9px;}.testo-workspace-dashboard .testo-nav{display:flex;margin-top:8px;overflow-x:auto;}.testo-workspace-dashboard .testo-nav-item{min-width:max-content;min-height:40px;padding-inline:10px;border-inline-start:0;border-bottom:3px solid transparent;}.testo-workspace-dashboard .testo-nav-item.is-active{border-bottom-color:#7440ee;}.testo-workspace-dashboard .testo-sidebar-spacer{display:none;}.testo-workspace-dashboard .testo-page-content{padding:20px 14px 32px;}.testo-dashboard{gap:26px;}.testo-dashboard-hero{min-height:0;gap:20px;padding:23px 19px;border-radius:16px;}.testo-dashboard-hero h1{font-size:26px;}.testo-dashboard-actions{min-width:0;padding:8px;}.testo-dashboard-action{min-height:50px;padding:8px;font-size:11px;}.testo-dashboard-section-heading h2{font-size:16px;}.testo-dashboard-empty-course{width:100%;min-height:128px;padding:15px;}.testo-dashboard-empty-icon{width:48px;height:48px;flex-basis:48px;font-size:22px;}.testo-dashboard-course-catalog{min-height:108px;padding:15px;}.testo-dashboard-exams li{padding:13px 14px;}}
 @media(max-width:430px){.testo-workspace-dashboard .testo-account-card{padding:7px;}.testo-workspace-dashboard .testo-account-copy{max-width:130px;}.testo-dashboard-actions{width:100%;}.testo-dashboard-action{gap:5px;font-size:10px;}.testo-dashboard-exams li{align-items:flex-start;}.testo-dashboard-exam-date{font-size:9px;}}
 .testo-dashboard-role-tag-student { background:var(--t-surface-soft);color:var(--t-muted); }
+
+/* Dashboard polish: keep the reference's approachable layout while using the
+   shared Testo tokens for both themes and logical properties for Arabic RTL. */
+.testo-workspace-dashboard .testo-nav-item.is-active {
+  border-inline-start-color:var(--t-primary);
+  background:var(--t-primary-soft);
+  color:var(--t-primary-strong);
+}
+.testo-workspace-dashboard .testo-nav-icon { display:grid;place-items:center;flex:0 0 20px; }
+.testo-workspace-dashboard .testo-nav-icon svg { width:19px;height:19px; }
+.testo-dashboard-hero { border:1px solid #ffffff1f; }
+.dark .testo-dashboard-hero { border-color:#ffffff14; }
+.testo-dashboard-action { min-height:54px; }
+.testo-dashboard-action svg { width:17px;height:17px;flex:0 0 17px; }
+.testo-dashboard-action-light { color:#5144c1; }
+.testo-dashboard-action-outline { background:#5d2bc8; }
+.testo-dashboard-action-outline:hover { background:#4c23ab; }
+.dark .testo-dashboard-action-outline { background:#4931a1; }
+.dark .testo-dashboard-action-outline:hover { background:#3d288a; }
+.testo-dashboard-section-heading h2 svg { width:20px;height:20px;flex:0 0 20px;color:var(--t-primary);stroke-width:2; }
+.testo-dashboard-section-heading>a:focus-visible,
+.testo-dashboard-group-card:focus-visible,
+.testo-dashboard-action:focus-visible,
+.testo-account-signout:focus-visible,
+.testo-language-toggle:focus-visible {
+  outline:3px solid color-mix(in srgb,var(--t-primary) 50%,transparent);
+  outline-offset:3px;
+}
+.testo-dashboard-empty-course,
+.testo-dashboard-course-catalog { box-shadow:0 8px 24px #1f2c4108; }
+.dark .testo-dashboard-empty-course,
+.dark .testo-dashboard-course-catalog,
+.dark .testo-dashboard-group-card,
+.dark .testo-dashboard-exams { box-shadow:0 8px 24px #00000014; }
+.testo-dashboard-group-card { min-height:76px; }
+.testo-dashboard-group-card:hover { border-color:var(--t-primary); }
+.testo-dashboard-group-card:focus-visible { outline:3px solid color-mix(in srgb,var(--t-primary) 45%,transparent);outline-offset:2px; }
+.testo-dashboard-exams li { min-width:0; }
+.testo-dashboard-exams li>div { flex:1; }
+.testo-dashboard-exam-date { display:inline-flex;align-items:center;gap:6px; }
+.testo-dashboard-exam-date svg { width:13px;height:13px; }
+.dark .testo-dashboard-exam-date { border-color:#67542d;background:#433829;color:#ecc36e; }
+@media(max-width:700px) {
+  .testo-workspace-dashboard .testo-nav-item.is-active { border-inline-start-color:transparent;border-bottom-color:var(--t-primary); }
+}
+@media(max-width:430px) {
+  .testo-dashboard-exams li { gap:8px; }
+  .testo-dashboard-exam-date { max-width:42%;padding:5px 7px; }
+}

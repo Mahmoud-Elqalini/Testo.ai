@@ -7,7 +7,7 @@ import { signOut } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
+import { WorkspaceIcon, WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 import { SafeText } from '@/components/shared/SafeText'
 import type { Group, UserRole } from '@/lib/types'
 import { getDashboardData, type DashboardExam } from '@/lib/services/dashboard-service'
@@ -95,18 +95,18 @@ export default function DashboardPage() {
         </div>
         <div className="testo-dashboard-actions">
           {isTeacher ? <>
-            <Link href="/admin/exams/create" className="testo-dashboard-action testo-dashboard-action-light"><span aria-hidden="true">＋</span>{t('dashboard.createExam')}</Link>
-            <Link href="/admin/groups" className="testo-dashboard-action testo-dashboard-action-outline"><span aria-hidden="true">♧</span>{t('dashboard.createGroup')}</Link>
+            <Link href="/admin/exams/create" className="testo-dashboard-action testo-dashboard-action-light"><WorkspaceIcon name="exams" />{t('dashboard.createExam')}</Link>
+            <Link href="/admin/groups" className="testo-dashboard-action testo-dashboard-action-outline"><WorkspaceIcon name="groups" />{t('dashboard.createGroup')}</Link>
           </> : <>
-            <Link href="/student" className="testo-dashboard-action testo-dashboard-action-light"><span aria-hidden="true">▤</span>{t('dashboard.studentExams')}</Link>
-            <Link href="/student/join-group" className="testo-dashboard-action testo-dashboard-action-outline"><span aria-hidden="true">♧</span>{t('dashboard.joinGroup')}</Link>
+            <Link href="/student" className="testo-dashboard-action testo-dashboard-action-light"><WorkspaceIcon name="exams" />{t('dashboard.studentExams')}</Link>
+            <Link href="/student/join-group" className="testo-dashboard-action testo-dashboard-action-outline"><WorkspaceIcon name="groups" />{t('dashboard.joinGroup')}</Link>
           </>}
         </div>
       </section>
 
       <section className="testo-dashboard-section" aria-labelledby="continue-learning-title">
         <header className="testo-dashboard-section-heading">
-          <h2 id="continue-learning-title"><span aria-hidden="true">▣</span>{t('dashboard.continueLearning')}</h2>
+          <h2 id="continue-learning-title"><WorkspaceIcon name="courses" />{t('dashboard.continueLearning')}</h2>
           <span className="testo-dashboard-coming-soon">{t('dashboard.coursesComingSoon')}</span>
         </header>
         <Card className="testo-dashboard-empty-course">
@@ -128,7 +128,7 @@ export default function DashboardPage() {
 
       <section className="testo-dashboard-section" aria-labelledby="my-groups-title">
         <header className="testo-dashboard-section-heading">
-          <h2 id="my-groups-title"><span aria-hidden="true">♧</span>{t('dashboard.myGroups')}</h2>
+          <h2 id="my-groups-title"><WorkspaceIcon name="groups" />{t('dashboard.myGroups')}</h2>
           <Link href={isTeacher ? '/admin/groups' : '/student/join-group'}>{isTeacher ? t('dashboard.viewAll') : t('dashboard.joinGroup')} <span aria-hidden="true">→</span></Link>
         </header>
         {isTeacher ? groups.length > 0 ? <div className="testo-dashboard-groups-grid">
@@ -148,14 +148,14 @@ export default function DashboardPage() {
 
       <section className="testo-dashboard-section" aria-labelledby="dashboard-exams-title">
         <header className="testo-dashboard-section-heading">
-          <h2 id="dashboard-exams-title"><span aria-hidden="true">◷</span>{t('dashboard.examsSection')}</h2>
+          <h2 id="dashboard-exams-title"><WorkspaceIcon name="exams" />{t('dashboard.examsSection')}</h2>
           <Link href={isTeacher ? '/admin#exam-list' : '/student#open-exams-title'}>{t('dashboard.viewAll')} <span aria-hidden="true">→</span></Link>
         </header>
         <Card className="testo-dashboard-exams">
           {sortedExams.length > 0 ? <ul>
             {sortedExams.slice(0, 5).map((exam) => <li key={exam.id}>
-              <div><strong><SafeText value={exam.title} /></strong><small>{isTeacher && exam.is_published === false ? t('admin.exams.draft') : t('admin.exams.starts')} · {formatDate(exam.start_time, true)}</small></div>
-              <span className="testo-dashboard-exam-date">{formatDate(exam.start_time)}</span>
+              <div><strong><SafeText value={exam.title} /></strong><small>{isTeacher && exam.is_published === false ? t('admin.exams.draft') : t('admin.exams.starts')} · {formatDate(exam.start_time, true)} · {exam.duration_minutes} {t('student.exam.minutes')}</small></div>
+              <span className="testo-dashboard-exam-date"><WorkspaceIcon name="exams" />{formatDate(exam.start_time)}</span>
             </li>)}
           </ul> : <p className="testo-dashboard-exam-empty">{isTeacher ? t('dashboard.noTeacherExams') : t('student.exam.noAvailable')}</p>}
         </Card>
