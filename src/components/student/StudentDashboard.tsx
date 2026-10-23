@@ -7,18 +7,11 @@ import { Card } from '@/components/ui/card'
 import { SafeText } from '@/components/shared/SafeText'
 import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 import { useTranslation } from '@/lib/i18n/use-translation'
-import { createClient } from '@/lib/supabase/client'
-import type { Exam, ExamAttempt } from '@/lib/types'
-
-interface AttemptWithExam extends ExamAttempt {
-  exam: Pick<Exam, 'title' | 'start_time' | 'duration_minutes'> | null
-}
-type UpcomingExamFields = Pick<Exam, 'id' | 'title' | 'start_time' | 'duration_minutes'>
-type UpcomingExam = UpcomingExamFields & { active: boolean }
+import { getStudentDashboardData, type StudentDashboardAttempt, type UpcomingExam } from '@/lib/services/dashboard-service'
 
 export default function StudentDashboard() {
   const { t, language } = useTranslation()
-  const [attempts, setAttempts] = useState<AttemptWithExam[]>([])
+  const [attempts, setAttempts] = useState<StudentDashboardAttempt[]>([])
   const [upcoming, setUpcoming] = useState<UpcomingExam[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
@@ -26,19 +19,12 @@ export default function StudentDashboard() {
   const load = useCallback(async () => {
     setLoading(true)
     setError(false)
-    const client = createClient()
-    const [attemptResult, examResult] = await Promise.all([
-      client.from('exam_attempts').select('id,exam_id,student_id,status,started_at,finished_at,session_id,exam:exams(title,start_time,duration_minutes)').order('started_at', { ascending: false }),
-      client.from('exams').select('id,title,start_time,duration_minutes').eq('is_published', true).order('start_time', { ascending: true }),
-    ])
-    if (attemptResult.error || examResult.error) {
+    const result = await getStudentDashboardData()
+    if (result.error || !result.data) {
       setError(true)
     } else {
-      setAttempts((attemptResult.data ?? []) as unknown as AttemptWithExam[])
-      const now = Date.now()
-      setUpcoming(((examResult.data ?? []) as UpcomingExamFields[])
-        .filter((exam) => Date.parse(exam.start_time) + exam.duration_minutes * 60_000 > now)
-        .map((exam) => ({ ...exam, active: Date.parse(exam.start_time) <= now })))
+      setAttempts(result.data.attempts)
+      setUpcoming(result.data.upcoming)
     }
     setLoading(false)
   }, [])

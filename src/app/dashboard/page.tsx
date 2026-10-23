@@ -4,17 +4,14 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { signOut } from '@/lib/auth'
-import { createClient } from '@/lib/supabase/client'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
 import { SafeText } from '@/components/shared/SafeText'
-import type { Exam, Group, UserRole } from '@/lib/types'
-import { listAdminExams } from '@/lib/services/exam-service'
-import { listAdminGroups, listJoinedGroups, type JoinedGroup } from '@/lib/services/group-service'
-
-type DashboardExam = Pick<Exam, 'id' | 'title' | 'start_time' | 'duration_minutes'> & { is_published?: boolean }
+import type { Group, UserRole } from '@/lib/types'
+import { getDashboardData, type DashboardExam } from '@/lib/services/dashboard-service'
+import type { JoinedGroup } from '@/lib/services/group-service'
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -30,54 +27,22 @@ export default function DashboardPage() {
   useEffect(() => {
     let active = true
     async function loadDashboard() {
-      const supabase = createClient()
-      const { data: { user }, error: authError } = await supabase.auth.getUser()
-      if (authError || !user) {
+      const result = await getDashboardData()
+      if (!active) return
+      if (result.unauthenticated) {
         router.replace('/login')
         return
       }
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (!active) return
-      if (profileError || !profile) {
+      if (result.error || !result.data) {
         setLoadError(true)
         return
       }
 
-      if (profile.role === 'admin') {
-        const [groupResult, examResult] = await Promise.all([listAdminGroups(), listAdminExams()])
-        if (!active) return
-        if (groupResult.error || examResult.error) {
-          setLoadError(true)
-          return
-        }
-        setGroups(groupResult.data ?? [])
-        setExams(examResult.data ?? [])
-      } else {
-        const [examResult, groupResult] = await Promise.all([
-          supabase.from('exams')
-            .select('id, title, start_time, duration_minutes')
-            .eq('is_published', true)
-            .order('start_time', { ascending: true }),
-          listJoinedGroups(),
-        ])
-        if (!active) return
-        if (examResult.error || groupResult.error) {
-          setLoadError(true)
-          return
-        }
-        const currentTime = Date.now()
-        setExams(((examResult.data ?? []) as DashboardExam[]).filter((exam) =>
-          Date.parse(exam.start_time) + exam.duration_minutes * 60_000 > currentTime,
-        ))
-        setJoinedGroups(groupResult.data ?? [])
-      }
-
-      setRole(profile.role as UserRole)
-      setFullName(profile.full_name ?? '')
+      setGroups(result.data.groups)
+      setJoinedGroups(result.data.joinedGroups)
+      setExams(result.data.exams)
+      setRole(result.data.role as UserRole)
+      setFullName(result.data.fullName)
       setNow(Date.now())
     }
     void loadDashboard()
