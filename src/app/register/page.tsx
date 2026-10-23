@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { SecureAuthContextError, signUp } from '@/lib/auth'
 import { useTranslation } from '@/lib/i18n/use-translation'
-import { useTheme } from '@/lib/theme/provider'
 import { normalizeError } from '@/lib/errors'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form-field'
@@ -21,7 +20,6 @@ export default function RegisterPage() {
   
   const router = useRouter()
   const { t, language } = useTranslation()
-  const { theme } = useTheme()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +30,7 @@ export default function RegisterPage() {
       const { data, error: signUpError } = await signUp(email, password, {
         full_name: fullName,
         preferred_language: language,
-        preferred_theme: theme,
+        preferred_theme: 'light',
       })
       
       if (signUpError) {

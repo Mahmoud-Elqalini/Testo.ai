@@ -128,30 +128,43 @@ export default function DashboardPage() {
 
       <section className="testo-dashboard-section" aria-labelledby="my-groups-title">
         <header className="testo-dashboard-section-heading">
-          <h2 id="my-groups-title"><WorkspaceIcon name="groups" />{t('dashboard.myGroups')}</h2>
+          <h2 id="my-groups-title"><WorkspaceIcon name="groups" />{t('dashboard.groupsOverview')}</h2>
           <Link href={isTeacher ? '/admin/groups' : '/student/join-group'}>{isTeacher ? t('dashboard.viewAll') : t('dashboard.joinGroup')} <span aria-hidden="true">→</span></Link>
         </header>
-        {isTeacher ? groups.length > 0 ? <div className="testo-dashboard-groups-grid">
-          {groups.slice(0, 4).map((group) => <Link key={group.id} href={`/admin/groups/${group.id}`} className="testo-dashboard-group-card">
-            <span className="testo-dashboard-group-icon" aria-hidden="true">♧</span>
-            <span className="testo-dashboard-group-copy"><strong><SafeText value={group.name} /></strong><small>{t('dashboard.teacherRole')}</small></span>
-            <span className="testo-dashboard-role-tag">{t('dashboard.teacherRole')}</span>
-          </Link>)}
-        </div> : <Card className="testo-dashboard-empty-state"><p>{t('dashboard.noManagedGroups')}</p><Link href="/admin/groups">{t('dashboard.createGroup')} <span aria-hidden="true">→</span></Link></Card>
-          : joinedGroups.length > 0 ? <div className="testo-dashboard-groups-grid">{joinedGroups.slice(0, 4).map((group) => <article key={group.group_id} className="testo-dashboard-group-card">
-            <span className="testo-dashboard-group-icon" aria-hidden="true">♧</span>
-            <span className="testo-dashboard-group-copy"><strong><SafeText value={group.group_name} /></strong><small>{t('dashboard.studentRole')}</small></span>
-            <span className="testo-dashboard-role-tag testo-dashboard-role-tag-student">{t('dashboard.studentRole')}</span>
-          </article>)}</div>
-            : <Card className="testo-dashboard-empty-state"><p>{t('dashboard.noJoinedGroups')}</p><Link href="/student/join-group">{t('dashboard.joinGroup')} <span aria-hidden="true">→</span></Link></Card>}
+        <div className="testo-dashboard-groups-grid">
+          <section className="testo-dashboard-group-panel" aria-labelledby="managed-groups-heading">
+            <header className="testo-dashboard-group-panel-heading">
+              <h3 id="managed-groups-heading">{t('dashboard.managedGroups')}</h3>
+              <span className="testo-dashboard-count">{isTeacher ? groups.length : 0}</span>
+            </header>
+            {isTeacher && groups.length > 0 ? <div className="testo-dashboard-group-rows">
+              {groups.slice(0, 4).map((group) => <Link key={group.id} href={`/admin/groups/${group.id}`} className="testo-dashboard-group-row">
+                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.name} /></strong><small>{t('dashboard.teacherRole')}</small></span>
+                <span className="testo-dashboard-role-tag">{t('dashboard.instructorYou')}</span>
+              </Link>)}
+            </div> : <div className="testo-dashboard-group-empty"><p>{isTeacher ? t('dashboard.noManagedGroups') : t('dashboard.instructorGroupsUnavailable')}</p>{isTeacher && <Link href="/admin/groups">{t('dashboard.createGroup')} <span aria-hidden="true">→</span></Link>}</div>}
+          </section>
+          <section className="testo-dashboard-group-panel" aria-labelledby="joined-groups-heading">
+            <header className="testo-dashboard-group-panel-heading">
+              <h3 id="joined-groups-heading">{t('dashboard.joinedGroups')}</h3>
+              <span className="testo-dashboard-count testo-dashboard-count-muted">{!isTeacher ? joinedGroups.length : 0}</span>
+            </header>
+            {!isTeacher && joinedGroups.length > 0 ? <div className="testo-dashboard-group-rows">
+              {joinedGroups.slice(0, 4).map((group) => <article key={group.group_id} className="testo-dashboard-group-row">
+                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.group_name} /></strong><small>{t('dashboard.studentRole')}</small></span>
+                <span className="testo-dashboard-role-tag testo-dashboard-role-tag-student">{t('dashboard.studentRole')}</span>
+              </article>)}
+            </div> : <div className="testo-dashboard-group-empty"><p>{!isTeacher ? t('dashboard.noJoinedGroups') : t('dashboard.studentGroupsUnavailable')}</p>{!isTeacher && <Link href="/student/join-group">{t('dashboard.joinGroup')} <span aria-hidden="true">→</span></Link>}</div>}
+          </section>
+        </div>
       </section>
 
       <section className="testo-dashboard-section" aria-labelledby="dashboard-exams-title">
-        <header className="testo-dashboard-section-heading">
-          <h2 id="dashboard-exams-title"><WorkspaceIcon name="exams" />{t('dashboard.examsSection')}</h2>
-          <Link href={isTeacher ? '/admin#exam-list' : '/student#open-exams-title'}>{t('dashboard.viewAll')} <span aria-hidden="true">→</span></Link>
-        </header>
         <Card className="testo-dashboard-exams">
+          <header className="testo-dashboard-exams-heading">
+            <h2 id="dashboard-exams-title"><WorkspaceIcon name="exams" />{t('dashboard.examsSection')}</h2>
+            <Link href={isTeacher ? '/admin#exam-list' : '/student#open-exams-title'}>{t('dashboard.viewAll')} <span aria-hidden="true">→</span></Link>
+          </header>
           {sortedExams.length > 0 ? <ul>
             {sortedExams.slice(0, 5).map((exam) => <li key={exam.id}>
               <div><strong><SafeText value={exam.title} /></strong><small>{isTeacher && exam.is_published === false ? t('admin.exams.draft') : t('admin.exams.starts')} · {formatDate(exam.start_time, true)} · {exam.duration_minutes} {t('student.exam.minutes')}</small></div>

@@ -67,14 +67,10 @@ export function ThemeProvider({
       // If there's already a cached theme, we don't need to apply the unauthenticated system fallback
       if (readCachedTheme()) return;
 
-      // Logged-out: fall back to prefers-color-scheme.
-      const prefersDark =
-        typeof window !== "undefined" && typeof window.matchMedia === "function"
-          ? window.matchMedia("(prefers-color-scheme: dark)").matches
-          : false;
-      const resolved: Theme = prefersDark ? "dark" : "light";
-      setThemeState(resolved);
-      persistTheme(resolved);
+      // New visitors and accounts start in light mode regardless of OS theme.
+      // An explicit theme saved by the user remains respected via the cache.
+      setThemeState("light");
+      persistTheme("light");
     };
     void initTheme();
 

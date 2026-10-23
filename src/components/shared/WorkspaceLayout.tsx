@@ -16,7 +16,7 @@ type WorkspaceLayoutProps = {
 }
 
 export function WorkspaceLayout({ role, active, children, focusMode = false, dashboardHref, dashboardMode = false, userName = '', onSignOut }: WorkspaceLayoutProps) {
-  const { t, language, setLanguage } = useTranslation()
+  const { t, language } = useTranslation()
   const admin = role === 'admin'
   const links = dashboardMode
     ? [
@@ -55,10 +55,6 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
         </nav>
         <div className="testo-sidebar-spacer" />
         {dashboardMode ? <>
-          <button type="button" className="testo-language-toggle" onClick={() => void setLanguage(language === 'en' ? 'ar' : 'en')}>
-            <span><span aria-hidden="true">◎</span> {t('dashboard.languageLabel')}: {language === 'en' ? t('preferences.english') : t('preferences.arabic')}</span>
-            <strong>{language === 'en' ? t('preferences.arabic') : 'English'}</strong>
-          </button>
           <div className="testo-account-card">
             <span className="testo-account-avatar" aria-hidden="true">{userName.trim().charAt(0).toLocaleUpperCase(language) || 'T'}</span>
             <span className="testo-account-copy"><strong>{userName || t('dashboard.account')}</strong><small>{admin ? t('dashboard.teacherAccount') : t('dashboard.studentAccount')}</small></span>

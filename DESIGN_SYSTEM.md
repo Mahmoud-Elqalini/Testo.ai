@@ -66,9 +66,17 @@ Reference shadow: `0 10px 30px rgba(31, 44, 65, 0.045)` in light mode; use a sub
 
 ### Student dashboard
 
-- Friendly page heading followed by a prominent violet featured-exam card and a compact progress/stats card.
-- Place upcoming exams, groups, and recent results in simple bordered surface panels with compact rows, small icon tiles, clear status, and muted supporting metadata.
-- Keep the feature card as the visual focus; secondary information must not compete with it.
+- Use a friendly page heading and keep the dashboard focused on the user's real learning and teaching activity.
+- Present groups in a **My Groups Overview** section. On wide screens, place two equal-width panels side by side: groups the user manages (instructor) and groups they joined (student). Each panel has a small uppercase/muted label, a compact count badge, a divider, and concise group rows. Stack the panels on narrow screens.
+- Group rows show the real group name, relevant secondary details (such as member count and join code for managed groups, or instructor for joined groups), and a restrained role badge. Make the row or its clear action link to the existing authorized destination.
+- Present upcoming/recent exams in a separate full-width bordered panel. Put the section icon, title, and “View all” action in the panel header, followed by a divider and compact rows. Each row uses the real exam title, group/context and duration as supporting text, plus a clearly styled date/status at the opposite edge.
+- Keep card surfaces white in light theme and semantic surface tokens in dark theme, with quiet borders, approximately 16px corners, restrained violet icons/links, and comfortable spacing. Avoid decorative gradients and oversized empty areas in these data panels.
+- Render only groups, exams, counts, roles, and statuses provided by the authenticated user's actual data and permissions. Never copy sample names, codes, counts, or dates from a reference. If one category is unavailable for the current account, retain the paired panel and show a concise localized empty state; do not imply the user has a role or access they do not have.
+- Preserve the existing dashboard routes, Supabase queries, authorization checks, and interactions. Treat the two panels as a presentation of the current role/data model, not as a reason to add a second role or alter permissions.
+
+### Theme defaults
+
+- New users and users without a saved preference start in **light** theme. Respect an existing saved theme preference and let users switch to dark from the existing theme option. Theme changes must use the shared theme provider/tokens and persist according to the existing preference flow; do not add a competing per-page theme setting.
 
 ### Exam taking
 

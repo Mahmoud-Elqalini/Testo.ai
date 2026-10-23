@@ -30,14 +30,14 @@ export function PreferenceSwitcher() {
   }
 
   return (
-    <header className="border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950">
-      <nav aria-label={t('preferences.controls')} className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-end gap-x-4 gap-y-2 px-4 py-3 sm:px-6">
-        <label className="flex items-center gap-2 text-sm">
+    <header className="testo-preference-bar">
+      <nav aria-label={t('preferences.controls')} className="testo-preference-controls">
+        <label className="testo-preference-field">
           <span>{t('preferences.language')}</span>
           <select
             id="preference-language"
             aria-label={t('preferences.language')}
-            className="h-9 rounded-md border border-neutral-300 bg-transparent px-2 dark:border-neutral-700"
+            className="testo-preference-select"
             value={language}
             onChange={(event) => void changeLanguage(event.target.value)}
           >
@@ -45,12 +45,12 @@ export function PreferenceSwitcher() {
             <option value="en">{t('preferences.english')}</option>
           </select>
         </label>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="testo-preference-field">
           <span>{t('preferences.theme')}</span>
           <select
             id="preference-theme"
             aria-label={t('preferences.theme')}
-            className="h-9 rounded-md border border-neutral-300 bg-white px-2 text-neutral-950 dark:border-neutral-700 dark:bg-neutral-900 dark:text-neutral-50"
+            className="testo-preference-select"
             value={theme}
             onChange={(event) => void changeTheme(event.target.value)}
           >
@@ -58,7 +58,7 @@ export function PreferenceSwitcher() {
             <option value="dark">{t('preferences.dark')}</option>
           </select>
         </label>
-        {error && <span role="alert" className="w-full text-end text-sm text-red-700 dark:text-red-300">{t('preferences.saveError')}</span>}
+        {error && <span role="alert" className="testo-preference-error">{t('preferences.saveError')}</span>}
       </nav>
     </header>
   )

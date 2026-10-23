@@ -12,5 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 - Before changing or adding any user-facing screen, read [`DESIGN_SYSTEM.md`](./DESIGN_SYSTEM.md). It is the self-contained source of truth for Testo's visual language: layout, spacing, colors, typography, component shape, responsive behavior, and light/dark themes. Reuse the existing Testo app shell and shared components/tokens where practical; do not invent a competing visual system.
 - Keep Testo's existing routes, authorization, Supabase data, domain rules, and interactions as the source of truth. Implement the visual system without replacing production content or behavior with sample data or mock interactions.
+- For the dashboard groups and exams overview, follow the paired instructor/student group panels and bordered upcoming/recent exams panel documented in `DESIGN_SYSTEM.md`; show real authorized data and localized empty states, never reference/demo records.
+- New accounts default to the light theme; preserve the user's saved theme choice and use the existing theme switch and shared tokens for dark mode.
 - Keep English and Arabic layouts polished. Preserve RTL behavior, logical spacing, readable typography, and responsive layouts; do not fix one direction by breaking the other.
 - Apply the same design contract to every new screen and visual change so the product remains cohesive without a user restating these requirements.
