@@ -9,19 +9,20 @@ type WorkspaceLayoutProps = {
   active: 'dashboard' | 'exams' | 'groups' | 'exam-room'
   children: ReactNode
   focusMode?: boolean
+  dashboardHref?: string
 }
 
-export function WorkspaceLayout({ role, active, children, focusMode = false }: WorkspaceLayoutProps) {
+export function WorkspaceLayout({ role, active, children, focusMode = false, dashboardHref }: WorkspaceLayoutProps) {
   const { t, language } = useTranslation()
   const admin = role === 'admin'
   const links = admin
     ? [
-        { key: 'dashboard', href: '/admin', label: t('nav.dashboard'), icon: '▦' },
+        { key: 'dashboard', href: dashboardHref ?? '/admin', label: t('nav.dashboard'), icon: '▦' },
         { key: 'exams', href: '/admin#exam-list', label: t('admin.exams.title'), icon: '▤' },
         { key: 'groups', href: '/admin/groups', label: t('admin.groups.title'), icon: '♧' },
       ]
     : [
-        { key: 'dashboard', href: '/student', label: t('nav.dashboard'), icon: '▦' },
+        { key: 'dashboard', href: dashboardHref ?? '/student', label: t('nav.dashboard'), icon: '▦' },
         { key: 'exams', href: '/student#open-exams-title', label: t('student.exam.available'), icon: '▤' },
         { key: 'groups', href: '/student/join-group', label: t('dashboard.joinGroup'), icon: '♧' },
       ]
@@ -29,7 +30,7 @@ export function WorkspaceLayout({ role, active, children, focusMode = false }: W
   return (
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`testo-workspace${focusMode ? ' testo-workspace-focus' : ''}`}>
       {!focusMode && <aside className="testo-sidebar">
-        <Link className="testo-brand" href={admin ? '/admin' : '/student'}>
+        <Link className="testo-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')}>
           <span className="testo-brand-mark">✦</span><span><strong>testo</strong><small>{language === 'ar' ? 'مساحة المدرسة' : 'School workspace'}</small></span>
         </Link>
         <p className="testo-nav-label">{t('nav.dashboard')}</p>
