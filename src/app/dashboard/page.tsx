@@ -9,7 +9,12 @@ import { useTranslation } from '@/lib/i18n/use-translation'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { WorkspaceLayout } from '@/components/shared/WorkspaceLayout'
-import type { UserRole } from '@/lib/types'
+import type { Exam, Group, UserRole } from '@/lib/types'
+import { listAdminExams } from '@/lib/services/exam-service'
+import { listAdminGroups } from '@/lib/services/group-service'
+import { SafeText } from '@/components/shared/SafeText'
+
+type DashboardExam = Pick<Exam, 'id' | 'title' | 'start_time' | 'duration_minutes'> & { is_published?: boolean }
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -17,6 +22,9 @@ export default function DashboardPage() {
   const [role, setRole] = useState<UserRole | null>(null)
   const [fullName, setFullName] = useState('')
   const [loadError, setLoadError] = useState(false)
+  const [groups, setGroups] = useState<Group[]>([])
+  const [exams, setExams] = useState<DashboardExam[]>([])
+  const [now, setNow] = useState(0)
 
   useEffect(() => {
     let active = true
@@ -37,8 +45,34 @@ export default function DashboardPage() {
         setLoadError(true)
         return
       }
+      if (profile.role === 'admin') {
+        const [groupResult, examResult] = await Promise.all([listAdminGroups(), listAdminExams()])
+        if (!active) return
+        if (groupResult.error || examResult.error) {
+          setLoadError(true)
+          return
+        }
+        setGroups(groupResult.data ?? [])
+        setExams(examResult.data ?? [])
+      } else {
+        const { data: availableExams, error: examsError } = await supabase
+          .from('exams')
+          .select('id, title, start_time, duration_minutes')
+          .eq('is_published', true)
+          .order('start_time', { ascending: true })
+        if (!active) return
+        if (examsError) {
+          setLoadError(true)
+          return
+        }
+        const now = Date.now()
+        setExams(((availableExams ?? []) as DashboardExam[]).filter((exam) =>
+          Date.parse(exam.start_time) + exam.duration_minutes * 60_000 > now,
+        ))
+      }
       setRole(profile.role as UserRole)
       setFullName(profile.full_name ?? '')
+      setNow(Date.now())
     }
     void loadProfile()
     return () => { active = false }
@@ -66,6 +100,9 @@ export default function DashboardPage() {
   const title = fullName
     ? t('dashboard.welcomeName').replace('{name}', fullName)
     : t('dashboard.welcome')
+  const sortedExams = exams.slice().sort((a, b) =>
+    Math.abs(Date.parse(a.start_time) - now) - Math.abs(Date.parse(b.start_time) - now),
+  )
 
   return <WorkspaceLayout role={role} active="dashboard" dashboardHref="/dashboard">
     <main className="mx-auto w-full max-w-6xl space-y-7">
@@ -135,6 +172,37 @@ export default function DashboardPage() {
           <Link href={primaryHref} className="text-sm font-semibold text-primary-700 hover:underline dark:text-primary-300">
             {isTeacher ? t('dashboard.manageWorkspace') : t('dashboard.studentExams')} {language === 'ar' ? '←' : '→'}
           </Link>
+        </Card>
+      </section>
+
+      <section className="grid gap-5 lg:grid-cols-2">
+        <Card className="overflow-hidden p-0">
+          <header className="flex items-center justify-between gap-3 border-b border-neutral-200 p-5 dark:border-neutral-700">
+            <div><h2 className="font-semibold">{isTeacher ? t('dashboard.myGroups') : t('dashboard.joinGroup')}</h2><p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">{isTeacher ? t('dashboard.managedGroups') : t('dashboard.joinedGroupsNote')}</p></div>
+            {isTeacher && <Link href="/admin/groups" className="text-xs font-semibold text-primary-700 hover:underline dark:text-primary-300">{t('dashboard.viewAll')} →</Link>}
+          </header>
+          {isTeacher ? groups.length > 0 ? <ul className="divide-y divide-neutral-200 dark:divide-neutral-700">
+            {groups.slice(0, 4).map((group) => <li key={group.id}>
+              <Link href={`/admin/groups/${group.id}`} className="flex items-center justify-between gap-3 p-4 transition-colors hover:bg-neutral-50 dark:hover:bg-neutral-800/60">
+                <span className="min-w-0 truncate text-sm font-medium"><SafeText value={group.name} /></span>
+                <span className="shrink-0 rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-semibold text-primary-700 dark:bg-primary-950 dark:text-primary-300">{t('dashboard.teacherRole')}</span>
+              </Link>
+            </li>)}
+          </ul> : <div className="space-y-3 p-5"><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('dashboard.noManagedGroups')}</p><Link href="/admin/groups"><Button variant="secondary">{t('dashboard.createGroup')}</Button></Link></div>
+            : <div className="space-y-3 p-5"><p className="text-sm text-neutral-600 dark:text-neutral-300">{t('dashboard.joinGroupDescription')}</p><Link href="/student/join-group"><Button variant="secondary">{t('dashboard.joinGroup')}</Button></Link></div>}
+        </Card>
+
+        <Card className="overflow-hidden p-0">
+          <header className="flex items-center justify-between gap-3 border-b border-neutral-200 p-5 dark:border-neutral-700">
+            <div><h2 className="font-semibold">{t('dashboard.examsSection')}</h2><p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">{isTeacher ? t('dashboard.teacherExamsNote') : t('dashboard.studentExamsNote')}</p></div>
+            <Link href={isTeacher ? '/admin' : '/student'} className="text-xs font-semibold text-primary-700 hover:underline dark:text-primary-300">{t('dashboard.viewAll')} →</Link>
+          </header>
+          {sortedExams.length > 0 ? <ul className="divide-y divide-neutral-200 dark:divide-neutral-700">
+            {sortedExams.slice(0, 4).map((exam) => <li key={exam.id} className="flex items-center justify-between gap-3 p-4">
+              <div className="min-w-0"><p className="truncate text-sm font-medium"><SafeText value={exam.title} /></p><p className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">{new Intl.DateTimeFormat(language, { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(exam.start_time))}</p></div>
+              {isTeacher ? <Link href={`/admin/exams/${exam.id}/edit`} className="shrink-0 text-xs font-semibold text-primary-700 hover:underline dark:text-primary-300">{t('common.edit')}</Link> : <span className="shrink-0 rounded-full bg-primary-50 px-2.5 py-1 text-[10px] font-semibold text-primary-700 dark:bg-primary-950 dark:text-primary-300">{t('dashboard.studentRole')}</span>}
+            </li>)}
+          </ul> : <p className="p-5 text-sm text-neutral-600 dark:text-neutral-300">{isTeacher ? t('dashboard.noTeacherExams') : t('student.exam.noAvailable')}</p>}
         </Card>
       </section>
     </main>
