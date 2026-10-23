@@ -5,6 +5,7 @@ import { createClient } from '../supabase/client'
 import type { ServiceResult } from './exam-service'
 
 export interface GroupStudent { id: string; email: string; full_name: string }
+export interface JoinedGroup { group_id: string; group_name: string }
 
 function validationError(message: string): TestoError {
   return { code: 'validation_error', message }
@@ -30,6 +31,14 @@ export async function listAdminGroups(): Promise<ServiceResult<Group[]>> {
     const { data, error } = await createClient().from('groups').select('*').order('name', { ascending: true })
     if (error) throw error
     return { data: (data ?? []) as Group[], error: null }
+  } catch (error) { return { data: null, error: normalizeError(error) } }
+}
+
+export async function listJoinedGroups(): Promise<ServiceResult<JoinedGroup[]>> {
+  try {
+    const { data, error } = await createClient().rpc('list_my_joined_groups')
+    if (error) throw error
+    return { data: (data ?? []) as JoinedGroup[], error: null }
   } catch (error) { return { data: null, error: normalizeError(error) } }
 }
 
