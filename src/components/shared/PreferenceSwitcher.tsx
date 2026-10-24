@@ -9,21 +9,19 @@ export function PreferenceSwitcher() {
   const { theme, setTheme } = useTheme()
   const [error, setError] = useState(false)
 
-  async function changeLanguage(value: string) {
-    if (value !== 'en' && value !== 'ar') return
+  async function changeLanguage() {
     setError(false)
     try {
-      await setLanguage(value)
+      await setLanguage(language === 'en' ? 'ar' : 'en')
     } catch {
       setError(true)
     }
   }
 
-  async function changeTheme(value: string) {
-    if (value !== 'light' && value !== 'dark') return
+  async function changeTheme() {
     setError(false)
     try {
-      await setTheme(value)
+      await setTheme(theme === 'light' ? 'dark' : 'light')
     } catch {
       setError(true)
     }
@@ -31,33 +29,21 @@ export function PreferenceSwitcher() {
 
   return (
     <header className="testo-preference-bar">
+      <div className="testo-preference-brand">
+        <span className="testo-preference-brand-mark" aria-hidden="true"><img src="/testo-mark.png" alt="" /></span>
+        <strong>Testo</strong>
+      </div>
       <nav aria-label={t('preferences.controls')} className="testo-preference-controls">
-        <label className="testo-preference-field">
-          <span>{t('preferences.language')}</span>
-          <select
-            id="preference-language"
-            aria-label={t('preferences.language')}
-            className="testo-preference-select"
-            value={language}
-            onChange={(event) => void changeLanguage(event.target.value)}
-          >
-            <option value="ar">{t('preferences.arabic')}</option>
-            <option value="en">{t('preferences.english')}</option>
-          </select>
-        </label>
-        <label className="testo-preference-field">
-          <span>{t('preferences.theme')}</span>
-          <select
-            id="preference-theme"
-            aria-label={t('preferences.theme')}
-            className="testo-preference-select"
-            value={theme}
-            onChange={(event) => void changeTheme(event.target.value)}
-          >
-            <option value="light">{t('preferences.light')}</option>
-            <option value="dark">{t('preferences.dark')}</option>
-          </select>
-        </label>
+        <button type="button" className="testo-preference-language" onClick={() => void changeLanguage()} aria-label={t('preferences.language')}>
+          {language === 'en' ? 'AR' : 'EN'}
+        </button>
+        <button type="button" className="testo-preference-theme" onClick={() => void changeTheme()} aria-label={t('preferences.theme')} aria-pressed={theme === 'dark'}>
+          {theme === 'light' ? (
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.2 15.2A8.5 8.5 0 0 1 8.8 3.8 8.6 8.6 0 1 0 20.2 15.2Z" /></svg>
+          ) : (
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+          )}
+        </button>
         {error && <span role="alert" className="testo-preference-error">{t('preferences.saveError')}</span>}
       </nav>
     </header>

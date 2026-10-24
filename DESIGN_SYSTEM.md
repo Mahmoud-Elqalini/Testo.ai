@@ -54,6 +54,8 @@ Use no default card shadow. Course cards may use a subtle shadow (`0 8px 24px rg
 
 - The public root route (`/`) redirects directly to `/login`; do not add a separate landing screen unless the product's public onboarding requirements change.
 - Keep account creation accessible from the registration link on the sign-in screen. Preserve the existing sign-in, registration, localization, and authentication flows.
+- The shared public/authentication header follows the dashboard header language: Testo logo and wordmark at the logical start, compact language-switch pill and icon-only theme toggle at the logical end. Do not use labeled language/theme selects or duplicate the dashboard navigation drawer on unauthenticated pages.
+- Authentication panel eyebrow/kicker must match the current auth state and the page heading in the active language (sign in, register, reset password, or set new password). Never hard-code a sign-in label across registration or recovery screens; audit all auth states and success/loading variants when changing shared auth UI.
 
 ### Admin dashboard
 

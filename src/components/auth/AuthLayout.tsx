@@ -28,7 +28,7 @@ export function AuthLayout({
             <span>Testo</span>
           </Link>
           <div className="auth-aside-copy">
-            <span className="auth-kicker">{t('home.login')}</span>
+            <span className="auth-kicker">{title}</span>
             <h2>{t('home.title')}</h2>
             <p>{t('home.description')}</p>
           </div>
