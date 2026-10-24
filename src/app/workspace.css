@@ -94,7 +94,6 @@
 .testo-dashboard-empty-course { display:flex;width:min(100%,710px);min-height:150px;align-items:center;gap:17px;padding:20px;border:1px solid var(--t-border);border-radius:15px;background:var(--t-surface);box-shadow:0 4px 15px #1f2c4108; }.testo-dashboard-empty-icon,.testo-dashboard-catalog-icon { display:grid;width:62px;height:62px;flex:0 0 62px;place-items:center;border-radius:14px;background:var(--t-primary-soft);color:var(--t-primary);font-size:27px; }.testo-dashboard-empty-course h3,.testo-dashboard-course-catalog h3 { margin:0;color:var(--t-text);font-size:14px;font-weight:700; }.testo-dashboard-empty-course p,.testo-dashboard-course-catalog p { margin:5px 0 0;color:var(--t-muted);font-size:12px;line-height:1.65; }
 .testo-dashboard-course-catalog { display:flex;min-height:128px;align-items:center;gap:17px;padding:20px;border:1px dashed var(--t-border);border-radius:15px;background:var(--t-surface); }.testo-dashboard-catalog-icon { width:48px;height:48px;flex-basis:48px;font-size:23px; }
 .testo-dashboard-groups-grid { display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px; }.testo-dashboard-group-card { display:flex;min-width:0;align-items:center;gap:12px;padding:17px;border:1px solid var(--t-border);border-radius:15px;background:var(--t-surface);color:var(--t-text);text-decoration:none;transition:border-color .15s,box-shadow .15s; }.testo-dashboard-group-card:hover { border-color:var(--t-primary);box-shadow:0 7px 20px #1f2c410b; }.testo-dashboard-group-icon { display:grid;width:38px;height:38px;flex:0 0 38px;place-items:center;border-radius:11px;background:var(--t-primary-soft);color:var(--t-primary);font-size:17px; }.testo-dashboard-group-copy { display:grid;min-width:0;flex:1;gap:3px; }.testo-dashboard-group-copy strong { overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px; }.testo-dashboard-group-copy small { color:var(--t-muted);font-size:10px; }.testo-dashboard-role-tag { padding:6px 9px;border-radius:8px;background:var(--t-primary-soft);color:var(--t-primary);font-size:9px;font-weight:700;white-space:nowrap; }
-.testo-dashboard-empty-state { display:flex;min-height:104px;align-items:center;justify-content:space-between;gap:15px;padding:20px;border:1px solid var(--t-border);border-radius:15px;background:var(--t-surface); }.testo-dashboard-empty-state p { margin:0;color:var(--t-muted);font-size:12px; }.testo-dashboard-empty-state a { color:#7039e8;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap; }
 .testo-dashboard-exams { overflow:hidden;padding:0;border:1px solid var(--t-border);border-radius:15px;background:var(--t-surface); }.testo-dashboard-exams ul { margin:0;padding:0;list-style:none; }.testo-dashboard-exams li { display:flex;min-height:72px;align-items:center;justify-content:space-between;gap:15px;padding:14px 20px;border-bottom:1px solid var(--t-border); }.testo-dashboard-exams li:last-child { border-bottom:0; }.testo-dashboard-exams li>div { display:grid;min-width:0;gap:3px; }.testo-dashboard-exams li strong { overflow:hidden;color:var(--t-text);font-size:13px;text-overflow:ellipsis;white-space:nowrap; }.testo-dashboard-exams li small { color:var(--t-muted);font-size:11px; }.testo-dashboard-exam-date { padding:6px 10px;border:1px solid #f0d78a;border-radius:999px;background:#fff9e9;color:#96620b;font-size:10px;font-weight:700;white-space:nowrap; }.dark .testo-dashboard-exam-date { border-color:#67542d;background:#433829;color:#ecc36e; }.testo-dashboard-exam-empty { margin:0;padding:21px;color:var(--t-muted);font-size:12px; }
 .dark .testo-dashboard-hero { background:linear-gradient(112deg,#5930a8 0%,#4938aa 54%,#353caa 100%); }.dark .testo-dashboard-hero p { color:#f1edff; }.dark .testo-dashboard-action-outline { background:#4931a1; }
 @media(max-width:1000px){.testo-dashboard-hero{align-items:flex-start;flex-direction:column;padding:28px;}.testo-dashboard-actions{width:min(100%,440px);}.testo-dashboard-groups-grid{grid-template-columns:1fr;}}
@@ -120,7 +119,7 @@
 .testo-dashboard-action-outline:hover { background:#4c23ab; }
 .dark .testo-dashboard-action-outline { background:#4931a1; }
 .dark .testo-dashboard-action-outline:hover { background:#3d288a; }
-.testo-dashboard-section-heading h2 svg { width:20px;height:20px;flex:0 0 20px;color:var(--t-primary);stroke-width:2; }
+.testo-dashboard-section-heading h2 svg { width:20px;height:20px;flex:0 0 20px;color:#7c3aed;fill:currentColor;stroke:none; }
 .testo-dashboard-section-heading>a:focus-visible,
 .testo-dashboard-group-card:focus-visible,
 .testo-dashboard-action:focus-visible,
@@ -155,7 +154,8 @@
 .testo-dashboard-group-panel-heading { display:flex;min-height:34px;align-items:center;justify-content:space-between;gap:10px;padding-bottom:13px;border-bottom:1px solid var(--t-border); }
 .testo-dashboard-group-panel-heading h3 { margin:0;color:var(--t-muted);font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase; }
 .testo-dashboard-count { display:grid;min-width:29px;height:25px;place-items:center;padding:0 8px;border-radius:999px;background:var(--t-primary-soft);color:var(--t-primary-strong);font-size:11px;font-weight:700; }
-.testo-dashboard-count-muted { background:var(--t-surface-soft);color:var(--t-muted); }
+.testo-dashboard-count-managed { background:#ede9fe;color:#6d28d9; }
+.testo-dashboard-count-muted { background:#f1f5f9;color:#64748b; }
 .testo-dashboard-group-rows { display:grid;gap:9px;padding-top:13px; }
 .testo-dashboard-group-row { display:flex;min-width:0;min-height:76px;align-items:center;justify-content:space-between;gap:12px;padding:13px 15px;border:1px solid var(--t-border);border-radius:15px;background:var(--t-surface-soft);color:var(--t-text);text-decoration:none; }
 .testo-dashboard-group-row[href] { transition:border-color .15s,background .15s; }
@@ -167,10 +167,16 @@
 .testo-dashboard-role-tag { padding:6px 10px;border-radius:8px;background:var(--t-primary);color:#fff;font-size:10px;font-weight:700;white-space:nowrap; }
 .testo-dashboard-role-tag-student { background:#e5eaf1;color:#344154; }
 .dark .testo-dashboard-role-tag-student { background:#30394a;color:#edf0f7; }
-.testo-dashboard-group-empty { display:flex;min-height:89px;align-items:center;justify-content:space-between;gap:12px;padding-top:13px; }
-.testo-dashboard-group-empty p { margin:0;color:var(--t-muted);font-size:12px; }
-.testo-dashboard-group-empty a { color:var(--t-primary);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap; }
-.testo-dashboard-group-empty a:hover { text-decoration:underline; }
+.testo-dashboard-empty-state { display:grid;min-height:112px;justify-items:center;align-content:center;gap:9px;padding:24px 16px;border:1px dashed var(--t-border);border-radius:14px;background:var(--t-surface-soft);text-align:center; }
+.testo-dashboard-empty-state>.testo-dashboard-section-icon { width:40px;height:40px;color:#cbd5e1;fill:currentColor;stroke:none; }
+.testo-dashboard-empty-copy { display:grid;gap:3px; }
+.testo-dashboard-empty-copy strong { color:var(--t-text);font-size:13px;font-weight:600; }
+.testo-dashboard-empty-copy p { margin:0;color:var(--t-muted);font-size:12px;line-height:1.5; }
+.testo-dashboard-empty-action { display:inline-flex;min-height:34px;align-items:center;justify-content:center;margin-top:3px;padding:0 12px;border:1px solid #c4b5fd;border-radius:12px;background:var(--t-surface);color:#6d28d9;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap; }
+.testo-dashboard-empty-action:hover { border-color:#7c3aed;background:#f5f3ff; }
+.testo-dashboard-empty-action:focus-visible { outline:3px solid color-mix(in srgb,#7c3aed 45%,transparent);outline-offset:2px; }
+.dark .testo-dashboard-empty-action { border-color:#6254a9;color:#c4b5fd; }
+.dark .testo-dashboard-empty-action:hover { background:#312e81; }
 .testo-dashboard-exams-heading { display:flex;min-height:61px;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px;border-bottom:1px solid var(--t-border); }
 .testo-dashboard-exams-heading h2 { display:flex;align-items:center;gap:10px;margin:0;color:var(--t-text);font-size:18px;font-weight:700; }
 .testo-dashboard-exams-heading h2 svg { width:20px;height:20px;color:var(--t-primary); }
@@ -255,7 +261,7 @@ body:has(.testo-workspace-dashboard) .testo-preference-bar { display:none; }
 .testo-workspace-dashboard .testo-sidebar.is-open,.testo-workspace-dashboard[dir="rtl"] .testo-sidebar.is-open { transform:translateX(0);visibility:visible; }
 .testo-workspace-dashboard .testo-main { min-height:calc(100dvh - 64px); }
 .testo-workspace-dashboard .testo-account-signout { width:auto;flex:0 0 auto;padding:0 7px;font-size:10px; }
-.testo-dashboard-section-heading h2 svg { fill:var(--t-primary);stroke-width:1.3; }
+.testo-dashboard-section-heading h2 svg,.testo-dashboard-exams-heading h2 svg { fill:currentColor;stroke:none;color:#7c3aed; }
 .testo-dashboard-group-panel,.testo-dashboard-exams,.testo-dashboard-course-catalog,.testo-dashboard-empty-course,.testo-featured-course,.testo-learning-card { border-radius:16px; }
 .testo-dashboard-section-heading>a { font-size:13px;font-weight:600; }
 .testo-dashboard-action,.testo-dashboard-group-card,.testo-featured-course,.testo-learning-card,.testo-show-more { transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease,background-color .15s ease; }
@@ -306,4 +312,4 @@ body:has(.testo-workspace-dashboard) .testo-preference-bar { display:none; }
 .testo-course-continue:disabled,.testo-enroll-button:disabled { cursor:not-allowed;opacity:.62; }
 .testo-workspace-dashboard[dir="rtl"] .testo-progress-track { direction:rtl; }
 .testo-workspace-dashboard[dir="rtl"] .testo-course-continue span { transform:scaleX(-1); }
-.testo-workspace-dashboard .testo-nav-item:focus-visible,.testo-account-signout:focus-visible,.testo-mobile-backdrop:focus-visible,.testo-mobile-brand:focus-visible,.testo-dashboard-group-empty a:focus-visible { outline:3px solid color-mix(in srgb,var(--t-primary) 55%,transparent);outline-offset:3px; }
+.testo-workspace-dashboard .testo-nav-item:focus-visible,.testo-account-signout:focus-visible,.testo-mobile-backdrop:focus-visible,.testo-mobile-brand:focus-visible { outline:3px solid color-mix(in srgb,var(--t-primary) 55%,transparent);outline-offset:3px; }
