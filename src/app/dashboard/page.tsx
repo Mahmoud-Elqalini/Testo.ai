@@ -13,21 +13,6 @@ import type { Group, UserRole } from '@/lib/types'
 import { getDashboardData, type DashboardExam } from '@/lib/services/dashboard-service'
 import type { JoinedGroup } from '@/lib/services/group-service'
 
-// Dashboard fixtures are explicitly enabled for the requested dashboard preview.
-const USE_MOCK_DATA = true
-const MOCK_COURSES = [
-  { id: 'course-full-stack-bootcamp', title: 'Full-Stack Web Development Bootcamp', titleAr: 'معسكر تطوير الويب المتكامل', category: 'Web Development', categoryAr: 'تطوير الويب', progress: 68, rating: 4.9, enrolled: 1240, image: 'linear-gradient(135deg,#dbeafe,#c4b5fd)' },
-  { id: 'course-high-school-physics', title: 'High School Physics: Mechanics & Kinematics', titleAr: 'فيزياء الثانوية: الميكانيكا والحركة', category: 'Physics', categoryAr: 'الفيزياء', progress: 42, rating: 4.8, enrolled: 860, image: 'linear-gradient(135deg,#fde68a,#fdba74)' },
-  { id: 'course-linear-algebra', title: 'Linear Algebra & Matrix Fundamentals', titleAr: 'أساسيات الجبر الخطي والمصفوفات', category: 'Mathematics', categoryAr: 'الرياضيات', progress: 24, rating: 4.7, enrolled: 2100, image: 'linear-gradient(135deg,#a7f3d0,#67e8f9)' },
-]
-
-const MOCK_MANAGED_GROUPS = [{ id: 'mock-physics-101', name: 'Physics 101 - Senior Class (A)', admin_id: 'mock-instructor', memberCount: 34, inviteCode: 'TST-8842' }]
-const MOCK_JOINED_GROUPS = [{ group_id: 'mock-advanced-calculus', group_name: 'Advanced Calculus Study Circle', instructorName: 'Dr. Sarah Ahmed' }]
-const MOCK_EXAMS: Array<DashboardExam & { groupContext: string }> = [
-  { id: 'mock-forces-acceleration', title: 'Chapter 2 Quiz: Forces & Acceleration', start_time: '2026-10-28T09:00:00.000Z', duration_minutes: 45, is_published: true, groupContext: 'Physics 101 - Senior Class (A)' },
-  { id: 'mock-differential-equations', title: 'Midterm Differential Equations Exam', start_time: '2026-11-02T09:00:00.000Z', duration_minutes: 90, is_published: true, groupContext: 'Advanced Calculus Study Circle' },
-]
-
 type DashboardSectionIconName = 'courses' | 'explore' | 'groups' | 'exams'
 
 function DashboardSectionIcon({ name }: { name: DashboardSectionIconName }) {
@@ -58,7 +43,6 @@ export default function DashboardPage() {
   const [joinedGroups, setJoinedGroups] = useState<JoinedGroup[]>([])
   const [exams, setExams] = useState<DashboardExam[]>([])
   const [now, setNow] = useState(0)
-  const [showAllCourses, setShowAllCourses] = useState(false)
 
   useEffect(() => {
     let active = true
@@ -102,14 +86,11 @@ export default function DashboardPage() {
   }
 
   const isTeacher = role === 'admin'
-  const dashboardGroups = USE_MOCK_DATA ? (isTeacher ? MOCK_MANAGED_GROUPS : []) : groups
-  const dashboardJoinedGroups = USE_MOCK_DATA ? (!isTeacher ? MOCK_JOINED_GROUPS : []) : joinedGroups
-  const dashboardExams = USE_MOCK_DATA ? MOCK_EXAMS : exams
   const firstName = fullName.trim().split(/\s+/)[0]
   const title = firstName
     ? t('dashboard.welcomeName').replace('{name}', firstName)
     : t('dashboard.welcome')
-  const sortedExams = dashboardExams.slice().sort((a, b) =>
+  const sortedExams = exams.slice().sort((a, b) =>
     Math.abs(Date.parse(a.start_time) - now) - Math.abs(Date.parse(b.start_time) - now),
   )
   const formatDate = (date: string, includeTime = false) => new Intl.DateTimeFormat(language, {
@@ -148,18 +129,12 @@ export default function DashboardPage() {
           <h2 id="continue-learning-title"><DashboardSectionIcon name="courses" />{t('dashboard.continueLearning')}</h2>
           <Link href="#featured-course-list">{t('dashboard.viewAll')}</Link>
         </header>
-        {USE_MOCK_DATA ? <div className="testo-dashboard-learning-grid">{MOCK_COURSES.filter((course) => course.progress > 0).map((course) => <article className="testo-learning-card" key={course.id}>
-          <span className="testo-learning-thumb" style={{ background: course.image }} aria-hidden="true"><WorkspaceIcon name="courses" /></span>
-          <div className="testo-learning-detail"><small>{language === 'ar' ? course.categoryAr : course.category}</small><h3>{language === 'ar' ? course.titleAr : course.title}</h3><p>{t('dashboard.mockInstructor')}</p><div className="testo-learning-progress"><strong>{t('dashboard.progress')}</strong><b>{course.progress}%</b></div><div className="testo-progress-track" role="progressbar" aria-label={`${language === 'ar' ? course.titleAr : course.title} ${t('dashboard.progress')}`} aria-valuenow={course.progress} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${course.progress}%` }} /></div></div>
-          <button className="testo-course-continue" type="button" disabled title={t('dashboard.courseUnavailable')}>{t('dashboard.continue')} <span aria-hidden="true">▶</span></button>
-        </article>)}</div> : <DashboardEmptyState icon="courses">{t('dashboard.emptyCoursesTitle')}</DashboardEmptyState>}
+        <DashboardEmptyState icon="courses">{t('dashboard.emptyCoursesTitle')}</DashboardEmptyState>
       </section>
 
       <section id="featured-course-list" className="testo-dashboard-section" aria-labelledby="featured-courses-title">
         <header className="testo-dashboard-section-heading"><h2 id="featured-courses-title"><DashboardSectionIcon name="explore" />{t('dashboard.exploreFeaturedCourses')}</h2><Link href="#featured-course-list">{t('dashboard.viewAll')}</Link></header>
-        {USE_MOCK_DATA ? <><div className="testo-featured-course-grid">{MOCK_COURSES.slice(0, showAllCourses ? MOCK_COURSES.length : 4).map((course) => <article className="testo-featured-course" key={course.id}>
-          <div className="testo-featured-cover" style={{ background: course.image }}><span>{language === 'ar' ? course.categoryAr : course.category}</span></div><div className="testo-featured-body"><div className="testo-course-meta"><span>★ {course.rating}</span><small>{course.enrolled.toLocaleString(language)} {t('dashboard.enrolled')}</small></div><h3>{language === 'ar' ? course.titleAr : course.title}</h3><p>{t('dashboard.mockInstructor')}</p><button type="button" className="testo-enroll-button" disabled title={t('dashboard.courseUnavailable')}>{t('dashboard.enrollCourse')}</button></div>
-        </article>)}</div>{MOCK_COURSES.length > 4 && <button className="testo-show-more" type="button" onClick={() => setShowAllCourses((value) => !value)}>{showAllCourses ? t('dashboard.showLess') : t('dashboard.showMore')}</button>}</> : <DashboardEmptyState icon="explore" description={t('dashboard.featuredCoursesEmptyDescription')}>{t('dashboard.featuredCoursesEmptyTitle')}</DashboardEmptyState>}
+        <DashboardEmptyState icon="explore" description={t('dashboard.featuredCoursesEmptyDescription')}>{t('dashboard.featuredCoursesEmptyTitle')}</DashboardEmptyState>
       </section>
 
       <section className="testo-dashboard-section" aria-labelledby="my-groups-title">
@@ -171,23 +146,23 @@ export default function DashboardPage() {
           <section className="testo-dashboard-group-panel" aria-labelledby="managed-groups-heading">
             <header className="testo-dashboard-group-panel-heading">
               <h3 id="managed-groups-heading">{t('dashboard.managedGroups')}</h3>
-              <span className="testo-dashboard-count testo-dashboard-count-managed">{dashboardGroups.length}</span>
+              <span className="testo-dashboard-count testo-dashboard-count-managed">{isTeacher ? groups.length : 0}</span>
             </header>
-            {isTeacher && dashboardGroups.length > 0 ? <div className="testo-dashboard-group-rows">
-              {dashboardGroups.slice(0, 4).map((group) => <article key={group.id} className="testo-dashboard-group-row">
-                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.name} /></strong><small>{'memberCount' in group ? `${group.memberCount} members · Code ${group.inviteCode}` : t('dashboard.teacherRole')}</small></span>
+            {isTeacher && groups.length > 0 ? <div className="testo-dashboard-group-rows">
+              {groups.slice(0, 4).map((group) => <Link key={group.id} href={`/admin/groups/${group.id}`} className="testo-dashboard-group-row">
+                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.name} /></strong><small>{t('dashboard.teacherRole')}</small></span>
                 <span className="testo-dashboard-role-tag">{t('dashboard.instructorYou')}</span>
-              </article>)}
+              </Link>)}
             </div> : <DashboardEmptyState icon="groups" action={isTeacher ? { href: '/admin/groups', label: t('dashboard.createGroup') } : undefined}>{isTeacher ? t('dashboard.noManagedGroups') : t('dashboard.instructorGroupsUnavailable')}</DashboardEmptyState>}
           </section>
           <section className="testo-dashboard-group-panel" aria-labelledby="joined-groups-heading">
             <header className="testo-dashboard-group-panel-heading">
               <h3 id="joined-groups-heading">{t('dashboard.joinedGroups')}</h3>
-              <span className="testo-dashboard-count testo-dashboard-count-muted">{dashboardJoinedGroups.length}</span>
+              <span className="testo-dashboard-count testo-dashboard-count-muted">{!isTeacher ? joinedGroups.length : 0}</span>
             </header>
-            {!isTeacher && dashboardJoinedGroups.length > 0 ? <div className="testo-dashboard-group-rows">
-              {dashboardJoinedGroups.slice(0, 4).map((group) => <article key={group.group_id} className="testo-dashboard-group-row">
-                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.group_name} /></strong><small>{'instructorName' in group ? `${t('dashboard.instructorPrefix')} ${group.instructorName}` : t('dashboard.studentRole')}</small></span>
+            {!isTeacher && joinedGroups.length > 0 ? <div className="testo-dashboard-group-rows">
+              {joinedGroups.slice(0, 4).map((group) => <article key={group.group_id} className="testo-dashboard-group-row">
+                <span className="testo-dashboard-group-copy"><strong><SafeText value={group.group_name} /></strong><small>{t('dashboard.studentRole')}</small></span>
                 <span className="testo-dashboard-role-tag testo-dashboard-role-tag-student">{t('dashboard.studentRole')}</span>
               </article>)}
             </div> : <DashboardEmptyState icon="groups" action={!isTeacher ? { href: '/student/join-group', label: t('dashboard.joinGroup') } : undefined}>{!isTeacher ? t('dashboard.noJoinedGroups') : t('dashboard.studentGroupsUnavailable')}</DashboardEmptyState>}
@@ -210,7 +185,7 @@ export default function DashboardPage() {
               const dayOffset = Math.round((examDayKey - todayKey) / (24 * 60 * 60 * 1000))
               const dateStatus = dayOffset < 0 ? 'past' : dayOffset < 2 ? 'urgent' : 'upcoming'
               return <li key={exam.id}>
-              <div><strong><SafeText value={exam.title} /></strong><small>{'groupContext' in exam ? `${exam.groupContext} · ` : ''}{isTeacher && exam.is_published === false ? t('admin.exams.draft') : t('admin.exams.starts')} · {formatDate(exam.start_time, true)} · {exam.duration_minutes} {t('student.exam.minutes')}</small></div>
+              <div><strong><SafeText value={exam.title} /></strong><small>{isTeacher && exam.is_published === false ? t('admin.exams.draft') : t('admin.exams.starts')} · {formatDate(exam.start_time, true)} · {exam.duration_minutes} {t('student.exam.minutes')}</small></div>
               <span className={`testo-dashboard-exam-date is-${dateStatus}`}><WorkspaceIcon name="calendar" />{formatDate(exam.start_time)}</span>
             </li>})}
           </ul> : <DashboardEmptyState icon="exams" action={isTeacher ? { href: '/admin/exams/create', label: t('dashboard.createExam') } : { href: '/student/join-group', label: t('dashboard.joinGroup') }}>{t('dashboard.noUpcomingExams')}</DashboardEmptyState>}
