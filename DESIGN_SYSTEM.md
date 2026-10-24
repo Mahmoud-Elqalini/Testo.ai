@@ -90,7 +90,7 @@ Use no default card shadow. Course cards may use a subtle shadow (`0 8px 24px rg
 
 ### Unified dashboard navigation drawer (all viewport sizes)
 
-- The dashboard hamburger opens the navigation drawer on desktop, tablet, and mobile. There is no persistent sidebar or horizontal navigation row. Use a 280px drawer capped at 85vw, full viewport height, sliding from the left in LTR and from the right in RTL.
+- The dashboard hamburger opens the navigation drawer on desktop, tablet, and mobile. There is no persistent sidebar or horizontal navigation row. Use a 280px drawer capped at 85vw, full viewport height. The drawer enters from the same physical side as the hamburger: from the right in LTR and from the left in RTL.
 - Place a softly blurred overlay behind the drawer (`rgba(15, 23, 42, 0.35)` with 4px blur). Keep the header above the overlay and the drawer above both; keep the hamburger itself above the overlay, sharp, and clickable so it can close the drawer.
 - The drawer has a branded top row with an X close button, the same authorized links and active state, and a user card anchored to the bottom with avatar/fallback initial, name, role, and the existing sign-out action. Do not add duplicate language or theme controls inside the drawer; both preferences stay available in the header.
 - Support the hamburger toggle, close button, overlay click, Escape, and navigation-link close. Lock background scrolling while open, move keyboard focus into the drawer, keep Tab focus inside it, and return focus to the hamburger after closing.
