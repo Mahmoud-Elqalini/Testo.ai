@@ -59,28 +59,28 @@ export function PublishExamConfirmation({ examId }: { examId: string }) {
   return (
     <Card className="w-full max-w-xl space-y-5 p-6 sm:p-8">
       <div>
-        <Link className="text-sm text-primary-600 hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
+        <Link className="text-sm text-primary-text hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
         <h1 className="mt-4 text-2xl font-bold">
           {exam?.is_published ? t('admin.publish.unpublishTitle') : t('admin.publish.title')}
         </h1>
       </div>
 
       {exam && <p className="text-lg font-medium"><SafeText value={exam.title} /></p>}
-      <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('admin.publish.description')}</p>
+      <p className="text-sm text-muted dark:text-muted">{t('admin.publish.description')}</p>
 
       {exam && <ExamPermissions examId={examId} onPermissionsChanged={refreshAudience} />}
 
       {audience && (
-        <div className="space-y-2 rounded-lg bg-neutral-50 p-4 text-sm dark:bg-neutral-800">
+        <div className="space-y-2 rounded-lg bg-surface-soft p-4 text-sm dark:bg-surface-soft">
           <p className="font-semibold">{t('admin.publish.audience')}</p>
           <p>{audience.studentCount} {t('admin.publish.students')} · {audience.groupCount} {t('admin.publish.groups')}</p>
           {audience.studentCount + audience.groupCount === 0 && (
-            <p className="text-amber-800 dark:text-amber-200">{t('admin.publish.noAudience')}</p>
+            <p className="text-warning-text dark:text-warning-text">{t('admin.publish.noAudience')}</p>
           )}
         </div>
       )}
 
-      {error && <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">{t('admin.publish.error')}</p>}
+      {error && <p role="alert" className="text-sm font-medium text-danger-text dark:text-danger-text">{t('admin.publish.error')}</p>}
 
       <div role="alertdialog" aria-modal="true" aria-labelledby="publish-title" className="flex flex-wrap gap-3">
         <span id="publish-title" className="sr-only">{exam?.is_published ? t('admin.publish.unpublishTitle') : t('admin.publish.title')}</span>

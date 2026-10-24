@@ -55,14 +55,14 @@ export function QuestionForm({
 
   if (contentLocked) {
     return (
-      <p role="status" className="border-t border-neutral-200 pt-6 text-sm text-amber-800 dark:border-neutral-700 dark:text-amber-200">
+      <p role="status" className="border-t border-border pt-6 text-sm text-warning-text dark:border-border dark:text-warning-text">
         {t('admin.exams.contentLocked')}
       </p>
     )
   }
 
   return (
-    <section aria-labelledby="question-form-heading" className="border-t border-neutral-200 pt-6 dark:border-neutral-700">
+    <section aria-labelledby="question-form-heading" className="border-t border-border pt-6 dark:border-border">
       <h3 id="question-form-heading" className="mb-5 text-xl font-semibold">
         {editingId ? t('admin.questions.edit') : t('admin.questions.new')}
       </h3>
@@ -72,7 +72,7 @@ export function QuestionForm({
           <label htmlFor="question-type" className="text-sm font-medium">{t('admin.questions.type')}</label>
           <select
             id="question-type"
-            className="h-10 w-full rounded-md border border-neutral-300 bg-background px-3 text-sm dark:border-neutral-700"
+            className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm dark:border-border"
             value={questionType}
             onChange={(event) => onTypeChange(event.target.value as 'mcq' | 'essay')}
           >
@@ -85,7 +85,7 @@ export function QuestionForm({
           <label htmlFor="question-text" className="text-sm font-medium">{t('admin.questions.text')}</label>
           <textarea
             id="question-text"
-            className="min-h-24 w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+            className="min-h-24 w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm dark:border-border"
             value={questionText}
             onChange={(event) => onQuestionTextChange(event.target.value)}
             maxLength={10_000}
@@ -117,7 +117,7 @@ export function QuestionForm({
                   onChange={() => onChoicesChange((current) => current.map((item) => ({ ...item, isCorrect: item.id === choice.id })))}
                 />
                 <input
-                  className="h-10 min-w-0 flex-1 rounded-md border border-neutral-300 bg-transparent px-3 text-sm dark:border-neutral-700"
+                  className="h-10 min-w-0 flex-1 rounded-md border border-border bg-transparent px-3 text-sm dark:border-border"
                   aria-label={`${t('admin.questions.choice')} ${index + 1}`}
                   value={choice.text}
                   onChange={(event) => onChoicesChange((current) => current.map((item) => item.id === choice.id ? { ...item, text: event.target.value } : item))}
@@ -145,7 +145,7 @@ export function QuestionForm({
             {references.map((reference, index) => (
               <div key={reference.id} className="flex items-center gap-3">
                 <textarea
-                  className="min-h-16 min-w-0 flex-1 rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+                  className="min-h-16 min-w-0 flex-1 rounded-md border border-border bg-transparent px-3 py-2 text-sm dark:border-border"
                   aria-label={`${t('admin.questions.referenceAnswer')} ${index + 1}`}
                   value={reference.text}
                   onChange={(event) => onReferencesChange((current) => current.map((item) => item.id === reference.id ? { ...item, text: event.target.value } : item))}
@@ -169,8 +169,8 @@ export function QuestionForm({
           </fieldset>
         )}
 
-        {error && <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
-        {notice && <p role="status" className="text-sm font-medium text-green-700 dark:text-green-300">{notice}</p>}
+        {error && <p role="alert" className="text-sm font-medium text-danger-text dark:text-danger-text">{error}</p>}
+        {notice && <p role="status" className="text-sm font-medium text-success-text dark:text-success-text">{notice}</p>}
 
         <div className="flex flex-wrap gap-3">
           <Button type="submit" loading={saving}>

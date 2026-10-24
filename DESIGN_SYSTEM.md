@@ -10,35 +10,38 @@ This is the persistent, self-contained visual contract for all Testo screens. Re
 - Use consistent shared navigation, page headers, buttons, fields, cards, badges, tables/lists, dialogs, and empty/loading/error states.
 - Primary violet communicates the main action and active navigation. Teal/green indicate progress or success; amber indicates attention/review; red indicates destructive or error states. Do not use color alone to communicate state.
 
-## Color tokens
+## Design tokens
 
-Match these reference values where the existing app's token system permits. Prefer semantic shared tokens over one-off color literals.
+All visual tokens are defined in [src/app/globals.css](./src/app/globals.css) with CSS custom properties and Tailwind v4 `@theme`. Components and screen styles consume these semantic values.
 
 | Role | Light | Dark |
 | --- | --- | --- |
 | Page background | `#F8FAFC` | `#0F172A` |
-| Surface/card | `#FFFFFF` | `#1E293B` |
-| Soft surface | `#F1F5F9` | `#334155` |
-| Main text | `#0F172A` | `#F1F5F9` |
-| Muted text | `#64748B` | `#94A3B8` |
+| Surface | `#FFFFFF` | `#1E293B` |
+| Soft surface | `#F8FAFC` | `#263449` |
 | Border | `#E2E8F0` | `#334155` |
-| Primary | `#7C3AED` | `#A78BFA` |
-| Strong primary | `#6D28D9` | `#C4B5FD` |
-| Soft primary | `#F5F3FF` | `#312E81` |
-| Teal | `#0F766E` | `#5EEAD4` |
-| Success | `#047857` / `#ECFDF5` | `#6EE7B7` / `#064E3B` |
-| Attention | `#B45309` / `#FEF3C7` | `#FCD34D` / `#78350F` |
-| Error | `#B91C1C` / `#FEE2E2` | `#FCA5A5` / `#7F1D1D` |
+| Text | `#0F172A` | `#F1F5F9` |
+| Muted / subtle | `#64748B` / `#94A3B8` | `#94A3B8` / `#94A3B8` |
+| Primary / hover | `#7C3AED` / `#6D28D9` | `#7C3AED` / `#6D28D9` |
+| Primary text | `#6D28D9` | `#A78BFA` |
+| Primary soft / stronger soft | `#F5F3FF` / `#EDE9FE` | 15% / 20% `#7C3AED` mixed into `#1E293B` |
+| Hero gradient | `#6D28D9` to `#4F46E5` | same |
+| Success / soft / border / text | `#10B981` / `#ECFDF5` / `#A7F3D0` / `#047857` | `#10B981` / 15% `#10B981` mixed into `#1E293B` / `#047857` / `#6EE7B7` |
+| Warning soft / border / text | `#FEF3C7` / `#FDE68A` / `#B45309` | 15% `#B45309` mixed into `#1E293B` / `#B45309` / `#FCD34D` |
+| Danger soft / border / text | `#FEE2E2` / `#FECACA` / `#B91C1C` | 15% `#B91C1C` mixed into `#1E293B` / `#B91C1C` / `#FCA5A5` |
+| Neutral chip background / text | `#F1F5F9` / `#334155` | `#334155` / `#F1F5F9` |
 
-Use no default card shadow. Course cards may use a subtle shadow (`0 8px 24px rgba(15, 23, 42, 0.08)`) that strengthens slightly on hover. Keep the hero's violet-to-indigo gradient (`#6D28D9` to `#4F46E5`) and do not add decorative gradients elsewhere. The exam-taking workspace may use its reference's quiet green accent (`#39776b`, soft `#e8f2ee`) while staying within the same surface, border, and typography system.
+Use `muted` for secondary text. The `subtle` token is reserved for non-text decoration; `#94A3B8` does not meet 4.5:1 contrast on light surfaces.
 
-## Typography and shape
+Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999px`. Tailwind utilities `rounded-sm/md/lg/xl/full` map to these values. Shadows are `sm: 0 1px 2px rgb(15 23 42 / 8%)` and `md: 0 8px 24px rgb(15 23 42 / 12%)`, exposed as `shadow-sm` and `shadow-md`. Spacing uses Tailwind's 4px scale. Motion tokens are `duration-fast: 150ms` and `duration-base: 250ms`. The exam workspace keeps its semantic green accent as tokens in the same file.
+## Typography, icons, and shape
 
-- Use **Inter** (Google Fonts) as the interface font across the product. Keep Cairo as an Arabic glyph fallback where Inter does not provide adequate Arabic coverage, then fall back to sans-serif.
+- Keep the existing font loading: Geist and Geist Mono through `next/font/google`, with DM Sans and Cairo from the existing Google Fonts CSS import. Reference the stacks through the `--font-sans`, `--font-ui`, and `--font-arabic` tokens.
 - Base text is approximately 14px with 1.5 line height. Secondary labels and metadata are compact but readable (usually 10–13px); page titles are about 27–30px and section headings are about 16–20px on the unified dashboard.
 - Use clear weight and spacing hierarchy: bold, letter-spaced small eyebrow/date labels; a strong page title; muted supporting text.
-- Standard cards/panels use 16px corner radii; the unified dashboard hero uses 24px. Fields and buttons use about 9–12px radii. Primary buttons are compact, solid violet, and around 40px tall. Secondary buttons use a surface fill and subtle border.
-- Dashboard cards and buttons use a 150ms transition. Interactive cards lift by 2px and gain a slightly stronger shadow on hover. Preserve visible keyboard focus on every interactive element, disabled states, and reduced-motion preferences.
+- Use radius and shadow tokens from the design-token section. Primary buttons are compact, solid violet, and around 40px tall. Secondary buttons use a surface fill and subtle border.
+- Use `lucide-react` for interface icons. Use 16, 20, or 24px sizes and stroke width 2. Decorative icons have `aria-hidden="true"`; icon-only controls have a localized accessible label.
+- Interactive elements use the 150ms or 250ms motion tokens, visible focus, disabled states, and reduced-motion preferences.
 
 ## Shared application shell (screens other than the unified account dashboard)
 
@@ -77,12 +80,12 @@ Use no default card shadow. Course cards may use a subtle shadow (`0 8px 24px rg
 - Header: a white 64px bar with a thin bottom border, the provided Testo sparkle logo asset instead of a text `T`, and the dark wordmark. Center the brand mark and wordmark together vertically in one horizontal row. Use English when no language preference has been saved; respect an existing saved preference. In LTR, place the hamburger, language pill, and theme toggle together on the left, with the brand at the far right and the drawer entering from the left. In RTL, mirror those physical sides: controls and hamburger on the right, brand on the left, and drawer entering from the right. Use a compact language pill showing the language it switches to (`AR` in English and `EN` in Arabic), an icon-only 36px theme button (moon in light mode, sun in dark mode), and an accessible menu button. Keep this header arrangement at every viewport size. Do not render the global language/theme selects on this route.
 - The language control switches immediately, updates the page `lang` and `dir`, and persists through the existing language preference flow. The theme control uses the shared theme provider, preserves saved preferences, and follows the product's light default for new accounts.
 - The greeting uses the user's first name only, stays on one line when space allows, and includes a waving hand. Show the authenticated role in the badge and use the established role-appropriate actions. Keep the violet-to-indigo hero gradient and its glass action container.
-- Use the section titles **Continue Learning**, **Explore Featured Courses**, **My Groups Overview**, and **Upcoming & Recent Exams**. Section headings use a solid violet icon on the left and a purple, semibold **View All** link on the right without an arrow. Use Font Awesome solid icons where available; do not substitute outline icon sets.
+- Use the section titles **Continue Learning**, **Explore Featured Courses**, **My Groups Overview**, and **Upcoming & Recent Exams**. Section headings use a solid violet icon on the left and a purple, semibold **View All** link on the right without an arrow. Use the shared lucide-react icon convention described above for section and navigation icons.
 - Loading is section-shaped skeleton UI with a shimmer, including the hero and every data section. Replace it with localized data or an empty/error state when loading completes; do not leave blank regions that suddenly populate.
 - Continue Learning cards are about half-width on desktop and full-width on mobile. Include an 80px rounded thumbnail, uppercase violet category, course title and instructor, divider, progress label and percentage, and a green progress bar. Add a compact Continue action only when a real course destination exists; make the card itself a link only when it has that same valid destination.
 - In RTL, fill progress bars from right to left and mirror directional icons. Use logical properties so alignment and control placement follow document direction.
 - Featured courses use a two-column desktop grid and one column on mobile. Course covers are about 220px tall with a white category badge, followed by rating, enrollment count, title, instructor, and a full-width Enroll button. Use a dark navy button for available courses and a pale green enrolled state. Initially show four courses and provide a centered Show more control when additional real courses exist.
-- The production course catalog and course routes are not part of the current data model. If course fixtures are needed during development, place them behind one explicit `USE_MOCK_DATA` development flag. Never present development fixtures as authenticated production records or give mock courses working enrollment/progress actions. In production, use a localized empty state and a valid existing action; never invent a route or interaction.
+- The production course catalog and course routes are not part of the current data model. Course fixtures live in `src/lib/fixtures/courses.ts` and are returned only when `NEXT_PUBLIC_USE_MOCK_COURSES=true`; they are not wired into the UI or production data. Never present development fixtures as authenticated production records or give mock courses working enrollment/progress actions. In production, use a localized empty state and a valid existing action; never invent a route or interaction.
 - Present groups in a **My Groups Overview** section. On wide screens, place two equal-width panels side by side: groups the user manages (instructor) and groups they joined (student). Each panel has a small uppercase/muted label, a compact count badge, a divider, and concise group rows. Stack the panels on narrow screens.
 - Group rows show only real authorized fields: the group name, available member/instructor details, and a restrained role badge. Managed-group invitation codes may be copied only when the real usable code is available to the current user; announce a successful copy accessibly. Never invent a count, code, instructor, or role. Make each row or its clear action link to the existing authorized destination.
 - Present upcoming/recent exams in a separate full-width bordered panel. Put the section icon, title, and “View all” action in the panel header, followed by a divider and compact rows. Each row uses the real exam title, group/context and duration as supporting text, plus a clearly styled date/status at the opposite edge.
@@ -113,10 +116,19 @@ Use no default card shadow. Course cards may use a subtle shadow (`0 8px 24px rg
 
 ## Responsive and language behavior
 
-- Follow the reference's approximate breakpoints: 1000px for dashboard/form column changes, 780px for narrower shell and stacked summaries, 700px for single-column dashboard cards, and 480px for compact controls. The unified dashboard drawer and header controls remain the same pattern at every width.
+- Use only the shared responsive breakpoints: 640px (`sm`), 1024px (`lg`), and 1280px (`xl`). No `md:` or `2xl:` variants are currently used in `src/`; keep their tokens defined if such variants are introduced later.
 - Treat these as guidance, not rigid magic numbers. Prevent clipping and horizontal scrolling at all widths; preserve comfortable touch targets.
 - Support both Arabic RTL and English LTR. Use logical alignment/spacing, localize all visible copy, format dates/numbers for the active language, and verify both directions after layout changes. In RTL, mirror directional arrows and progress fills, place the drawer at the right edge, and let the language/theme/hamburger group follow the logical opposite side of the brand.
 - Keep light and dark themes intentional: map semantic tokens for every surface, text, border, status, focus, and selected state. Never leave a light-only literal on a dark screen if it harms contrast.
+
+## Rules for agents
+
+- Use shared design tokens only; do not add hard-coded hex colors or pixel values in components.
+- Use logical CSS properties only.
+- Every interactive element needs hover, focus, and disabled states where applicable.
+- Every list needs loading, empty, and error states.
+- Do not add fonts or icon sets without approval.
+- Navigation items whose destination pages do not exist must show a small “Soon” badge.
 
 ## Implementation rule
 

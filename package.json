@@ -20,6 +20,7 @@
     "@supabase/supabase-js": "^2.109.0",
     "@tanstack/react-query": "^5.102.8",
     "@vinext/cloudflare": "^1.2.0",
+    "lucide-react": "^1.61.0",
     "next": "^16.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",

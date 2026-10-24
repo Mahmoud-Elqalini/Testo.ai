@@ -98,11 +98,11 @@ export default function GroupInvitation({ groupId }: { groupId: string }) {
     <Card className="space-y-4 p-5">
       <div>
         <h2 className="text-lg font-semibold">{t('admin.groups.invitation.title')}</h2>
-        <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{t('admin.groups.invitation.description')}</p>
+        <p className="mt-1 text-sm text-muted dark:text-muted">{t('admin.groups.invitation.description')}</p>
       </div>
 
       {status?.exists && (
-        <dl className="grid gap-2 rounded-lg bg-neutral-50 p-4 text-sm dark:bg-neutral-800 sm:grid-cols-2">
+        <dl className="grid gap-2 rounded-lg bg-surface-soft p-4 text-sm dark:bg-surface-soft sm:grid-cols-2">
           <div>
             <dt className="font-medium">{t('admin.groups.invitation.status')}</dt>
             <dd className="mt-1">{active ? t('admin.groups.invitation.active') : revoked ? t('admin.groups.invitation.revokedStatus') : expired ? t('admin.groups.invitation.expired') : t('admin.groups.invitation.inactive')}</dd>
@@ -124,18 +124,18 @@ export default function GroupInvitation({ groupId }: { groupId: string }) {
       ) : <Button type="button" variant="secondary" loading={working} onClick={() => { setLoading(true); void refreshStatus() }}>{t('common.retry')}</Button>}
 
       {code && (
-        <div className="space-y-3 rounded-lg border border-primary-300 p-4 dark:border-primary-700">
+        <div className="space-y-3 rounded-lg border border-primary-soft-strong p-4 dark:border-primary-hover">
           <p className="text-sm font-medium">{t('admin.groups.invitation.shareOnce')}</p>
           <div className="flex flex-wrap items-center gap-3">
-            <code dir="ltr" className="select-all break-all rounded bg-neutral-100 px-3 py-2 font-mono text-lg tracking-wider dark:bg-neutral-800">{code.code}</code>
+            <code dir="ltr" className="select-all break-all rounded bg-neutral-chip-bg px-3 py-2 font-mono text-lg tracking-wider dark:bg-surface-soft">{code.code}</code>
             <Button type="button" variant="secondary" onClick={() => void copyCode()}>{t('admin.groups.invitation.copy')}</Button>
           </div>
-          <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('admin.groups.invitation.expires')}: {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(code.expires_at))}</p>
-          {copied && <p role="status" className="text-sm text-green-700 dark:text-green-400">{t('admin.groups.invitation.copied')}</p>}
+          <p className="text-sm text-muted dark:text-muted">{t('admin.groups.invitation.expires')}: {new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(code.expires_at))}</p>
+          {copied && <p role="status" className="text-sm text-success-text dark:text-success-text">{t('admin.groups.invitation.copied')}</p>}
         </div>
       )}
 
-      {message && <p role={messageIsSuccess ? 'status' : 'alert'} className={messageIsSuccess ? 'text-sm text-green-700 dark:text-green-400' : 'text-sm text-red-600 dark:text-red-400'}>{message}</p>}
+      {message && <p role={messageIsSuccess ? 'status' : 'alert'} className={messageIsSuccess ? 'text-sm text-success-text dark:text-success-text' : 'text-sm text-danger-text dark:text-danger-text'}>{message}</p>}
     </Card>
   )
 }

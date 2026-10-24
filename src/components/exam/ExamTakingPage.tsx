@@ -173,15 +173,15 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
 
   return <WorkspaceLayout role="student" active="exam-room" focusMode><main className="testo-exam-room mx-auto w-full max-w-none space-y-6">
     <header className="testo-exam-heading">
-      <div><Link href="/student" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><p className="mt-3 testo-exam-eyebrow">{t('student.exam.questionCount').replace('{count}', numberLabel(data?.questions.length ?? 0))}</p><h1 className="mt-1 text-2xl font-bold">{title}</h1></div>
+      <div><Link href="/student" className="text-sm text-primary-text hover:underline dark:text-primary-text">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><p className="mt-3 testo-exam-eyebrow">{t('student.exam.questionCount').replace('{count}', numberLabel(data?.questions.length ?? 0))}</p><h1 className="mt-1 text-2xl font-bold">{title}</h1></div>
       <div className="testo-exam-secure">◈ <span>{t('student.exam.autosaveHint')}</span></div>
     </header>
 
     {loading && <p role="status">{t('student.exam.loadingExam')}</p>}
     {loadError && !loading && <Card className="space-y-4 p-6" role="alert"><p>{t('student.exam.loadError')}</p><Button variant="secondary" onClick={() => void loadExam()}>{t('common.retry')}</Button></Card>}
-    {takeover && !loading && !loadError && <div role="status" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">{t('student.exam.takeover')}</div>}
-    {sessionInvalid && <div role="alert" className="rounded-lg border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-100">{t('student.exam.sessionExpired')}</div>}
-    {timeExpired && !submitted && <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-red-900 dark:border-red-900 dark:bg-red-950/40 dark:text-red-100">{t('student.exam.timeUp')}</div>}
+    {takeover && !loading && !loadError && <div role="status" className="rounded-lg border border-warning-border bg-warning-soft p-4 text-warning-text dark:border-warning-border dark:bg-warning-soft/40 dark:text-warning-text">{t('student.exam.takeover')}</div>}
+    {sessionInvalid && <div role="alert" className="rounded-lg border border-warning-border bg-warning-soft p-4 text-warning-text dark:border-warning-border dark:bg-warning-soft/40 dark:text-warning-text">{t('student.exam.sessionExpired')}</div>}
+    {timeExpired && !submitted && <div role="alert" className="rounded-lg border border-danger-border bg-danger-soft p-4 text-danger-text dark:border-danger-border dark:bg-danger-soft/40 dark:text-danger-text">{t('student.exam.timeUp')}</div>}
     {submitted && <Card className="space-y-4 p-6"><h2 className="text-xl font-semibold">{t('student.exam.submittedTitle')}</h2><p>{t('student.exam.submittedDescription')}</p><Link href="/student"><Button>{t('student.exam.backToDashboard')}</Button></Link></Card>}
 
     {!loading && !loadError && !submitted && data && <>
@@ -204,8 +204,8 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
           return <button key={question.id} type="button" aria-label={`${t('student.exam.questions')} ${numberLabel(index + 1)}${marked ? `, ${t('student.exam.markReview')}` : ''}`} aria-current={index === currentIndex ? 'step' : undefined} onClick={() => setCurrentIndex(index)} className={`${index === currentIndex ? 'is-current ' : ''}${answered ? 'is-answered ' : ''}${marked ? 'is-reviewed' : ''}`}>{numberLabel(index + 1)}{marked && <i />}</button>
         })}</div><div className="testo-question-legend"><span><i className="is-filled" />{t('student.exam.answered')}</span><span><i />{t('student.exam.unanswered')}</span></div><div className="testo-question-completion"><strong>{numberLabel(answeredCount)} / {numberLabel(data.questions.length)}</strong><span>{t('student.exam.autosaveHint')}</span></div><div className="testo-question-submit"><SubmitExam disabled={hasUnsynced || inputsDisabled} loading={submitLoading} onSubmit={onSubmit} /></div></aside>
       </div>}
-      {submitError && <p role="alert" className="text-sm text-red-700 dark:text-red-300">{t('student.exam.submitError')}</p>}
-      {hasUnsynced && <p role="status" className="text-sm text-amber-700 dark:text-amber-300">{t('student.exam.syncBeforeSubmit')}</p>}
+      {submitError && <p role="alert" className="text-sm text-danger-text dark:text-danger-text">{t('student.exam.submitError')}</p>}
+      {hasUnsynced && <p role="status" className="text-sm text-warning-text dark:text-warning-text">{t('student.exam.syncBeforeSubmit')}</p>}
     </>}
   </main></WorkspaceLayout>
 }

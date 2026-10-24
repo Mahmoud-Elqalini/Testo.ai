@@ -62,7 +62,7 @@ export default function AdminGroupDetailPage() {
   return (
     <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-10 sm:px-6">
       <header className="flex flex-wrap items-start justify-between gap-3">
-        <div><Link href="/admin/groups" className="text-sm text-primary-700 hover:underline dark:text-primary-300">{t('common.backArrow')} {t('admin.groups.title')}</Link><h1 className="mt-3 text-3xl font-bold">{group?.name ?? t('admin.groups.notFound')}</h1><p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('admin.groups.members')} ({members.length})</p></div>
+        <div><Link href="/admin/groups" className="text-sm text-primary-text hover:underline dark:text-primary-text">{t('common.backArrow')} {t('admin.groups.title')}</Link><h1 className="mt-3 text-3xl font-bold">{group?.name ?? t('admin.groups.notFound')}</h1><p className="mt-2 text-muted dark:text-muted">{t('admin.groups.members')} ({members.length})</p></div>
         <Link href="/admin/groups"><Button variant="secondary">{t('common.back')}</Button></Link>
       </header>
       <Card className="space-y-4 p-5">
@@ -72,12 +72,12 @@ export default function AdminGroupDetailPage() {
           <Input id="student-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('admin.groups.email')} required />
           <Button type="submit" loading={working}>{t('admin.groups.search')}</Button>
         </form>
-        {match && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800"><p><span className="font-semibold">{match.full_name || match.email}</span><span className="ms-2 text-sm text-neutral-600 dark:text-neutral-300">{match.email}</span></p><Button type="button" loading={working} onClick={() => void add(match)}>{t('admin.groups.add')}</Button></div>}
-        {message && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{message}</p>}
+        {match && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-soft p-4 dark:bg-surface-soft"><p><span className="font-semibold">{match.full_name || match.email}</span><span className="ms-2 text-sm text-muted dark:text-muted">{match.email}</span></p><Button type="button" loading={working} onClick={() => void add(match)}>{t('admin.groups.add')}</Button></div>}
+        {message && <p role="alert" className="text-sm text-danger-text dark:text-danger-text">{message}</p>}
       </Card>
       {group && <GroupInvitation groupId={groupId} />}
-      {members.length === 0 ? <Card className="p-8 text-center text-neutral-600 dark:text-neutral-300">{t('admin.groups.noMembers')}</Card> :
-        <ul className="grid gap-3">{members.map((member) => <li key={member.id}><Card className="flex flex-wrap items-center justify-between gap-3 p-4"><p><span className="font-medium">{member.full_name || member.email}</span><span className="ms-2 text-sm text-neutral-600 dark:text-neutral-300">{member.email}</span></p><Button type="button" variant="ghost" loading={working} onClick={() => void remove(member.id)}>{t('admin.groups.remove')}</Button></Card></li>)}</ul>}
+      {members.length === 0 ? <Card className="p-8 text-center text-muted dark:text-muted">{t('admin.groups.noMembers')}</Card> :
+        <ul className="grid gap-3">{members.map((member) => <li key={member.id}><Card className="flex flex-wrap items-center justify-between gap-3 p-4"><p><span className="font-medium">{member.full_name || member.email}</span><span className="ms-2 text-sm text-muted dark:text-muted">{member.email}</span></p><Button type="button" variant="ghost" loading={working} onClick={() => void remove(member.id)}>{t('admin.groups.remove')}</Button></Card></li>)}</ul>}
     </main>
   )
 }

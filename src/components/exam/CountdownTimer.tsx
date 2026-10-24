@@ -16,7 +16,7 @@ export default function CountdownTimer({ endsAt }: { endsAt: string }) {
   const minutes = Math.floor((seconds % 3600) / 60)
   const remainder = seconds % 60
   const urgent = seconds <= 300
-  return <div role="timer" aria-live="off" className={`rounded-lg px-4 py-2 text-center font-mono text-lg font-bold tabular-nums ${urgent ? 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-200' : 'bg-neutral-100 dark:bg-neutral-800'}`}>
+  return <div role="timer" aria-live="off" className={`rounded-lg px-4 py-2 text-center font-mono text-lg font-bold tabular-nums ${urgent ? 'bg-danger-soft text-danger-text dark:bg-danger-soft dark:text-danger-text' : 'bg-neutral-chip-bg dark:bg-surface-soft'}`}>
     <span className="sr-only">{t('student.exam.timeRemaining')}: </span>{[hours, minutes, remainder].map((part) => String(part).padStart(2, '0')).join(':')}
   </div>
 }

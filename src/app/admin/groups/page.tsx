@@ -39,7 +39,7 @@ export default function AdminGroupsPage() {
   return (
     <main className="mx-auto w-full max-w-4xl space-y-6 px-4 py-10 sm:px-6">
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <div><h1 className="text-3xl font-bold">{t('admin.groups.title')}</h1><p className="mt-2 text-neutral-600 dark:text-neutral-300">{t('admin.groups.description')}</p></div>
+        <div><h1 className="text-3xl font-bold">{t('admin.groups.title')}</h1><p className="mt-2 text-muted dark:text-muted">{t('admin.groups.description')}</p></div>
         <Link href="/admin"><Button variant="secondary">{t('common.back')}</Button></Link>
       </header>
       <Card className="p-5">
@@ -49,14 +49,14 @@ export default function AdminGroupsPage() {
           <Button type="submit" loading={saving}>{t('admin.groups.create')}</Button>
         </form>
       </Card>
-      {error && <p role="alert" className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p role="alert" className="text-sm text-danger-text dark:text-danger-text">{error}</p>}
       {loading && <p role="status">{t('common.loading')}</p>}
-      {!loading && groups.length === 0 && <Card className="p-8 text-center text-neutral-600 dark:text-neutral-300">{t('admin.groups.empty')}</Card>}
+      {!loading && groups.length === 0 && <Card className="p-8 text-center text-muted dark:text-muted">{t('admin.groups.empty')}</Card>}
       <ul className="grid gap-3">
         {groups.map((group) => <li key={group.id}>
-          <Link href={`/admin/groups/${group.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
-            <Card className="flex items-center justify-between gap-4 p-5 hover:border-primary-500">
-              <span className="break-words font-semibold">{group.name}</span><span className="text-sm text-primary-700 dark:text-primary-300">{t('admin.groups.manage')}</span>
+          <Link href={`/admin/groups/${group.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary">
+            <Card className="flex items-center justify-between gap-4 p-5 hover:border-primary">
+              <span className="break-words font-semibold">{group.name}</span><span className="text-sm text-primary-text dark:text-primary-text">{t('admin.groups.manage')}</span>
             </Card>
           </Link>
         </li>)}

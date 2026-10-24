@@ -10,9 +10,9 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = '', variant = 'primary', loading = false, fullWidth = false, children, disabled, ...props }, ref) => {
     const baseStyles = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none'
     const variants = {
-      primary: 'bg-[var(--color-primary-600)] text-white hover:bg-[var(--color-primary-700)] focus-visible:ring-[var(--color-primary-500)]',
-      secondary: 'bg-neutral-100 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-800 dark:text-neutral-100 dark:hover:bg-neutral-700 focus-visible:ring-neutral-500',
-      ghost: 'hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus-visible:ring-neutral-500',
+      primary: 'bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary-hover)] focus-visible:ring-[var(--color-primary)]',
+      secondary: 'bg-neutral-chip-bg text-text hover:bg-surface-soft dark:bg-surface-soft dark:text-on-primary dark:hover:bg-surface-soft focus-visible:ring-primary',
+      ghost: 'hover:bg-neutral-chip-bg dark:hover:bg-surface-soft text-text dark:text-on-primary focus-visible:ring-primary',
     }
     const widthStyles = fullWidth ? 'w-full' : ''
     const paddingStyles = 'h-10 py-2 px-4'

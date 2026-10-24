@@ -24,7 +24,7 @@ export const FormField = React.forwardRef<HTMLInputElement, FormFieldProps>(
           {...props}
         />
         {error && (
-          <p className="text-sm font-medium text-red-500 dark:text-red-400">{error}</p>
+          <p className="text-sm font-medium text-danger-text dark:text-danger-text">{error}</p>
         )}
       </div>
     )

@@ -13,25 +13,25 @@ export default function ResultCard({ result }: { result: Extract<StudentResult, 
   return <Card className="space-y-4 p-6">
     <div className="flex flex-wrap items-start justify-between gap-4">
       <div>
-        <p className="text-sm font-medium text-neutral-600 dark:text-neutral-300">{t('student.results.title')}</p>
+        <p className="text-sm font-medium text-muted dark:text-muted">{t('student.results.title')}</p>
         <h1 className="text-2xl font-bold"><SafeText value={result.examTitle} /></h1>
-        <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{date}</p>
+        <p className="mt-1 text-sm text-muted dark:text-muted">{date}</p>
       </div>
-      <span className="rounded-full bg-neutral-100 px-3 py-1 text-sm dark:bg-neutral-800">
+      <span className="rounded-full bg-neutral-chip-bg px-3 py-1 text-sm dark:bg-surface-soft">
         {t(`student.exam.status.${result.attemptStatus}`)}
       </span>
     </div>
     <div className="grid gap-3 sm:grid-cols-3">
-      <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800/70">
-        <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.score')}</p>
+      <div className="rounded-lg bg-surface-soft p-4 dark:bg-surface-soft/70">
+        <p className="text-sm text-muted dark:text-muted">{t('student.results.score')}</p>
         <p className="mt-1 text-xl font-semibold">{formatNumber(result.earnedPoints)} / {formatNumber(result.maximumPoints)}</p>
       </div>
-      <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800/70">
-        <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.percentage')}</p>
+      <div className="rounded-lg bg-surface-soft p-4 dark:bg-surface-soft/70">
+        <p className="text-sm text-muted dark:text-muted">{t('student.results.percentage')}</p>
         <p className="mt-1 text-xl font-semibold">{formatNumber(result.percentage)}%</p>
       </div>
-      <div className="rounded-lg bg-neutral-50 p-4 dark:bg-neutral-800/70">
-        <p className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.results.status')}</p>
+      <div className="rounded-lg bg-surface-soft p-4 dark:bg-surface-soft/70">
+        <p className="text-sm text-muted dark:text-muted">{t('student.results.status')}</p>
         <p className="mt-1 text-xl font-semibold">{t(`student.exam.status.${result.attemptStatus}`)}</p>
       </div>
     </div>

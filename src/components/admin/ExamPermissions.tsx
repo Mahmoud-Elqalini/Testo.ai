@@ -56,7 +56,7 @@ export function ExamPermissions({ examId, onPermissionsChanged }: { examId: stri
 
   return (
     <Card className="w-full space-y-5 p-5">
-      <div><h2 className="text-lg font-semibold">{t('admin.permissions.title')}</h2><p className="mt-1 text-sm text-neutral-600 dark:text-neutral-300">{t('admin.permissions.description')}</p></div>
+      <div><h2 className="text-lg font-semibold">{t('admin.permissions.title')}</h2><p className="mt-1 text-sm text-muted dark:text-muted">{t('admin.permissions.description')}</p></div>
       <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => void grantStudent(event)}>
         <label className="sr-only" htmlFor="permission-email">{t('admin.permissions.email')}</label>
         <Input id="permission-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('admin.permissions.email')} required />
@@ -64,21 +64,21 @@ export function ExamPermissions({ examId, onPermissionsChanged }: { examId: stri
       </form>
       <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => void grantGroup(event)}>
         <label className="sr-only" htmlFor="permission-group">{t('admin.permissions.chooseGroup')}</label>
-        <select id="permission-group" value={groupId} onChange={(event) => setGroupId(event.target.value)} required className="h-10 min-w-0 flex-1 rounded-md border border-neutral-300 bg-transparent px-3 text-sm dark:border-neutral-700">
+        <select id="permission-group" value={groupId} onChange={(event) => setGroupId(event.target.value)} required className="h-10 min-w-0 flex-1 rounded-md border border-border bg-transparent px-3 text-sm dark:border-border">
           <option value="">{t('admin.permissions.chooseGroup')}</option>
           {groups.map((group) => <option key={group.id} value={group.id}>{group.name}</option>)}
         </select>
         <Button type="submit" loading={busy} disabled={!groups.length}>{t('admin.permissions.grantGroup')}</Button>
       </form>
-      {message && <p role="status" className="text-sm text-neutral-700 dark:text-neutral-200">{message}</p>}
+      {message && <p role="status" className="text-sm text-neutral-chip-text dark:text-muted">{message}</p>}
       <div className="space-y-2">
         <h3 className="font-semibold">{t('admin.permissions.current')}</h3>
-        {permissions.length === 0 ? <p className="text-sm text-amber-800 dark:text-amber-200">{t('admin.permissions.empty')}</p> :
+        {permissions.length === 0 ? <p className="text-sm text-warning-text dark:text-warning-text">{t('admin.permissions.empty')}</p> :
           <ul className="space-y-2">{permissions.map((permission) => {
             const label = permission.student_id
               ? `${t('admin.permissions.student')} · ${permission.student_name || permission.student_email}`
               : `${t('admin.permissions.group')} · ${groups.find(({ id }) => id === permission.group_id)?.name ?? permission.group_name}`
-            return <li key={permission.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-neutral-50 px-3 py-2 text-sm dark:bg-neutral-800"><span className="break-all">{label}</span><Button type="button" variant="ghost" loading={busy} onClick={() => void revoke(permission)}>{t('admin.permissions.remove')}</Button></li>
+            return <li key={permission.id} className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-soft px-3 py-2 text-sm dark:bg-surface-soft"><span className="break-all">{label}</span><Button type="button" variant="ghost" loading={busy} onClick={() => void revoke(permission)}>{t('admin.permissions.remove')}</Button></li>
           })}</ul>}
       </div>
     </Card>

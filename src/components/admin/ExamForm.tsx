@@ -100,15 +100,15 @@ export function ExamForm({ examId }: { examId?: string }) {
     <div className="testo-setup-layout">
     <Card className="testo-setup-card w-full space-y-6 p-6 sm:p-8">
       <div>
-        <Link className="text-sm text-primary-600 hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
+        <Link className="text-sm text-primary-text hover:underline" href="/admin">{t('common.backArrow')} {t('common.back')}</Link>
         <h1 className="mt-4 text-2xl font-bold">
           {examId ? t('admin.exams.editTitle') : t('admin.exams.createTitle')}
         </h1>
         {exam?.is_published && (
-          <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">{t('admin.exams.published')}</p>
+          <p className="mt-2 text-sm text-warning-text dark:text-warning-text">{t('admin.exams.published')}</p>
         )}
         {contentLocked && (
-          <p role="status" className="mt-2 text-sm text-amber-800 dark:text-amber-200">
+          <p role="status" className="mt-2 text-sm text-warning-text dark:text-warning-text">
             {t('admin.exams.contentLocked')}
           </p>
         )}
@@ -129,7 +129,7 @@ export function ExamForm({ examId }: { examId?: string }) {
           <label htmlFor="exam-description" className="text-sm font-medium">{t('admin.exams.descriptionLabel')}</label>
           <textarea
             id="exam-description"
-            className="min-h-28 w-full rounded-md border border-neutral-300 bg-transparent px-3 py-2 text-sm dark:border-neutral-700"
+            className="min-h-28 w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm dark:border-border"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             maxLength={2000}
@@ -160,8 +160,8 @@ export function ExamForm({ examId }: { examId?: string }) {
           required
         />
 
-        {error && <p role="alert" className="text-sm font-medium text-red-600 dark:text-red-400">{error}</p>}
-        {notice && <p role="status" className="text-sm font-medium text-green-700 dark:text-green-300">{notice}</p>}
+        {error && <p role="alert" className="text-sm font-medium text-danger-text dark:text-danger-text">{error}</p>}
+        {notice && <p role="status" className="text-sm font-medium text-success-text dark:text-success-text">{notice}</p>}
 
         {!contentLocked && <Button type="submit" loading={saving}>
           {saving ? t('admin.exams.saving') : t('admin.exams.save')}

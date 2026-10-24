@@ -50,10 +50,10 @@ export default function JoinGroupForm() {
           required
           aria-describedby="group-invitation-help"
         />
-        <p id="group-invitation-help" className="text-sm text-neutral-600 dark:text-neutral-300">{t('student.joinGroup.help')}</p>
+        <p id="group-invitation-help" className="text-sm text-muted dark:text-muted">{t('student.joinGroup.help')}</p>
       </div>
       <Button type="submit" loading={working} fullWidth>{t('student.joinGroup.submit')}</Button>
-      {message && <p role={joined ? 'status' : 'alert'} className={joined ? 'text-sm text-green-700 dark:text-green-400' : 'text-sm text-red-600 dark:text-red-400'}>{message}</p>}
+      {message && <p role={joined ? 'status' : 'alert'} className={joined ? 'text-sm text-success-text dark:text-success-text' : 'text-sm text-danger-text dark:text-danger-text'}>{message}</p>}
     </form>
   )
 }
