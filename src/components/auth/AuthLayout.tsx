@@ -24,7 +24,7 @@ export function AuthLayout({
       <div className="auth-layout">
         <aside className="auth-aside" aria-label="Testo">
           <Link href="/" className="auth-brand" aria-label="Testo home">
-            <span className="auth-brand-mark" aria-hidden="true">T</span>
+            <span className="auth-brand-mark" aria-hidden="true"><img src="/testo-mark.png" alt="" /></span>
             <span>Testo</span>
           </Link>
           <div className="auth-aside-copy">
@@ -43,7 +43,7 @@ export function AuthLayout({
         <section className={`auth-panel${compact ? ' auth-panel-compact' : ''}`}>
           <div className="auth-card">
             <div className="auth-mobile-brand" aria-hidden="true">
-              <span className="auth-brand-mark">T</span><span>Testo</span>
+              <span className="auth-brand-mark"><img src="/testo-mark.png" alt="" /></span><span>Testo</span>
             </div>
             <header className="auth-heading">
               <span className="auth-heading-mark" aria-hidden="true">✦</span>

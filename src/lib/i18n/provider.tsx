@@ -38,7 +38,7 @@ export function I18nProvider({
   // Fix 3: synchronous initializer — avoids flash on repeat visits.
   // Priority: explicit prop > localStorage cache > hardcoded default.
   const [language, setLanguageState] = useState<Language>(
-    initialLanguage ?? readCachedLanguage() ?? "ar"
+    initialLanguage ?? readCachedLanguage() ?? "en"
   );
 
   useEffect(() => {
@@ -68,8 +68,8 @@ export function I18nProvider({
       // If there's already a cached language, keep it instead of applying the browser fallback.
       if (readCachedLanguage()) return;
 
-      // Logged-out: fall back to browser locale (Fix 2 correctness — jsdom = 'en-US').
-      const browserLang: Language = navigator.language.startsWith("en") ? "en" : "ar";
+      // New visitors default to English; a saved/profile preference remains authoritative.
+      const browserLang: Language = "en";
       setLanguageState(browserLang);
       localStorage.setItem(STORAGE_KEY, browserLang);
       document.cookie = `${STORAGE_KEY}=${browserLang}; path=/; max-age=31536000`;
