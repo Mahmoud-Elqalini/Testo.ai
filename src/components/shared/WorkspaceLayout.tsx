@@ -1,13 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { BookOpen, CalendarDays, Compass, FileText, Home, Menu, Moon, Settings, Sun, UsersRound, X } from 'lucide-react'
+import Image from 'next/image'
+import { BookOpen, CalendarDays, Compass, FileText, LayoutDashboard, LogOut, Menu, Settings, Users, X, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from 'react'
 import { useTranslation } from '@/lib/i18n/use-translation'
-import { useTheme } from '@/lib/theme/provider'
+import { CourseSearch } from '@/components/shared/CourseSearch'
+import { PreferenceControls } from '@/components/shared/PreferenceSwitcher'
 
 type WorkspaceLayoutProps = {
-  role: 'admin' | 'student'
+  role: 'admin' | 'student' | null
   active: 'dashboard' | 'exams' | 'groups' | 'exam-room'
   children: ReactNode
   focusMode?: boolean
@@ -18,22 +20,13 @@ type WorkspaceLayoutProps = {
 }
 
 export function WorkspaceLayout({ role, active, children, focusMode = false, dashboardHref, dashboardMode = false, userName = '', onSignOut }: WorkspaceLayoutProps) {
-  const { t, language, setLanguage } = useTranslation()
-  const { theme, setTheme } = useTheme()
+  const { t, language } = useTranslation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
+  const skipMenuFocusReturn = useRef(false)
   const admin = role === 'admin'
-  const links = dashboardMode
-    ? [
-        { key: 'dashboard', href: dashboardHref ?? '/dashboard', label: t('nav.dashboard') },
-        { key: 'courses', href: '#continue-learning-title', label: t('dashboard.myCourses') },
-        { key: 'explore', href: '#featured-courses-title', label: t('dashboard.exploreCourses') },
-        { key: 'groups', href: admin ? '/admin/groups' : '/student/join-group', label: t('dashboard.myGroups') },
-        { key: 'exams', href: admin ? '/admin#exam-list' : '/student#open-exams-title', label: t('dashboard.studentExams') },
-        { key: 'settings', href: '#dashboard-settings', label: t('dashboard.settings') },
-      ]
-    : admin
+  const links = admin
     ? [
         { key: 'dashboard', href: dashboardHref ?? '/admin', label: t('nav.dashboard') },
         { key: 'exams', href: '/admin#exam-list', label: t('admin.exams.title') },
@@ -46,7 +39,7 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
       ]
 
   useEffect(() => {
-    if (!mobileMenuOpen) return
+    if (!dashboardMode || !mobileMenuOpen) return
     const menuButton = menuButtonRef.current
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -58,9 +51,10 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', closeOnEscape)
-      menuButton?.focus()
+      if (skipMenuFocusReturn.current) skipMenuFocusReturn.current = false
+      else menuButton?.focus()
     }
-  }, [mobileMenuOpen])
+  }, [dashboardMode, mobileMenuOpen])
 
   const keepFocusInMobileMenu = (event: ReactKeyboardEvent<HTMLElement>) => {
     if (event.key !== 'Tab') return
@@ -79,53 +73,72 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
     }
   }
 
-  return (
-    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`testo-workspace${focusMode ? ' testo-workspace-focus' : ''}${dashboardMode ? ' testo-workspace-dashboard' : ''}`}>
-      {!focusMode && dashboardMode && <header id="dashboard-settings" className="testo-mobile-header">
-        <button ref={menuButtonRef} type="button" className={`testo-mobile-menu-button${mobileMenuOpen ? ' is-open' : ''}`} onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? t('common.close') : t('common.menu')} aria-expanded={mobileMenuOpen} aria-controls="testo-mobile-navigation">
-          <WorkspaceIcon name={mobileMenuOpen ? 'close' : 'menu'} size={20} />
-        </button>
-        <Link className="testo-mobile-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')}>
-          <span className="testo-brand-mark"><img src="/testo-mark.png" alt="" /></span><strong>Testo</strong>
-        </Link>
-        <div className="testo-mobile-header-actions">
-          <button type="button" className="testo-mobile-language" onClick={() => void setLanguage(language === 'en' ? 'ar' : 'en').catch(() => {})} aria-label={t('preferences.language')}>
-            {language === 'en' ? 'AR' : 'EN'}
-          </button>
-          <button type="button" className="testo-mobile-theme-icon" onClick={() => void setTheme(theme === 'light' ? 'dark' : 'light').catch(() => {})} aria-label={t('preferences.theme')} aria-pressed={theme === 'dark'}>
-            <WorkspaceIcon name={theme === 'light' ? 'moon' : 'sun'} />
-          </button>
-        </div>
-      </header>}
-      {!focusMode && dashboardMode && <button className={`testo-mobile-backdrop${mobileMenuOpen ? ' is-visible' : ''}`} type="button" aria-label={t('common.close')} onClick={() => setMobileMenuOpen(false)} tabIndex={mobileMenuOpen ? 0 : -1} aria-hidden={!mobileMenuOpen} />}
-      {!focusMode && <aside id={dashboardMode ? 'testo-mobile-navigation' : undefined} className={`testo-sidebar${dashboardMode && mobileMenuOpen ? ' is-open' : ''}`} role={dashboardMode && mobileMenuOpen ? 'dialog' : undefined} aria-modal={dashboardMode && mobileMenuOpen ? true : undefined} aria-label={dashboardMode && mobileMenuOpen ? t('nav.dashboard') : undefined} onKeyDown={dashboardMode && mobileMenuOpen ? keepFocusInMobileMenu : undefined}>
-        {dashboardMode && <div className="testo-mobile-drawer-header">
-          <Link className="testo-mobile-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')} onClick={() => setMobileMenuOpen(false)}>
-            <span className="testo-brand-mark"><img src="/testo-mark.png" alt="" /></span><strong>Testo</strong>
+  if (dashboardMode && !focusMode) {
+    return (
+      <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="dashboard-shell testo-workspace-dashboard">
+        <header className="dashboard-header">
+          <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.dashboard')}>
+            <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
           </Link>
-          <button ref={closeButtonRef} type="button" className="testo-mobile-close-button" onClick={() => setMobileMenuOpen(false)} aria-label={t('common.close')}><WorkspaceIcon name="close" size={20} /></button>
-        </div>}
-        <Link className="testo-brand" href={dashboardHref ?? (admin ? '/admin' : '/student')}>
-          <span className="testo-brand-mark"><img src="/testo-mark.png" alt="" /></span><span><strong>Testo</strong>{!dashboardMode && <small>{language === 'ar' ? 'مساحة المدرسة' : 'School workspace'}</small>}</span>
-        </Link>
-        {!dashboardMode && <p className="testo-nav-label">{t('nav.dashboard')}</p>}
-        <nav className="testo-nav" aria-label={t('nav.dashboard')}>
-          {links.map((item) => item.href ? <Link key={item.key} className={`testo-nav-item${active === item.key ? ' is-active' : ''}`} href={item.href} onClick={() => setMobileMenuOpen(false)}>
-            <span className="testo-nav-icon" aria-hidden="true"><WorkspaceIcon name={item.key} /></span><span>{item.label}</span>
-          </Link> : null)}
-        </nav>
-        <div className="testo-sidebar-spacer" />
-        {dashboardMode ? <>
-          <div className="testo-account-card">
-            <span className="testo-account-avatar" aria-hidden="true">{userName.trim().charAt(0).toLocaleUpperCase(language) || 'T'}</span>
-            <span className="testo-account-copy"><strong>{userName || t('dashboard.account')}</strong><small>{admin ? t('dashboard.teacherAccount') : t('dashboard.studentAccount')}</small></span>
-            {onSignOut && <button type="button" className="testo-account-signout" onClick={onSignOut} aria-label={t('dashboard.logout')} title={t('dashboard.logout')}>{t('dashboard.logout')}</button>}
+          <CourseSearch isDrawerOpen={mobileMenuOpen} onSearchOpen={() => { if (mobileMenuOpen) { skipMenuFocusReturn.current = true; setMobileMenuOpen(false) } }} />
+          <div className="dashboard-header-actions">
+            <button
+              ref={menuButtonRef}
+              type="button"
+              className={`dashboard-menu-toggle${mobileMenuOpen ? ' is-open' : ''}`}
+              onClick={() => setMobileMenuOpen((open) => !open)}
+              aria-label={mobileMenuOpen ? t('common.close') : t('common.menu')}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="dashboard-navigation-drawer"
+            >
+              {mobileMenuOpen ? <X size={20} strokeWidth={2} aria-hidden="true" /> : <Menu size={20} strokeWidth={2} aria-hidden="true" />}
+            </button>
+            <PreferenceControls />
           </div>
-        </> : <div className="testo-help-card"><span className="testo-help-icon">?</span><span><strong>{language === 'ar' ? 'مركز المساعدة' : 'Help center'}</strong><small>{language === 'ar' ? 'نحن هنا لمساعدتك' : 'We’re here to help'}</small></span></div>}
-      </aside>}
+        </header>
+        <button className={`dashboard-drawer-backdrop${mobileMenuOpen ? ' is-visible' : ''}`} type="button" aria-label={t('common.close')} onClick={() => setMobileMenuOpen(false)} tabIndex={-1} aria-hidden={!mobileMenuOpen} />
+        <aside
+          id="dashboard-navigation-drawer"
+          className={`dashboard-drawer${mobileMenuOpen ? ' is-open' : ''}`}
+          role="dialog"
+          aria-modal={mobileMenuOpen}
+          aria-label={t('nav.dashboard')}
+          onKeyDown={mobileMenuOpen ? keepFocusInMobileMenu : undefined}
+        >
+          <div className="dashboard-drawer-header">
+            <Link className="dashboard-header-brand" href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+              <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
+            </Link>
+            <button ref={closeButtonRef} className="dashboard-drawer-close" type="button" aria-label={t('common.close')} onClick={() => setMobileMenuOpen(false)}>
+              <X size={20} strokeWidth={2} aria-hidden="true" />
+            </button>
+          </div>
+          <nav className="dashboard-nav" aria-label={t('nav.dashboard')}>
+            <ul>
+              <li><Link className={`dashboard-nav-item${active === 'dashboard' ? ' is-active' : ''}`} href={dashboardHref ?? '/dashboard'} aria-current={active === 'dashboard' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="dashboard" /><span>{t('nav.dashboard')}</span></Link></li>
+              <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="courses" /><span>{t('dashboard.myCourses')}</span><small>{t('nav.soon')}</small></button></li>
+              <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="explore" /><span>{t('dashboard.exploreCourses')}</span><small>{t('nav.soon')}</small></button></li>
+              {role && <li><Link className={`dashboard-nav-item${active === 'groups' ? ' is-active' : ''}`} href={admin ? '/admin/groups' : '/student/join-group'} aria-current={active === 'groups' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="groups" /><span>{t('dashboard.myGroups')}</span></Link></li>}
+              {role && <li><Link className={`dashboard-nav-item${active === 'exams' ? ' is-active' : ''}`} href={admin ? '/admin#exam-list' : '/student#open-exams-title'} aria-current={active === 'exams' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="exams" /><span>{t('dashboard.studentExams')}</span></Link></li>}
+              <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="settings" /><span>{t('dashboard.settings')}</span><small>{t('nav.soon')}</small></button></li>
+            </ul>
+          </nav>
+          <div className="dashboard-account-card">
+            <span className="dashboard-account-avatar" aria-hidden="true">{userName.trim().charAt(0).toLocaleUpperCase(language) || 'T'}</span>
+            <span className="dashboard-account-copy" title={userName || undefined}><strong>{userName || t('dashboard.account')}</strong><small>{role ? admin ? t('nav.adminRole') : t('dashboard.studentRole') : t('common.loading')}</small></span>
+            {onSignOut && <button className="dashboard-account-signout" type="button" onClick={() => { setMobileMenuOpen(false); onSignOut() }} aria-label={t('dashboard.logout')} title={t('dashboard.logout')}><WorkspaceIcon name="logout" size={16} /><span>{t('dashboard.logout')}</span></button>}
+          </div>
+        </aside>
+        <main className="dashboard-main"><div className="testo-page-content">{children}</div></main>
+      </div>
+    )
+  }
+
+  return (
+    <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`testo-workspace${focusMode ? ' testo-workspace-focus' : ''}`}>
       <div className="testo-main">
         {!dashboardMode && <header className="testo-topbar">
-          {focusMode ? <Link className="testo-brand testo-brand-compact" href="/student"><span className="testo-brand-mark">✦</span><strong>testo</strong></Link> : <div className="testo-breadcrumb">{admin ? (language === 'ar' ? 'مساحة المدرسة' : 'School workspace') : t('student.exam.dashboardTitle')} <span>/</span> {links.find((item) => item.key === active)?.label}</div>}
+          {!focusMode && <div className="testo-breadcrumb">{admin ? (language === 'ar' ? 'مساحة المدرسة' : 'School workspace') : t('student.exam.dashboardTitle')} <span>/</span> {links.find((item) => item.key === active)?.label}</div>}
           {focusMode && <span className="testo-saved-indicator"><i />{t('student.exam.autosaveHint')}</span>}
         </header>}
         <div className="testo-page-content">{children}</div>
@@ -134,23 +147,20 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
   )
 }
 
-type WorkspaceIconName = 'dashboard' | 'courses' | 'explore' | 'groups' | 'exams' | 'settings' | 'moon' | 'sun' | 'calendar' | 'menu' | 'close';
+type WorkspaceIconName = 'dashboard' | 'courses' | 'explore' | 'groups' | 'exams' | 'settings' | 'calendar' | 'logout';
 type WorkspaceIconProps = { name: string; size?: 16 | 20 | 24; className?: string };
 
 export function WorkspaceIcon({ name, size = 20, className }: WorkspaceIconProps) {
-  const icons: Record<WorkspaceIconName, typeof Home> = {
-    dashboard: Home,
+  const icons: Record<WorkspaceIconName, LucideIcon> = {
+    dashboard: LayoutDashboard,
     courses: BookOpen,
     explore: Compass,
-    groups: UsersRound,
+    groups: Users,
     exams: FileText,
     settings: Settings,
-    moon: Moon,
-    sun: Sun,
     calendar: CalendarDays,
-    menu: Menu,
-    close: X,
+    logout: LogOut,
   };
-  const Icon = icons[name as WorkspaceIconName] ?? Home;
+  const Icon = icons[name as WorkspaceIconName] ?? LayoutDashboard;
   return <Icon size={size} strokeWidth={2} className={className} aria-hidden="true" />;
 }

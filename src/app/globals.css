@@ -49,6 +49,30 @@
   --shadow-token-md: 0 8px 24px rgb(var(--shadow-color) / 0.12);
   --motion-fast: 150ms;
   --motion-base: 250ms;
+  --motion-mid: 200ms;
+  --shell-border-width: 1px;
+  --shell-header-height: 4rem;
+  --shell-header-gutter: 0.75rem;
+  --shell-logo-size: 2.25rem;
+  --shell-control-size: 2.5rem;
+  --shell-language-min-width: 2.875rem;
+  --shell-focus-width: 0.125rem;
+  --shell-focus-offset: 0.125rem;
+  --shell-drawer-width: 17.5rem;
+  --shell-drawer-max-width: 85vw;
+  --shell-drawer-overlay: rgb(15 23 42 / 35%);
+  --shell-drawer-blur: 0.25rem;
+  --shell-search-width: 20rem;
+  --shell-search-max-width: 26.25rem;
+  --shell-search-input-height: 2.5rem;
+  --shell-search-row-height: 3.5rem;
+  --shell-search-thumbnail-size: 2.5rem;
+  --shell-search-panel-max-height: 70vh;
+  --shell-nav-row-height: 2.75rem;
+  --shell-active-bar-width: 0.1875rem;
+  --shell-avatar-size: 2.5rem;
+  --shell-section-gap: 0.5rem;
+  --shell-icon-color: color-mix(in srgb, var(--subtle) 70%, var(--text));
 }
 
 .dark {
@@ -83,6 +107,7 @@
   --exam-ink: #E8EEE9;
   --exam-muted: #A3B0AA;
   --exam-line: #37443F;
+  --shell-icon-color: var(--subtle);
 }
 
 @theme inline {

@@ -12,6 +12,7 @@ import { SafeText } from '@/components/shared/SafeText'
 import type { Group, UserRole } from '@/lib/types'
 import { getDashboardData, type DashboardExam } from '@/lib/services/dashboard-service'
 import type { JoinedGroup } from '@/lib/services/group-service'
+import { getCourses } from '@/lib/fixtures/courses'
 
 type DashboardSectionIconName = 'courses' | 'explore' | 'groups' | 'exams'
 
@@ -33,6 +34,7 @@ export default function DashboardPage() {
   const [joinedGroups, setJoinedGroups] = useState<JoinedGroup[]>([])
   const [exams, setExams] = useState<DashboardExam[]>([])
   const [now, setNow] = useState(0)
+  const courses = getCourses()
 
   useEffect(() => {
     let active = true
@@ -65,14 +67,19 @@ export default function DashboardPage() {
   }
 
   if (!role) {
-    if (loadError) return <div className="testo-workspace testo-workspace-dashboard flex min-h-screen items-center justify-center p-6"><Card className="w-full max-w-md space-y-3 p-8 text-center">
-          <>
-          <h1 className="text-xl font-semibold">{t('dashboard.profileErrorTitle')}</h1>
-          <p className="text-sm text-muted dark:text-muted">{t('dashboard.profileError')}</p>
-          <Button variant="secondary" onClick={() => window.location.reload()}>{t('common.retry')}</Button>
-          </>
-    </Card></div>
-    return <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="testo-workspace testo-workspace-dashboard"><header className="testo-mobile-header"><span className="testo-mobile-brand"><span className="testo-brand-mark"><img src="/testo-mark.png" alt="" /></span><strong>Testo</strong></span><div className="testo-mobile-header-actions"><i className="testo-skeleton-control" /><i className="testo-skeleton-control" /><i className="testo-skeleton-control" /></div></header><main className="testo-dashboard-skeleton" role="status" aria-label={t('common.loading')}><div className="testo-skeleton-hero"><i /><i /><i /></div><div className="testo-skeleton-section"><i /><div><i /><i /></div></div><div className="testo-skeleton-section"><i /><div className="testo-skeleton-course-grid">{[0, 1, 2, 3].map((n) => <i key={n} />)}</div></div><div className="testo-skeleton-section"><i /><div><i /><i /></div></div><div className="testo-skeleton-section"><i /><div><i /></div></div></main></div>
+    return <WorkspaceLayout role={null} active="dashboard" dashboardHref="/dashboard" dashboardMode>
+      {loadError ? <div className="dashboard-load-error"><Card className="w-full max-w-md space-y-3 p-8 text-center">
+        <h1 className="text-xl font-semibold">{t('dashboard.profileErrorTitle')}</h1>
+        <p className="text-sm text-muted dark:text-muted">{t('dashboard.profileError')}</p>
+        <Button variant="secondary" onClick={() => window.location.reload()}>{t('common.retry')}</Button>
+      </Card></div> : <div className="testo-dashboard-skeleton" role="status" aria-label={t('common.loading')}>
+        <div className="testo-skeleton-hero"><i /><i /><i /></div>
+        <div className="testo-skeleton-section"><i /><div><i /><i /></div></div>
+        <div className="testo-skeleton-section"><i /><div className="testo-skeleton-course-grid">{[0, 1, 2, 3].map((n) => <i key={n} />)}</div></div>
+        <div className="testo-skeleton-section"><i /><div><i /><i /></div></div>
+        <div className="testo-skeleton-section"><i /><div><i /></div></div>
+      </div>}
+    </WorkspaceLayout>
   }
 
   const isTeacher = role === 'admin'
@@ -119,12 +126,22 @@ export default function DashboardPage() {
           <h2 id="continue-learning-title"><WorkspaceIcon name="courses" size={20} className="testo-dashboard-section-icon" />{t('dashboard.continueLearning')}</h2>
           <Link href="#featured-course-list">{t('dashboard.viewAll')}</Link>
         </header>
-        <DashboardEmptyState icon="courses">{t('dashboard.emptyCoursesTitle')}</DashboardEmptyState>
+        {courses.some((course) => course.isEnrolled) ? <div className="testo-dashboard-learning-grid">
+          {courses.filter((course) => course.isEnrolled).map((course) => <article className="testo-learning-card" key={course.id}>
+            <div className="testo-learning-thumb" style={{ backgroundImage: course.coverImageUrl }} aria-hidden="true"><WorkspaceIcon name="courses" /></div>
+            <div className="testo-learning-detail"><small>{course.category}</small><h3>{course.title}</h3><p>{course.instructorName}</p><div className="testo-learning-progress"><strong>{t('dashboard.progress')}</strong><b>{course.progressPercent ?? 0}%</b></div><div className="testo-progress-track" role="progressbar" aria-label={`${t('dashboard.progress')}: ${course.title}`} aria-valuenow={course.progressPercent ?? 0} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${course.progressPercent ?? 0}%` }} /></div></div>
+          </article>)}
+        </div> : <DashboardEmptyState icon="courses">{t('dashboard.emptyCoursesTitle')}</DashboardEmptyState>}
       </section>
 
       <section id="featured-course-list" className="testo-dashboard-section" aria-labelledby="featured-courses-title">
         <header className="testo-dashboard-section-heading"><h2 id="featured-courses-title"><WorkspaceIcon name="explore" size={20} className="testo-dashboard-section-icon" />{t('dashboard.exploreFeaturedCourses')}</h2><Link href="#featured-course-list">{t('dashboard.viewAll')}</Link></header>
-        <DashboardEmptyState icon="explore" description={t('dashboard.featuredCoursesEmptyDescription')}>{t('dashboard.featuredCoursesEmptyTitle')}</DashboardEmptyState>
+        {courses.length ? <div className="testo-featured-course-grid">
+          {courses.map((course) => <article className="testo-featured-course" key={course.id}>
+            <div className="testo-featured-cover" style={{ backgroundImage: course.coverImageUrl }}><span>{course.category}</span></div>
+            <div className="testo-featured-body"><div className="testo-course-meta"><span>★ {course.rating.toFixed(1)}</span><small>{course.enrolledCount.toLocaleString(language)} {t('dashboard.enrolled')}</small></div><h3>{course.title}</h3><p>{course.instructorName}</p><button className="testo-enroll-button" type="button" disabled>{course.isEnrolled ? t('dashboard.enrolled') : t('dashboard.enrollCourse')}</button></div>
+          </article>)}
+        </div> : <DashboardEmptyState icon="explore" description={t('dashboard.featuredCoursesEmptyDescription')}>{t('dashboard.featuredCoursesEmptyTitle')}</DashboardEmptyState>}
       </section>
 
       <section className="testo-dashboard-section" aria-labelledby="my-groups-title">
@@ -161,11 +178,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="testo-dashboard-section" aria-labelledby="dashboard-exams-title">
+        <header className="testo-dashboard-section-heading">
+          <h2 id="dashboard-exams-title"><WorkspaceIcon name="exams" size={20} className="testo-dashboard-section-icon" />{t('dashboard.examsSection')}</h2>
+          <Link href={isTeacher ? '/admin#exam-list' : '/student#open-exams-title'}>{t('dashboard.viewAll')}</Link>
+        </header>
         <Card className="testo-dashboard-exams">
-          <header className="testo-dashboard-exams-heading">
-            <h2 id="dashboard-exams-title"><WorkspaceIcon name="exams" size={20} className="testo-dashboard-section-icon" />{t('dashboard.examsSection')}</h2>
-            <Link href={isTeacher ? '/admin#exam-list' : '/student#open-exams-title'}>{t('dashboard.viewAll')}</Link>
-          </header>
           {sortedExams.length > 0 ? <ul>
             {sortedExams.slice(0, 5).map((exam) => {
               const today = new Date(now)

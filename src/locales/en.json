@@ -27,9 +27,11 @@
   "preferences": {
     "controls": "Display preferences",
     "language": "Language",
+    "switchLanguage": "Switch language",
     "arabic": "Arabic",
     "english": "English",
     "theme": "Theme",
+    "toggleTheme": "Toggle theme",
     "light": "Light",
     "dark": "Dark",
     "saveError": "Your preference could not be saved to your account. It is still applied on this device."
@@ -42,7 +44,30 @@
   },
   "nav": {
     "home": "Home",
-    "dashboard": "Dashboard"
+    "dashboard": "Dashboard",
+    "soon": "Soon",
+    "adminRole": "Admin"
+  },
+  "courseSearch": {
+    "label": "Search courses",
+    "open": "Open course search",
+    "close": "Close course search",
+    "clear": "Clear search",
+    "placeholder": "Search courses...",
+    "resultsLabel": "Course search results",
+    "idle": "Type to search courses by title, category or instructor.",
+    "minimum": "Type at least 2 characters to search.",
+    "loading": "Searching courses",
+    "empty": "No courses found for \"{query}\"",
+    "tryDifferent": "Try a different keyword.",
+    "error": "Course search failed. Please try again.",
+    "retry": "Retry search",
+    "resultCount": "{count} results",
+    "resultCountOne": "{count} result",
+    "noResults": "No results",
+    "viewAll": "View all results for \"{query}\"",
+    "enrolled": "Enrolled",
+    "toast": "Course pages are coming soon."
   },
   "dashboard": {
     "title": "Dashboard",
@@ -110,7 +135,7 @@
     "loggedIn": "You are logged in.",
     "studentExams": "My exams",
     "joinGroup": "Join a group",
-    "logout": "Sign Out"
+    "logout": "Log out"
   },
   "common": {
     "menu": "Open navigation menu",

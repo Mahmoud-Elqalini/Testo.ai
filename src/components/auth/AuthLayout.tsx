@@ -1,7 +1,6 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 import { useTranslation } from '@/lib/i18n/use-translation'
 
 export function AuthLayout({
@@ -22,11 +21,7 @@ export function AuthLayout({
   return (
     <main className="auth-page">
       <div className="auth-layout">
-        <aside className="auth-aside" aria-label="Testo">
-          <Link href="/" className="auth-brand" aria-label="Testo home">
-            <span className="auth-brand-mark" aria-hidden="true"><img src="/testo-mark.png" alt="" /></span>
-            <span>Testo</span>
-          </Link>
+        <aside className="auth-aside">
           <div className="auth-aside-copy">
             <span className="auth-kicker">{title}</span>
             <h2>{t('home.title')}</h2>
@@ -42,9 +37,6 @@ export function AuthLayout({
 
         <section className={`auth-panel${compact ? ' auth-panel-compact' : ''}`}>
           <div className="auth-card">
-            <div className="auth-mobile-brand" aria-hidden="true">
-              <span className="auth-brand-mark"><img src="/testo-mark.png" alt="" /></span><span>Testo</span>
-            </div>
             <header className="auth-heading">
               <span className="auth-heading-mark" aria-hidden="true">✦</span>
               <h1>{title}</h1>

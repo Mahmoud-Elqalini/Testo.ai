@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
-import { I18nProvider, Language } from "@/lib/i18n/provider";
+import { I18nProvider } from "@/lib/i18n/provider";
 import { ThemeProvider, type Theme } from "@/lib/theme/provider";
 import { QueryProvider } from "@/lib/query/provider";
-import { PreferenceSwitcher } from "@/components/shared/PreferenceSwitcher";
+import { SiteNavigation } from "@/components/shared/SiteNavigation";
 import "./globals.css";
 import "./workspace.css";
 import "./auth.css";
@@ -48,8 +48,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <QueryProvider>
           <ThemeProvider initialTheme={initialTheme}>
             <I18nProvider initialLanguage={initialLang}>
-              <PreferenceSwitcher />
-              {children}
+              <SiteNavigation>{children}</SiteNavigation>
             </I18nProvider>
           </ThemeProvider>
         </QueryProvider>
