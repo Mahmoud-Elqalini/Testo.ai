@@ -1,5 +1,13 @@
 # Feature Specification: [FEATURE NAME]
 
+<!--
+Project governance: read AGENTS.md and .specify/memory/constitution.md for all new specs and
+all edits to existing specs. Keep this document user-focused and technology-agnostic: express
+observable outcomes and constraints, not class structure, frameworks, SOLID labels, or named
+design patterns. Preserve unrelated requirements when revising an existing spec. Put technical
+boundaries, SOLID assessment, and justified pattern choices in plan.md.
+-->
+
 **Feature Branch**: `[###-feature-name]`
 
 **Created**: [DATE]

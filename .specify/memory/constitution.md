@@ -1,3 +1,12 @@
+<!--
+Sync Impact Report
+Version change: 3.1.3 -> 3.2.0
+Modified principles: none
+Added sections: XI. Maintainable Design, SOLID, and Problem-Driven Patterns
+Removed sections: none
+Follow-up TODOs: none
+-->
+
 # Testo Constitution
 
 ## Core Principles
@@ -56,6 +65,15 @@ Essay/free-text questions are graded automatically by a server-side grading mech
 
 **Rationale:** removing human review before finalization raises the stakes of every other safeguard, regardless of whether the mechanism behind the score is an embedding model or an LLM. A single-reference, uncalibrated, unlogged, or silently-failing automated grading path would be worse than no automation at all; these guarantees are what make full automation defensible rather than reckless, and they are written to survive the grading mechanism changing under them.
 
+### XI. Maintainable Design, SOLID, and Problem-Driven Patterns
+Every new or modified feature MUST preserve the repository's established architecture and apply SOLID principles proportionately: give each module and component a focused responsibility; keep extension points aligned with real variation; ensure alternate implementations honor the same contracts; keep interfaces focused on their consumers; and keep core product rules independent of infrastructure and presentation where the existing architecture provides that boundary. These principles are design checks, not a mandate to add layers or abstractions.
+
+Recognized design patterns MAY be used only to solve a concrete, stated design problem. The implementation plan MUST name and justify each consequential pattern or abstraction, describe the simpler alternative considered, and explain why that alternative does not meet the requirement. Do not add speculative frameworks, generic repositories, factories, wrappers, or interfaces solely to claim SOLID compliance. Prefer the smallest design that fits current requirements, data volume, and repository conventions, consistent with Principle VII.
+
+Every new or updated `spec.md` MUST stay focused on user outcomes and testable, technology-agnostic requirements. It MUST respect existing authorization, real data, domain rules, and the feature's agreed scope; it MUST NOT prescribe code-level patterns as user requirements. When an existing spec is amended, preserve unrelated decisions and acceptance scenarios. The corresponding `plan.md` MUST translate relevant maintainability needs into clear module boundaries, dependency direction, pattern decisions (or a reasoned choice not to add one), and a SOLID review.
+
+**Rationale:** consistent boundaries and focused responsibilities make features easier to change without weakening data or authorization guarantees. Requiring a reason for abstractions prevents pattern cargo-culting and keeps this project maintainable at its current scale.
+
 ## Security & Compliance Requirements
 
 - Row-Level Security MUST be enabled by default on every table holding user or exam data; a table is not considered shippable without it.
@@ -76,6 +94,7 @@ Essay/free-text questions are graded automatically by a server-side grading mech
 - Any pull request touching automated essay grading (reference-answer comparison, scoring logic, or any future prompt construction) MUST include tests proving grading is deterministic and, where prompt-based, that a prompt-injection-style answer cannot alter the assigned score or bypass the rubric (Principle X).
 - Any pull request that adds or changes an advisory grading flag (e.g. negation or keyword-stuffing detection) MUST prove the flag is logged only and cannot delay, block, or alter automatic grade finalization (Principle X).
 - Every `plan.md` MUST include an explicit Constitution Check confirming alignment with all principles above before `/speckit.tasks` generates implementation tasks; any necessary deviation MUST be documented with written justification in that plan, never silently implemented.
+- Every `plan.md` MUST include a Maintainability and Design Review that evaluates SOLID fit, identifies any consequential design patterns and their concrete justification, and records why simpler alternatives were sufficient or rejected. “Not applicable” is acceptable only with a brief, feature-specific reason; no pattern is mandatory by name.
 - A feature MUST NOT be marked complete if it depends on a client-side-only guarantee for anything covered by Principles I, II, or IV, or on an unlogged/unretried automated grading call for anything covered by Principle X.
 
 ## Governance
@@ -87,4 +106,4 @@ Essay/free-text questions are graded automatically by a server-side grading mech
 - **Conflicting amendments:** if two developers propose conflicting amendments, the conflict is resolved by discussion among the project's developers before either is merged — an amendment is never force-merged over an open objection.
 - **Compliance review:** every `plan.md` MUST pass the Constitution Check gate (see Quality Gates above) before implementation tasks are generated.
 
-**Version**: 3.1.3 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-08-25
+**Version**: 3.2.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-02

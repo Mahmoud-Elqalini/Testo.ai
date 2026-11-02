@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-labelledby="t">
+<title id="t">منجم — MANJAM</title>
+<rect width="64" height="64" rx="14" fill="#0E1020"/>
+<g transform="translate(-8.48 -9.39) scale(0.36)"><g transform="translate(50 118) scale(0.95 0.55) translate(-50 -118)"><path d="M50 118C40 168 65 228 154 252C102 226 74 196 76 148Z" fill="#D98A0F"/><path d="M50 118C40 168 65 228 154 252C90 232 68 190 70 140Z" fill="#F5B83D"/></g><circle cx="110" cy="100" r="49" fill="#171A33" stroke="#F6F1E4" stroke-width="28"/><path d="M158 82.9A49 49 0 0 1 66 125" fill="none" stroke="#D9D2BC" stroke-width="28"/><g transform="translate(76 66) scale(0.68)"><circle cx="50" cy="50" r="50" fill="#F5B83D" fill-opacity="0.2"/>
+<polygon points="50,4 77.04,12.78 93.75,35.79 93.75,64.21 77.04,87.22 50,96 22.96,87.22 6.25,64.21 6.25,35.79 22.96,12.78" fill="#E8890C"/>
+<polygon points="50,4 64.11,30.58 35.89,30.58" fill="#FFF6CC"/>
+<polygon points="22.96,12.78 50,4 35.89,30.58 6.25,35.79" fill="#FFE08A"/>
+<polygon points="77.04,12.78 93.75,35.79 64.11,30.58 50,4" fill="#FFD76E"/>
+<polygon points="35.89,30.58 64.11,30.58 72.83,57.42 50,74 27.17,57.42" fill="#F7B731"/>
+<polygon points="72.83,57.42 93.75,64.21 77.04,87.22 50,96 50,74" fill="#B8610A"/></g></g>
+</svg>

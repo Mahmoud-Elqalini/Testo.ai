@@ -42,6 +42,19 @@
 
 [Gates determined based on constitution file]
 
+## Maintainability and Design Review
+
+<!--
+Required by Constitution Principle XI for every feature plan. Keep this review concrete and
+proportionate. Do not add a design pattern just to fill this section.
+-->
+
+- **Responsibilities and boundaries**: [Name the key responsibilities and why they are cohesive.]
+- **SOLID review**: [Explain how the proposed design respects relevant SOLID principles. For any principle that does not materially apply, give a brief feature-specific reason.]
+- **Dependency direction**: [Show which parts depend on which existing boundaries; keep domain behavior independent of UI/infrastructure where appropriate.]
+- **Patterns and alternatives**: [Name each consequential pattern and its concrete problem, or state that no named pattern is needed. Record the simpler alternative considered and why it is or is not sufficient.]
+- **Scope and complexity**: [Explain how the design remains the simplest safe fit for current requirements and project conventions.]
+
 ## Project Structure
 
 ### Documentation (this feature)

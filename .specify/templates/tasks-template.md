@@ -41,6 +41,11 @@ description: "Task list template for feature implementation"
   - Tested independently
   - Delivered as an MVP increment
 
+  The project Constitution's Principle XI also applies. Derive module boundaries from the
+  approved plan, avoid tasks that create abstractions solely to satisfy a pattern label, and
+  include a final maintainability review task that checks implementation against the plan's
+  SOLID and pattern decisions. Do not add test tasks unless the feature spec requests testing.
+
   DO NOT keep these sample tasks in the generated tasks.md file.
   ============================================================================
 -->
