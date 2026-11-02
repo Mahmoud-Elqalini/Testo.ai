@@ -13,7 +13,7 @@ This is the persistent, self-contained visual contract for Manjam (منجم). Re
 
 ## Manjam Brand Palette (single source of truth)
 
-Decision: the whole UI uses the Manjam logo colors. Violet and the violet-to-indigo gradient are retired. Values are defined ONLY in `src/app/globals.css` as semantic tokens; components and CSS files must use tokens, never raw hex/rgb/hsl and never Tailwind violet/indigo/purple/fuchsia classes. Token NAMES stay as they are today; only their VALUES change. If a needed semantic role has no token yet, add one in globals.css, never hardcode.
+Decision: the whole UI uses the Manjam logo colors. Violet and the violet-to-indigo gradient are retired for new and rebranded screens. Values are defined ONLY in `src/app/globals.css` as semantic tokens; components and CSS files must use tokens, never raw hex/rgb/hsl and never Tailwind violet/indigo/purple/fuchsia classes. Reuse current semantic token names when doing so will not change untouched legacy screens. During the phased migration, define missing Manjam roles as scoped semantic tokens in globals.css rather than repointing shared legacy tokens. After the consumers have migrated, consolidate and remove obsolete legacy token values. Never hardcode a missing role.
 
 ### Brand constants (theme-independent)
 | name | hex | source |
@@ -58,6 +58,8 @@ Rules: normal text >= 4.5:1; large text and UI component boundaries >= 3:1. Any 
 Assets live in `public/images/logo/` (`manjam-symbol`, `manjam-logo-vertical`, `manjam-logo-horizontal`, `manjam-favicon`; each in `-dark` and `-light` variants). `-dark` means the version for dark backgrounds; `-light` for light backgrounds. Symbol alone for small spaces (header/sidebar, <= 48px tall); horizontal lockup for auth pages and wide headers; vertical lockup for splash/empty/hero states; favicon pair for browser icons. The logo must switch with the ACTIVE APP THEME without a hydration flash; the exact mechanism is decided in the implementation phase. Name display: "منجم" in Arabic UI, "Manjam" in English UI (from i18n, not hardcoded).
 
 Untouched legacy screens may retain their current visual appearance until an explicit migration includes them. When a legacy screen is changed or restyled, migrate it to this palette in that same scoped change. The current CSS token values must be updated as part of implementation work that introduces or rebrands affected screens; this documentation change alone does not alter CSS.
+
+For the public home page, add Manjam-specific semantic tokens in `src/app/globals.css` and apply them only to that page while legacy screens still use the current shared token mappings. Do not change global legacy token values as a side effect of the homepage rebrand.
 
 ## Design tokens
 
