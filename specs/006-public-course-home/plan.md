@@ -26,7 +26,7 @@ Replace the signed-out root-page redirect with the public Manjam landing experie
 
 **Constraints**: Preserve existing auth redirects and role protections; no course catalog or course details route exists; production must not use fixtures; the seed is opt-in and server-gated; untouched legacy screens and token mappings stay visually unchanged; no new page-specific preference state.
 
-**Scale/Scope**: One public root route, its navigation variant, three initial course cards at most, existing login/register/dashboard destinations, no new user roles or data model.
+**Scale/Scope**: One public root route, its guest header variant and course presentation states, three initial course cards at most, existing login/register/dashboard destinations, no new user roles, course routes, or data model.
 
 ## Constitution Check
 
@@ -44,7 +44,7 @@ Replace the signed-out root-page redirect with the public Manjam landing experie
 
 ## Maintainability and Design Review
 
-- **Responsibilities and boundaries**: `src/app/page.tsx` remains the route/server boundary and passes only display-safe course data. A focused public-home content component owns the landing sections and their localized copy. `SiteNavigation` provides a root-only header/menu composition while retaining its current behavior on other routes. Existing providers own preference state. The existing server-only seed module owns synthetic preview records and its environment gate.
+- **Responsibilities and boundaries**: `src/app/page.tsx` remains the route/server boundary and passes only display-safe course data. A focused public-home content component owns the landing sections, card/loading/empty states, and localized copy. `SiteNavigation` provides a root-only brand/preferences/account header without section links or a menu; other routes retain their current navigation behavior. Existing providers own preference state. The existing server-only seed module owns synthetic preview records and its environment gate.
 - **SOLID review**: Keep each responsibility focused (SRP). Extend the shared preference control's presentation through a small visual variant rather than duplicating persistence behavior (OCP without a generic plugin system). The current feature has no alternate catalog implementation contract, so LSP is not materially applicable. Avoid a broad new control interface; the existing provider API is sufficient, so ISP does not require a new abstraction. Keep content components dependent on display-safe props and existing contexts, not Supabase clients (DIP at the existing server/data boundary).
 - **Dependency direction**: The server route may call the server-only seed helper and passes serializable localized cards to UI. Client components must never import the fixture or access Supabase directly. The root page continues to rely on `src/proxy.ts` for auth redirects. The landing UI reuses i18n/theme providers and existing `/login`, `/register`, and `/dashboard` routes.
 - **Patterns and alternatives**: No named design pattern is warranted. A separate repository, factory, or strategy interface would be speculative while there is no production course catalog. The simpler alternative is one server-only seed helper behind the existing route boundary, then add a live data adapter only when an approved catalog exists. For navigation preferences, reuse the current controls/providers instead of creating a second preference system.
@@ -72,9 +72,9 @@ src/
 │   ├── globals.css                 # Add semantic Manjam tokens without changing legacy mappings
 │   └── public-home.css             # Route-specific layout and responsive styling
 ├── components/
-│   ├── home/PublicHome.tsx         # Landing page content and course/empty states
+│   ├── home/PublicHome.tsx         # Landing page content and course/loading/empty states
 │   └── shared/
-│       ├── SiteNavigation.tsx      # Root-only header/menu composition
+│       ├── SiteNavigation.tsx      # Root-only brand/preferences/account header
 │       └── PreferenceSwitcher.tsx  # Reuse shared preference behavior with compact switch styling
 ├── locales/
 │   ├── ar.json                    # Public-home Arabic copy and accessibility labels

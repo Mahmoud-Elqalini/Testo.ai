@@ -42,7 +42,7 @@ A visitor can find account creation and sign-in from the navigation bar and foot
 
 ### User Story 3 - Choose language, theme, and device layout (Priority: P2)
 
-A visitor can switch between Arabic and English, switch between light and dark themes, and use the page on desktop or mobile without losing access to navigation or account actions.
+A visitor can switch between Arabic and English, switch between light and dark themes, and use the page on desktop or mobile without losing access to account actions.
 
 **Why this priority**: The platform serves Arabic and English users and needs a comfortable first experience across preferences and screen sizes.
 
@@ -54,7 +54,7 @@ A visitor can switch between Arabic and English, switch between light and dark t
 2. **Given** the page is in English, **When** the visitor switches language, **Then** all visible copy changes to Arabic, direction changes to RTL, and directional elements mirror appropriately.
 3. **Given** the visitor switches theme, **When** the page updates, **Then** every page surface, text, control, and brand mark uses the selected theme with readable contrast.
 4. **Given** the visitor has selected language or theme, **When** they reload or return, **Then** their saved preference is respected; visitors without a saved choice start in English and light mode.
-5. **Given** the viewport is narrow, **When** the visitor opens navigation, **Then** the responsive menu is usable, can be dismissed, and keeps language, theme, sign-in, and account creation available without horizontal page scrolling.
+5. **Given** the viewport is narrow, **When** the visitor opens the page, **Then** the header contains no section-navigation links or menu trigger and keeps the logo, language, theme, sign-in, and account-creation actions available without horizontal page scrolling.
 
 ### User Story 4 - Use the page with accessible controls (Priority: P2)
 
@@ -76,7 +76,7 @@ A visitor using a keyboard, assistive technology, or reduced-motion settings can
 - Course information is unavailable, fails to load, or is temporarily empty; the page shows a localized loading, error/retry, or empty state and does not show development fixtures as production content.
 - A seed flag is mistakenly set outside local development; the seed remains unavailable and does not replace live data.
 - Course titles, instructor names, or translated labels are long; cards remain readable and do not overlap or force horizontal scrolling.
-- A visitor changes language while the mobile menu is open; the menu remains usable and mirrors to the correct physical side for the active direction.
+- Long language and account labels at narrow widths; controls remain visible, readable, and free of horizontal overflow.
 - The visitor switches theme or language while navigating with a keyboard; focus remains on the active control and the updated state is announced.
 - A signed-in session expires or cannot be resolved while the root page is opening; the visitor is shown a safe public state or sent through the existing authentication handling without exposing private data.
 - A footer destination such as contact, social media, or policy pages is not available; the page does not render a dead or invented link.
@@ -87,7 +87,7 @@ A visitor using a keyboard, assistive technology, or reduced-motion settings can
 
 - **FR-001**: The root page MUST present a public Manjam home page to signed-out visitors instead of sending them directly to sign-in.
 - **FR-002**: The public home page MUST introduce Manjam with a concise hero message and a clear action that moves the visitor to the featured-courses section.
-- **FR-003**: The page MUST provide navigation to the home and featured-courses sections, plus sign-in and account-creation actions that lead to the existing authorized authentication destinations.
+- **FR-003**: The page MUST provide sign-in and account-creation actions that lead to the existing authorized authentication destinations. The root header MUST contain only the Manjam logo, language and theme controls, sign-in, and account creation; it MUST NOT render section-navigation links or a menu trigger. In-page calls to action may link to existing page sections.
 - **FR-004**: The page MUST display featured course cards using only real course data that is approved for public display. It MUST NOT expose private course or student information, invent course details, or use development fixtures as production records.
 - **FR-005**: Course cards MUST show only fields available from the approved course source. Optional information MUST be omitted or given a neutral visual fallback when unavailable.
 - **FR-006**: The page MUST show localized loading, empty, and recoverable error states for the featured-course section. Empty and error states MUST NOT contain fabricated records.
@@ -132,7 +132,7 @@ Semantic control colors MUST use these values:
 
 - **FR-014**: In the light theme, primary actions MUST use navy fill with cream text; gold-toned emphasis text MUST use the approved contrast-safe darker gold. In the dark theme, primary actions MUST use gold fill with navy text. Gold MUST NOT be used as small text or a thin line on a light surface. The page MUST NOT use violet styling. Gradients are limited to subtle navy brand backgrounds and logo-derived decorative accents.
 - **FR-015**: Normal text MUST meet a contrast ratio of at least 4.5:1; large text and user-interface component boundaries MUST meet at least 3:1. The verified brand pairings MUST preserve the owner-provided minimum ratios (including light accent text against the background at 5.15:1, light strong borders against the background at 3.91:1, dark muted text against surfaces at 8.54:1, and dark strong borders against the background at 3.67:1). Any additional color pairing MUST be checked against the same contrast rules before use. The page MUST provide visible keyboard focus, use semantic controls, and respect reduced-motion preferences.
-- **FR-016**: The page MUST adapt to desktop, tablet, and narrow mobile widths without clipped controls, overlapping content, or horizontal page scrolling. Mobile navigation MUST be dismissible and its direction MUST follow the same physical side as its menu control.
+- **FR-016**: The page MUST adapt to desktop, tablet, and narrow mobile widths without clipped controls, overlapping content, or horizontal page scrolling. The narrow root header MUST retain the logo, both preference controls, and both account links without adding a navigation menu.
 - **FR-017**: When an authenticated user opens the root page, the system MUST preserve the existing role-aware destination and authorization behavior rather than exposing guest-only content or changing permissions.
 - **FR-018**: The page MUST preserve the existing registration, sign-in, language, theme, and account-preference behavior; it MUST NOT introduce a second independent preference system.
 - **FR-019**: Synthetic home-page seed data MAY be used to preview the page only when a developer explicitly enables it in a local development environment. The seed MUST be server-gated, MUST NOT be written to Supabase or another production data store, and MUST never be included in a production visitor response.
@@ -142,8 +142,8 @@ Semantic control colors MUST use these values:
 ### Experience Layout and Interaction Details
 
 - The public page is a single continuous landing experience. Its order is: global header, welcome hero, featured courses, concise benefits/about section, then footer.
-- On wide screens, the header shows the horizontal Manjam logo, links to the home/courses/about sections, compact language and theme switches, and separate sign-in and account-creation actions. The active section may be indicated without relying on color alone.
-- On narrow screens, the header keeps the logo, preference switches, and account actions usable without crowding. Secondary navigation moves into a dismissible menu. The menu opens from the same physical side as its trigger (left for LTR, right for RTL), closes by Escape, close control, overlay, or navigation, and preserves visible keyboard focus.
+- On all screens, the root header shows the horizontal Manjam logo, compact language and theme switches, and separate sign-in and account-creation actions. It contains no section links or menu trigger; page sections remain reachable through in-page calls to action and content links.
+- On narrow screens, the logo, preference switches, and account actions remain visible and usable without crowding or horizontal overflow. The language switch names the destination language in its own script: “عربي” in English and “English” in Arabic.
 - The hero contains a short brand-oriented eyebrow, one clear headline, brief supporting copy, a primary action that moves to the featured-courses section, and an optional secondary action to the existing registration page. Decorative illustration may use logo-derived shapes but MUST NOT imply unverified course counts, learner totals, ratings, or outcomes.
 - The featured section has a heading and brief introduction, followed by up to three courses in the initial wide-screen view. Cards form three columns on wide screens, two on tablet-sized screens, and one on narrow screens. Each card uses only available public course fields, prioritizing a cover (or neutral fallback), category where available, title, instructor where available, and a short description where available. Rating, price, enrollment totals, badges, and enrollment actions are shown only if supported by real public data and a valid existing action.
 - The benefits/about section contains a small number of concise statements about real platform capabilities. It MUST NOT claim services, support guarantees, or outcomes the platform does not provide.

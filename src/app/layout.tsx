@@ -8,6 +8,7 @@ import { SiteNavigation } from "@/components/shared/SiteNavigation";
 import "./globals.css";
 import "./workspace.css";
 import "./auth.css";
+import "./public-home.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

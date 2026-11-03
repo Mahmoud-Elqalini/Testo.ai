@@ -42,6 +42,7 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
   const skipFocusReturn = useRef(false)
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
   const isDashboardRoute = pathname === '/dashboard'
+  const isPublicHome = pathname === '/'
 
   useEffect(() => {
     const supabase = createClient()
@@ -154,27 +155,29 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
   return (
     <div className={`dashboard-shell global-app-shell${isDashboardRoute ? ' is-dashboard-route' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
       {!isDashboardRoute && <>
-        <header className="dashboard-header global-site-header">
+        {isPublicHome ? <header className="dashboard-header global-site-header manjam-public-header">
+          <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+          </Link>
+          <div className="manjam-header-actions">
+            <PreferenceControls variant="compact-switch" />
+            <div className="manjam-header-accounts"><Link className="manjam-account-link is-login" href="/login">{t('publicHome.signIn')}</Link><Link className="manjam-account-link is-register" href="/register">{t('publicHome.createAccount')}</Link></div>
+          </div>
+        </header> : <header className="dashboard-header global-site-header">
           <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.home')}>
             <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
           </Link>
           <CourseSearch isDrawerOpen={menuOpen} onSearchOpen={() => { if (menuOpen) closeForNavigation() }} />
           <div className="dashboard-header-actions">
-            <button
-              ref={menuButtonRef}
-              type="button"
-              className={`dashboard-menu-toggle${menuOpen ? ' is-open' : ''}`}
-              onClick={() => setMenuOpen((open) => !open)}
-              aria-label={menuOpen ? t('common.close') : t('common.menu')}
-              aria-expanded={menuOpen}
-              aria-controls="site-navigation-drawer"
-            >
+            <button ref={menuButtonRef} type="button" className={`dashboard-menu-toggle${menuOpen ? ' is-open' : ''}`} onClick={() => setMenuOpen((open) => !open)} aria-label={menuOpen ? t('common.close') : t('common.menu')} aria-expanded={menuOpen} aria-controls="site-navigation-drawer">
               {menuOpen ? <X size={20} strokeWidth={2} aria-hidden="true" /> : <Menu size={20} strokeWidth={2} aria-hidden="true" />}
             </button>
             <PreferenceControls />
           </div>
-        </header>
+        </header>}
 
+        {!isPublicHome && <>
         <button className={`dashboard-drawer-backdrop${menuOpen ? ' is-visible' : ''}`} type="button" aria-label={t('common.close')} onClick={() => setMenuOpen(false)} tabIndex={-1} aria-hidden={!menuOpen} inert={!menuOpen} />
         <aside
           id="site-navigation-drawer"
@@ -215,6 +218,7 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
             <button className="dashboard-account-signout" type="button" onClick={() => void handleSignOut()} aria-label={t('dashboard.logout')} title={t('dashboard.logout')}><NavigationIconView name="logout" size={16} /><span>{t('dashboard.logout')}</span></button>
           </div>}
         </aside>
+        </>}
       </>}
       <div className="global-app-content">{children}</div>
     </div>

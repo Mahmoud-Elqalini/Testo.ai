@@ -73,6 +73,35 @@
   --shell-avatar-size: 2.5rem;
   --shell-section-gap: 0.5rem;
   --shell-icon-color: color-mix(in srgb, var(--subtle) 70%, var(--text));
+
+  /* Manjam public-home tokens. Legacy semantic colors above remain unchanged. */
+  --manjam-bg: #FBF8F0;
+  --manjam-surface: #FFFFFF;
+  --manjam-surface-raised: #F6F1E4;
+  --manjam-text: #171A33;
+  --manjam-text-muted: #505577;
+  --manjam-primary: #171A33;
+  --manjam-on-primary: #F6F1E4;
+  --manjam-primary-hover: #2A3068;
+  --manjam-accent-text: #9A5A05;
+  --manjam-cream-accent: #9A5A05;
+  --manjam-border: #D9D2BC;
+  --manjam-border-strong: #767B99;
+  --manjam-focus: #171A33;
+  --manjam-gold: #F5B83D;
+  --manjam-home-gold: #FFB81C;
+  --manjam-home-gold-hover: #FFC63D;
+  --manjam-home-on-gold: #14110A;
+  --manjam-home-gold-text: #9A5A05;
+  --manjam-home-orbit: #343B67;
+  --manjam-home-container-max: 92.1875rem;
+  --manjam-home-container-gutter: clamp(1rem, 2vw, 1.5rem);
+  --manjam-cream: #F6F1E4;
+  --manjam-navy: #0E1020;
+  --manjam-navy-soft: #171A33;
+  --manjam-hero-start: #171A33;
+  --manjam-hero-end: #2A3068;
+  --manjam-hero-muted: #B8B5CC;
 }
 
 .dark {
@@ -108,6 +137,27 @@
   --exam-muted: #A3B0AA;
   --exam-line: #37443F;
   --shell-icon-color: var(--subtle);
+  --manjam-bg: #0E1020;
+  --manjam-surface: #171A33;
+  --manjam-surface-raised: #1F2347;
+  --manjam-text: #F6F1E4;
+  --manjam-text-muted: #B8B5CC;
+  --manjam-primary: #F5B83D;
+  --manjam-on-primary: #0E1020;
+  --manjam-primary-hover: #FFD76E;
+  --manjam-accent-text: #F5B83D;
+  --manjam-cream-accent: #9A5A05;
+  --manjam-border: #2E3470;
+  --manjam-border-strong: #6068AE;
+  --manjam-focus: #F5B83D;
+  --manjam-gold: #F5B83D;
+  --manjam-home-gold-text: var(--manjam-home-gold);
+  --manjam-cream: #F6F1E4;
+  --manjam-navy: #0E1020;
+  --manjam-navy-soft: #171A33;
+  --manjam-hero-start: #171A33;
+  --manjam-hero-end: #2A3068;
+  --manjam-hero-muted: #B8B5CC;
 }
 
 @theme inline {

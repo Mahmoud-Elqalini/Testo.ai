@@ -1,0 +1,504 @@
+.manjam-home { min-height:100vh;background:var(--manjam-bg);color:var(--manjam-text);font-family:var(--font-ui); }
+html[dir="rtl"] .manjam-home { font-family:var(--font-arabic-stack); }
+.manjam-public-header { position:sticky;inset-block-start:0;z-index:120;display:flex;height:4.75rem;align-items:center;justify-content:space-between;gap:1.25rem;padding-inline:clamp(1rem,5vw,5rem);border-block-end:1px solid var(--manjam-border);background:color-mix(in srgb,var(--manjam-surface) 94%,transparent);backdrop-filter:blur(16px); }
+.manjam-public-header .manjam-header-brand { display:inline-flex;min-width:7rem;align-items:center;text-decoration:none; }
+.manjam-public-header .manjam-header-brand img { display:block;width:8rem;height:auto; }
+.manjam-logo-dark,.dark .manjam-logo-light { display:none!important; }
+.dark .manjam-logo-dark { display:block!important; }
+.manjam-footer nav a { color:var(--manjam-text-muted);font-size:.925rem;font-weight:600;text-decoration:none;transition:color var(--motion-fast); }
+.manjam-footer nav a:hover { color:var(--manjam-home-gold); }
+.manjam-header-actions { display:flex;min-width:0;align-items:center;gap:.625rem; }
+.manjam-header-accounts { display:flex;align-items:center;gap:.5rem; }
+.manjam-account-link { display:inline-flex;min-height:2.625rem;align-items:center;justify-content:center;padding-inline:1.125rem;border:1px solid transparent;border-radius:var(--radius-full);font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast); }
+.manjam-account-link.is-login { border-color:var(--manjam-border-strong);color:var(--manjam-text); }
+.manjam-account-link.is-login:hover { border-color:var(--manjam-home-gold);color:var(--manjam-home-gold-text); }
+.manjam-account-link.is-register { background:var(--manjam-primary);color:var(--manjam-on-primary); }
+.manjam-account-link.is-register:hover { background:var(--manjam-home-gold-hover); }
+.manjam-public-header .testo-preference-controls { gap:.375rem; }
+.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { position:relative;width:2.75rem;min-width:2.75rem;height:2.5rem;min-height:2.5rem;border:1px solid var(--manjam-border);border-radius:var(--radius-full);background:var(--manjam-surface-raised);color:var(--manjam-text);font-size:.75rem;font-weight:800; }
+.manjam-public-header .testo-preference-theme { width:2.5rem;min-width:2.5rem; }
+.manjam-public-header .testo-preference-language:hover,.manjam-public-header .testo-preference-theme:hover { border-color:var(--manjam-home-gold);background:var(--manjam-surface-raised);color:var(--manjam-home-gold-text); }
+.manjam-public-header .testo-preference-language[role="switch"],.manjam-public-header .testo-preference-theme[role="switch"] { display:flex;align-items:center;justify-content:center;gap:.2rem; }
+.manjam-public-header .testo-preference-theme[role="switch"] { justify-content:flex-start;padding:.25rem; }
+.manjam-public-header .testo-preference-theme[role="switch"] { width:2.75rem;min-width:2.75rem; }
+.manjam-switch-thumb { display:grid;width:1.75rem;height:1.75rem;flex:0 0 1.75rem;place-items:center;border-radius:var(--radius-full);background:var(--manjam-primary);color:var(--manjam-on-primary);transition:transform var(--motion-fast); }
+.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-thumb { transform:translateX(.5rem); }
+.manjam-public-header .testo-preference-theme[aria-checked="false"] .manjam-switch-thumb { transform:translateX(0); }
+.manjam-public-header .testo-preference-language[role="switch"] { width:3.25rem;min-width:3.25rem;justify-content:space-evenly;padding:.25rem; }
+.manjam-public-header .testo-preference-language[role="switch"] .manjam-switch-option { display:grid;width:1.5rem;height:1.5rem;place-items:center;border-radius:var(--radius-full);color:var(--manjam-text-muted);font-size:.625rem; }
+.manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-option.is-active,.manjam-public-header .testo-preference-language[aria-checked="false"] .manjam-switch-option.is-active { background:var(--manjam-primary);color:var(--manjam-on-primary); }
+.manjam-home :is(a,button):focus-visible { outline:var(--shell-focus-width) solid var(--manjam-focus);outline-offset:var(--shell-focus-offset); }
+.manjam-public-header { height:4.875rem;padding-inline:max(calc((100vw - var(--manjam-home-container-max))/2 + var(--manjam-home-container-gutter)),calc(2 * var(--manjam-home-container-gutter))); }
+.manjam-public-header .manjam-header-brand img { width:9.25rem; }
+.manjam-public-header .manjam-header-actions { gap:.625rem; }
+.manjam-public-header .manjam-header-accounts { gap:.625rem;margin-inline-start:.25rem; }
+.manjam-public-header .manjam-account-link { min-height:2.75rem;border-radius:.8125rem; }
+.manjam-public-header .manjam-account-link.is-login { border-color:var(--manjam-home-gold);color:var(--manjam-home-gold-text); }
+.manjam-public-header .manjam-account-link.is-login:hover { background:var(--manjam-surface-raised); }
+.manjam-public-header .manjam-account-link.is-register { background:var(--manjam-home-gold);color:var(--manjam-home-on-gold); }
+.manjam-public-header .manjam-account-link.is-register:hover { background:var(--manjam-home-gold-hover); }
+.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { display:inline-flex;width:auto;min-width:5.125rem;height:2.125rem;min-height:2.125rem;align-items:center;justify-content:space-between;gap:.375rem;padding:.1875rem .5rem;border-radius:var(--radius-full);background:var(--manjam-surface);font-size:.6875rem; }
+.manjam-public-header .testo-preference-theme { min-width:5.875rem; }
+.manjam-public-header .testo-preference-language[role="switch"],.manjam-public-header .testo-preference-theme[role="switch"] { justify-content:space-between;gap:.375rem; }
+.manjam-public-header .testo-preference-theme[role="switch"] { width:auto;min-width:5.875rem;padding:.1875rem .5rem; }
+.manjam-switch-symbol { display:grid;flex:0 0 1rem;place-items:center;color:var(--manjam-home-gold-text); }
+.manjam-switch-label { color:var(--manjam-text-muted);font-size:.6875rem;font-weight:750;white-space:nowrap; }
+.manjam-switch-track { position:relative;display:block;width:1.6875rem;height:1rem;flex:0 0 1.6875rem;border-radius:var(--radius-full);background:var(--manjam-border-strong);transition:background-color var(--motion-fast); }
+.manjam-switch-knob { position:absolute;inset-block-start:.1875rem;inset-inline-start:.1875rem;width:.625rem;height:.625rem;border-radius:var(--radius-full);background:var(--manjam-surface);box-shadow:0 1px 2px color-mix(in srgb,var(--manjam-navy) 25%,transparent);transition:transform var(--motion-fast); }
+.manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-track,.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-track { background:var(--manjam-home-gold); }
+.manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(.6875rem); }
+html[dir="rtl"] .manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(-.6875rem); }
+.manjam-hero { padding:4.125rem clamp(1.25rem,5vw,4rem) 3.5rem; }
+.manjam-hero-box { position:relative;display:grid;width:min(100%,73.75rem);min-height:21.5rem;grid-template-columns:minmax(0,1.2fr) minmax(15rem,.8fr);align-items:center;gap:2rem;margin-inline:auto;padding:3rem clamp(2rem,7vw,5.25rem);overflow:hidden;border-radius:var(--radius-xl);background:linear-gradient(120deg,var(--manjam-hero-start),var(--manjam-hero-end));color:var(--manjam-cream);isolation:isolate; }
+.manjam-hero-box::before,.manjam-hero-box::after { position:absolute;z-index:-1;aspect-ratio:1;border-radius:50%;content:"";pointer-events:none; }
+.manjam-hero-box::before { inset-block-start:-5rem;inset-inline-end:5%;width:30.625rem;border:1px solid var(--manjam-home-orbit); }
+.manjam-hero-box::after { inset-block-end:-2rem;inset-inline-end:16.75%;width:13.125rem;background:radial-gradient(circle,var(--manjam-home-gold) 0 .15rem,transparent .16rem);background-size:2.1875rem 2.1875rem; }
+.manjam-hero-copy { position:relative;z-index:1;max-width:42rem; }
+.manjam-hero .manjam-eyebrow { color:var(--manjam-home-gold); }
+.manjam-eyebrow { display:inline-flex;align-items:center;gap:.5rem;color:var(--manjam-home-gold-text);font-size:.8rem;font-weight:800;letter-spacing:.035em; }
+.manjam-hero h1 { max-width:14ch;margin:1rem 0 .75rem;color:var(--manjam-cream);font-size:clamp(2.2rem,4.2vw,3.25rem);font-weight:800;letter-spacing:-.04em;line-height:1.25; }
+.manjam-hero-copy>p { max-width:34rem;margin:0 0 1.65rem;color:var(--manjam-hero-muted);font-size:1rem;line-height:1.9; }
+.manjam-section-heading>p { max-width:38rem;margin:0;color:var(--manjam-text-muted);font-size:clamp(1rem,1.4vw,1.125rem);line-height:1.9; }
+.manjam-hero-actions { display:flex;flex-wrap:wrap;gap:.75rem;margin-block-start:2rem; }
+.manjam-button { display:inline-flex;min-height:3rem;align-items:center;justify-content:center;gap:.65rem;padding-inline:1.35rem;border:1px solid transparent;border-radius:.8125rem;font-size:.9rem;font-weight:750;text-decoration:none;transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast),transform var(--motion-fast); }
+.manjam-button:hover { transform:translateY(-1px); }
+.manjam-hero .manjam-button-primary { background:var(--manjam-home-gold);color:var(--manjam-home-on-gold); }
+.manjam-hero .manjam-button-primary:hover { background:var(--manjam-home-gold-hover); }
+.manjam-hero .manjam-button-secondary { border-color:color-mix(in srgb,var(--manjam-cream) 32%,transparent);background:color-mix(in srgb,var(--manjam-cream) 8%,transparent);color:var(--manjam-cream); }
+.manjam-hero .manjam-button-secondary:hover { border-color:var(--manjam-home-gold); }
+.manjam-hero-art { position:relative;display:grid;min-height:17rem;place-items:center;isolation:isolate; }
+.manjam-art-orbit { position:absolute;z-index:-1;aspect-ratio:1;border:1px solid var(--manjam-home-orbit);border-radius:50%; }
+.manjam-art-orbit-one { width:min(100%,20rem); }
+.manjam-art-orbit-one::before,.manjam-art-orbit-one::after { position:absolute;inset:10%;border:1px solid var(--manjam-home-orbit);border-radius:inherit;content:""; }
+.manjam-art-orbit-one::after { inset:21%; }
+.manjam-book { position:relative;display:flex;width:11.875rem;height:13.75rem;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;padding:1rem;border-radius:1.125rem 1.125rem 1.125rem .5rem;background:var(--manjam-cream);color:var(--manjam-navy-soft);text-align:center;transform:rotate(-8deg);box-shadow:1.1rem 1.1rem 0 var(--manjam-home-gold),var(--shadow-md); }
+.manjam-book::before { position:absolute;inset-block:0;inset-inline-start:.8rem;border-inline-start:2px solid color-mix(in srgb,var(--manjam-text) 14%,transparent);content:""; }
+.manjam-book-icon { color:var(--manjam-navy-soft); }
+.manjam-book strong { max-width:7ch;font-size:1.1rem;line-height:1.25; }
+.manjam-book small { color:var(--manjam-home-gold-text);font-size:.65rem;font-weight:800;letter-spacing:.09em; }
+.manjam-float-tag { position:absolute;display:flex;align-items:center;gap:.5rem;padding:.55rem .8rem;border:1px solid color-mix(in srgb,var(--manjam-cream) 24%,transparent);border-radius:var(--radius-md);background:color-mix(in srgb,var(--manjam-navy-soft) 78%,transparent);color:var(--manjam-cream);font-size:.75rem;backdrop-filter:blur(8px); }
+.manjam-float-tag svg { color:var(--manjam-home-gold); }
+.manjam-tag-one { inset-block-start:1rem;inset-inline-start:0; }
+.manjam-tag-two { inset-block-end:1rem;inset-inline-end:0; }
+.manjam-courses,.manjam-benefits { padding:clamp(3.5rem,7vw,6.5rem) clamp(1.25rem,9vw,9rem); }
+.manjam-courses { background:var(--manjam-surface); }
+.manjam-section-heading { display:flex;align-items:end;justify-content:space-between;gap:2rem;margin-block-end:2rem; }
+.manjam-section-heading h2 { margin:.6rem 0 0;font-size:clamp(1.8rem,3vw,2.65rem);font-weight:800;letter-spacing:-.035em;line-height:1.2; }
+.manjam-section-heading>p { max-width:31rem;font-size:.98rem; }
+.manjam-course-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem; }
+.manjam-course-card { overflow:hidden;border:1px solid var(--manjam-border);border-radius:var(--radius-xl);background:var(--manjam-surface);box-shadow:0 3px 12px color-mix(in srgb,var(--manjam-text) 4%,transparent);transition:transform var(--motion-base),box-shadow var(--motion-base); }
+.manjam-course-card:hover { transform:translateY(-3px);box-shadow:var(--shadow-md); }
+.manjam-course-cover { position:relative;display:grid;height:11.875rem;min-height:11.875rem;place-items:center;padding:1.25rem;overflow:hidden;color:var(--manjam-cream); }
+.manjam-course-cover::before,.manjam-course-cover::after { position:absolute;inset-block-start:auto;inset-block-end:-3rem;inset-inline-start:auto;inset-inline-end:-1rem;width:11rem;aspect-ratio:1;border:1px solid color-mix(in srgb,var(--manjam-cream) 34%,transparent);border-radius:50%;content:""; }
+.manjam-course-cover::after { inset-block-end:-4.5rem;inset-inline-end:2rem;width:8rem; }
+.manjam-course-cover.is-navy { background:var(--manjam-navy); }
+.manjam-course-cover.is-ring { background:var(--manjam-navy-soft); }
+.manjam-course-cover.is-cream { background:var(--manjam-surface-raised);color:var(--manjam-text); }
+.manjam-course-cover-art { position:relative;z-index:1;display:grid;width:5.75rem;height:7rem;place-items:center;border-radius:.75rem;background:var(--manjam-surface-raised);box-shadow:.625rem .625rem 0 var(--manjam-home-gold);color:var(--manjam-text);transform:rotate(-6deg); }
+.manjam-course-cover-art svg { width:2.875rem;height:2.875rem;color:var(--manjam-text); }
+.manjam-course-cover.is-cream .manjam-course-cover-art { background:var(--manjam-surface); }
+.manjam-course-content { padding:1.25rem; }
+.manjam-course-category { color:var(--manjam-home-gold-text);font-size:.75rem;font-weight:800; }
+.manjam-course-content h3 { margin:.5rem 0;color:var(--manjam-text);font-size:1.2rem;font-weight:800; }
+.manjam-course-content>p { min-height:3.25rem;margin:0;color:var(--manjam-text-muted);font-size:.9rem;line-height:1.8; }
+.manjam-course-instructor { display:flex;align-items:center;gap:.5rem;margin-block-start:1rem;padding-block-start:.875rem;border-block-start:1px solid var(--manjam-border);color:var(--manjam-text-muted);font-size:.82rem; }
+.manjam-empty-state { display:grid;min-height:14rem;justify-items:center;align-content:center;padding:2rem;border:1px dashed var(--manjam-border-strong);border-radius:var(--radius-xl);background:var(--manjam-bg);text-align:center; }
+.manjam-empty-icon { display:grid;width:3.5rem;height:3.5rem;place-items:center;border-radius:var(--radius-full);background:var(--manjam-surface-raised);color:var(--manjam-home-gold-text); }
+.manjam-empty-state h3 { margin:1rem 0 .4rem;font-size:1.2rem;font-weight:800; }
+.manjam-empty-state p { max-width:38rem;margin:0;color:var(--manjam-text-muted);line-height:1.8; }
+.manjam-benefits { background:var(--manjam-bg); }
+.manjam-benefit-grid { display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.5rem; }
+.manjam-benefit-card { display:flex;min-width:0;align-items:flex-start;gap:.9rem;padding:1rem 0; }
+.manjam-benefit-icon { display:grid;width:2.75rem;height:2.75rem;flex:0 0 2.75rem;place-items:center;border:1px solid var(--manjam-border);border-radius:var(--radius-md);background:var(--manjam-surface);color:var(--manjam-home-gold-text); }
+.manjam-benefit-card h3 { margin:0 0 .4rem;font-size:1rem;font-weight:800; }
+.manjam-benefit-card p { margin:0;color:var(--manjam-text-muted);font-size:.85rem;line-height:1.8; }
+.manjam-footer { display:grid;grid-template-columns:minmax(14rem,1.5fr) repeat(2,minmax(8rem,.7fr));gap:2rem;padding:2.5rem clamp(1.25rem,9vw,9rem);border-block-start:1px solid var(--manjam-border);background:var(--manjam-surface); }
+.manjam-footer-brand img { display:block;width:9rem;height:auto; }
+.manjam-footer-brand p { margin:.75rem 0 0;color:var(--manjam-text-muted);font-size:.85rem; }
+.manjam-footer-group h3 { margin:0 0 .75rem;font-size:.9rem;font-weight:800; }
+.manjam-footer-group nav { display:grid;justify-items:start;gap:.5rem; }
+.manjam-footer>small { grid-column:1/-1;padding-block-start:1.25rem;border-block-start:1px solid var(--manjam-border);color:var(--manjam-text-muted);font-size:.78rem; }
+html[dir="rtl"] .manjam-hero h1 { letter-spacing:0; }
+html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-thumb { transform:translateX(-.5rem); }
+html[dir="rtl"] .manjam-cta-arrow { transform:scaleX(-1); }
+@media (max-width:64rem) {
+  .manjam-public-header { gap:.75rem;padding-inline:1.25rem; }
+  .manjam-public-header .manjam-header-brand img { width:7rem; }
+  .manjam-hero-box { grid-template-columns:minmax(0,1.2fr) minmax(13rem,.8fr);gap:1rem;padding-inline:clamp(1.5rem,6vw,3.75rem); }
+  .manjam-courses,.manjam-benefits { padding-inline:clamp(1.25rem,5vw,4rem); }
+  .manjam-course-grid { gap:.75rem; }
+  .manjam-course-cover { height:10.3125rem;min-height:10.3125rem; }
+  .manjam-course-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:48rem) {
+  .manjam-public-header { height:4.25rem;padding-inline:.75rem; }
+  .manjam-public-header .manjam-header-brand img { width:6.5rem; }
+  .manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { width:auto;min-width:4.75rem;height:2rem;min-height:2rem;padding-inline:.375rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { width:auto;min-width:5.375rem; }
+  .manjam-switch-track { width:1.5rem;flex-basis:1.5rem; }
+  .manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(.5rem); }
+  html[dir="rtl"] .manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(-.5rem); }
+  .manjam-public-header { height:4.25rem;justify-content:space-between;padding-inline:.875rem; }
+  .manjam-public-header .manjam-header-brand { min-width:auto; }
+  .manjam-public-header .manjam-header-brand img { width:6.75rem; }
+  .manjam-header-actions { gap:.375rem; }
+  .manjam-public-header .testo-preference-controls { gap:.25rem; }
+  .manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { width:2.5rem;min-width:2.5rem;height:2.5rem;min-height:2.5rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { width:2.5rem;min-width:2.5rem; }
+  .manjam-public-header .testo-preference-language[role="switch"] { width:3rem;min-width:3rem; }
+  .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-thumb { transform:translateX(.25rem); }
+  html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-thumb { transform:translateX(-.25rem); }
+  .manjam-hero { min-height:0;padding:1.75rem 1rem 2.5rem; }
+  .manjam-hero-box { grid-template-columns:minmax(0,1fr);gap:.5rem;padding:2rem 1.5rem 1.5rem;border-radius:var(--radius-lg); }
+  .manjam-hero h1 { max-width:16ch;font-size:clamp(2.4rem,10vw,3.5rem); }
+  .manjam-hero-art { min-height:13rem; }
+  .manjam-art-orbit-one { width:min(75%,11rem); }
+  .manjam-book { width:6.9rem;height:8rem; }
+  .manjam-book strong { font-size:.95rem; }
+  .manjam-float-tag { padding:.45rem .6rem;font-size:.68rem; }
+  .manjam-section-heading { align-items:start;flex-direction:column;gap:.75rem; }
+  .manjam-course-grid,.manjam-benefit-grid { grid-template-columns:minmax(0,1fr); }
+  .manjam-course-cover { height:11rem;min-height:11rem; }
+  .manjam-course-content>p { min-height:0; }
+  .manjam-benefit-grid { grid-template-columns:minmax(0,1fr);gap:.25rem; }
+  .manjam-footer { grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem;padding:2rem 1.25rem; }
+  .manjam-footer-brand { grid-column:1/-1; }
+}
+/* Keep the page proportions and section treatments aligned with the approved HTML concept. */
+.manjam-content-wrap,.manjam-footer-inner { width:min(73.75rem,calc(100% - 3rem));margin-inline:auto; }
+.manjam-courses { padding:0 0 4.5rem;background:transparent; }
+.manjam-benefits { padding:0 0 4.75rem;background:transparent; }
+.manjam-course-grid { gap:1.25rem; }
+.manjam-benefit-grid { gap:1rem; }
+.manjam-benefit-card { gap:.875rem;padding:1.25rem;border:1px solid var(--manjam-border);border-radius:var(--radius-lg);background:var(--manjam-surface); }
+.manjam-benefit-icon { width:2.625rem;height:2.625rem;flex-basis:2.625rem;border:0;border-radius:.8125rem;background:var(--manjam-surface-raised); }
+.manjam-footer { display:block;padding:2.6875rem 0 1.25rem;border:0;background:var(--manjam-navy-soft);color:var(--manjam-cream); }
+.manjam-footer-inner { display:block; }
+.manjam-footer-main { display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:2.1875rem;padding-block-end:2rem; }
+.manjam-footer-brand .manjam-logo-light,.dark .manjam-footer-brand .manjam-logo-dark { display:none!important; }
+.manjam-footer-brand .manjam-logo-dark,.dark .manjam-footer-brand .manjam-logo-light { display:block!important; }
+.manjam-footer-brand p { max-width:21.25rem;margin:1rem 0 0;color:var(--manjam-hero-muted);font-size:.8125rem; }
+.manjam-footer-group h3 { margin:.3125rem 0 .875rem;color:var(--manjam-home-gold);font-size:.875rem; }
+.manjam-footer nav a { color:var(--manjam-hero-muted);font-size:.8125rem; }
+.manjam-footer nav a:hover { color:var(--manjam-home-gold); }
+.manjam-footer-bottom { display:flex;justify-content:space-between;gap:.9375rem;padding-block-start:1rem;border-block-start:1px solid color-mix(in srgb,var(--manjam-cream) 15%,transparent);color:var(--manjam-hero-muted);font-size:.75rem; }
+@media (max-width:48rem) {
+  .manjam-content-wrap,.manjam-footer-inner { width:min(100% - 2rem,32.5rem); }
+  .manjam-courses { padding-block-end:2.875rem; }
+  .manjam-benefits { padding-block-end:3rem; }
+  .manjam-course-grid { grid-template-columns:minmax(0,1fr);gap:.875rem; }
+  .manjam-benefit-grid { grid-template-columns:minmax(0,1fr);gap:.75rem; }
+  .manjam-benefit-card { padding:1rem; }
+  .manjam-footer-main { grid-template-columns:repeat(2,minmax(0,1fr));gap:1.5625rem;padding-block-end:1.5rem; }
+  .manjam-footer-brand { grid-column:1/-1; }
+  .manjam-footer-bottom { flex-direction:column;gap:.25rem; }
+}
+@media (max-width:22.5rem) {
+  .manjam-public-header { gap:.375rem;padding-inline:.5rem; }
+  .manjam-public-header .manjam-header-brand img { width:5.5rem; }
+  .manjam-public-header .manjam-header-actions { gap:.25rem; }
+  .manjam-public-header .testo-preference-controls { gap:.1875rem; }
+  .manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { min-width:4.125rem;padding-inline:.25rem;gap:.25rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { min-width:4.75rem; }
+  .manjam-switch-track { width:1.375rem;flex-basis:1.375rem; }
+  .manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(.375rem); }
+  html[dir="rtl"] .manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-knob,html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-knob { transform:translateX(-.375rem); }
+}
+@media (max-width:48rem) {
+  .manjam-public-header .testo-preference-language[role="switch"] { width:auto;min-width:3rem;padding-inline:.625rem; }
+  .manjam-public-header .testo-preference-language .manjam-switch-symbol,.manjam-public-header .testo-preference-language .manjam-switch-track { display:none; }
+  .manjam-public-header .testo-preference-language .manjam-switch-label { color:var(--manjam-text);font-size:.75rem; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .manjam-home *, .manjam-home *::before, .manjam-home *::after { scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important; }
+}
+/* Targeted alignment with the approved Manjam home reference. */
+.manjam-public-header { height:6.25rem; }
+.manjam-header-actions { gap:.75rem; }
+.manjam-public-header .testo-preference-controls { gap:.75rem; }
+.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { height:2.875rem;min-height:2.875rem;border-radius:var(--radius-full); }
+.manjam-public-header .testo-preference-language[role="switch"],.manjam-public-header .testo-preference-theme[role="switch"] { width:auto;min-width:7.75rem;gap:.5rem;padding-inline:.75rem; }
+.manjam-public-header .testo-preference-theme[role="switch"] { min-width:7.5rem; }
+.manjam-public-header .manjam-switch-track { background:var(--manjam-home-gold); }
+.manjam-public-header .manjam-switch-knob { background:var(--manjam-navy); }
+.manjam-public-header .manjam-switch-label { font-size:.8125rem; }
+.manjam-public-header .manjam-switch-symbol { color:var(--manjam-home-gold-text); }
+.manjam-public-header .manjam-account-link { min-height:3.375rem;padding-inline:1.5rem;border-radius:.875rem;font-size:.9375rem;font-weight:750; }
+.manjam-public-header .manjam-account-link.is-login { border-color:color-mix(in srgb,var(--manjam-cream) 22%,transparent);background:var(--manjam-navy-soft);color:var(--manjam-cream); }
+.manjam-public-header .manjam-account-link.is-login:hover { border-color:color-mix(in srgb,var(--manjam-cream) 42%,transparent);background:var(--manjam-navy);color:var(--manjam-cream); }
+.manjam-public-header .manjam-account-link.is-register { background:var(--manjam-home-gold);color:var(--manjam-navy); }
+.manjam-public-header .manjam-account-link.is-register:hover { background:var(--manjam-home-gold-hover); }
+.manjam-hero { padding-block-start:4.125rem;padding-block-end:4.375rem; }
+.manjam-hero-box { min-height:30.625rem;grid-template-columns:minmax(0,1.9fr) minmax(17rem,.7fr);gap:1rem;padding-block:4rem;border-radius:2.25rem; }
+.manjam-hero-copy { max-width:48rem; }
+.manjam-hero .manjam-eyebrow { gap:.625rem;font-size:1.125rem;font-weight:750; }
+.manjam-hero-dot { display:inline-block;width:1.375rem;height:1.375rem;flex:0 0 1.375rem;border:0;border-radius:var(--radius-full);background:radial-gradient(circle,var(--manjam-home-gold) 0 .3125rem,var(--manjam-home-orbit) .33rem 100%); }
+.manjam-hero h1 { max-width:47.5rem;font-size:clamp(3rem,4.45vw,4.25rem);font-weight:800;letter-spacing:-.03em;line-height:1.2; }
+.manjam-hero-copy>p { max-width:40.625rem;color:color-mix(in srgb,var(--manjam-cream) 84%,var(--manjam-hero-muted));font-size:1.25rem;line-height:1.6; }
+.manjam-hero-actions { gap:1rem; }
+.manjam-button { min-height:3.4375rem;padding-inline:1.5rem;border-radius:.875rem;font-size:.9375rem; }
+.manjam-book { width:11.875rem;height:13.75rem;gap:.5rem; }
+.manjam-book-icon { color:var(--manjam-navy);font-size:1.875rem;line-height:1; }
+.manjam-book strong { white-space:pre-line;max-width:none;font-size:1.5rem;line-height:1.15; }
+.manjam-book small { color:var(--manjam-cream-accent);font-size:.75rem;letter-spacing:.12em; }
+.manjam-art-orbit-one { width:min(100%,15rem); }
+.manjam-float-tag { gap:.5rem;border-radius:.75rem;padding:.625rem .875rem; }
+.manjam-float-tag>span { color:var(--manjam-cream);font-size:.75rem;line-height:1; }
+.manjam-tag-one { inset-block-start:1.75rem;inset-inline-start:-.5rem; }
+.manjam-tag-two { inset-block-end:1.75rem;inset-inline-end:-.5rem; }
+.manjam-courses { padding-block-start:0;padding-block-end:4.5rem; }
+.manjam-section-heading { align-items:end;margin-block-end:1.5rem; }
+.manjam-section-heading h2 { font-size:clamp(2rem,2.8vw,2.5rem);letter-spacing:-.03em; }
+.manjam-section-heading .manjam-eyebrow { font-size:.875rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase; }
+.manjam-course-heading-aside { display:flex;align-items:end;gap:2.25rem; }
+.manjam-all-courses { display:inline-flex;align-items:center;gap:.4rem;padding-block-end:.1rem;color:var(--manjam-home-gold-text);font-size:.9375rem;font-weight:800;text-decoration:none;white-space:nowrap; }
+.manjam-all-courses:hover { color:var(--manjam-home-gold-text); }
+.manjam-all-courses svg { transition:transform var(--motion-fast); }
+html[dir="rtl"] .manjam-all-courses svg { transform:scaleX(-1); }
+html[dir="rtl"] .manjam-hero h1 { letter-spacing:0; }
+@media (max-width:64rem) {
+  .manjam-public-header { height:5.5rem; }
+  .manjam-hero-box { grid-template-columns:minmax(0,1.2fr) minmax(15rem,.8fr);padding-inline:clamp(1.5rem,6vw,3.75rem); }
+  .manjam-hero h1 { font-size:clamp(2.75rem,5.2vw,3.5rem); }
+  .manjam-course-heading-aside { gap:1.25rem; }
+}
+@media (max-width:48rem) {
+  .manjam-public-header { height:4.25rem; }
+  .manjam-public-header .testo-preference-controls { gap:.375rem; }
+  .manjam-public-header .testo-preference-language[role="switch"] { width:auto;min-width:2.75rem;height:2.5rem;min-height:2.5rem;padding-inline:.5rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { min-width:2.75rem;height:2.5rem;min-height:2.5rem;padding-inline:.5rem; }
+  .manjam-public-header .manjam-switch-track,.manjam-public-header .manjam-switch-label,.manjam-public-header .manjam-switch-symbol { display:none; }
+  .manjam-public-header .testo-preference-language[role="switch"] .manjam-switch-label { display:inline; }
+  .manjam-public-header .testo-preference-theme[role="switch"] .manjam-switch-symbol { display:grid; }
+  .manjam-hero { padding:1.75rem 1rem 3.5rem; }
+  .manjam-hero-box { min-height:0;grid-template-columns:minmax(0,1fr);gap:.5rem;padding:2rem 1.5rem 1.5rem;border-radius:var(--radius-lg); }
+  .manjam-hero .manjam-eyebrow { font-size:.875rem; }
+  .manjam-hero-dot { width:1rem;height:1rem;flex-basis:1rem;border-width:4px; }
+  .manjam-hero h1 { max-width:100%;font-size:clamp(2.25rem,9vw,3rem); }
+  .manjam-hero-copy>p { font-size:1rem; }
+  .manjam-book { width:6.9rem;height:8rem; }
+  .manjam-book strong { max-width:none;font-size:.95rem; }
+  .manjam-book-icon { font-size:1.5rem; }
+  .manjam-float-tag { padding:.45rem .6rem;font-size:.68rem; }
+  .manjam-courses { padding-block-end:2.875rem; }
+  .manjam-section-heading { align-items:start;flex-direction:column;gap:.75rem; }
+  .manjam-course-heading-aside { width:100%;align-items:center;justify-content:space-between;gap:.75rem; }
+  .manjam-section-heading h2 { font-size:1.8rem; }
+}
+@media (max-width:30rem) {
+  .manjam-course-heading-aside { align-items:flex-start; }
+}
+/* The guest header has only the brand and account/preference actions. */
+.manjam-public-header { justify-content:space-between; }
+.manjam-public-header .manjam-header-actions { justify-content:flex-end; }
+.manjam-public-header .manjam-header-accounts { display:flex; }
+.manjam-course-grid { align-items:stretch; }
+.manjam-course-card { display:flex;min-width:0;height:100%;flex-direction:column; }
+.manjam-course-cover { height:auto;min-height:0;aspect-ratio:16 / 9;background:var(--manjam-navy-soft); }
+.manjam-course-cover.is-navy,.manjam-course-cover.is-ring,.manjam-course-cover.is-cream { background:var(--manjam-navy-soft);color:var(--manjam-cream); }
+.manjam-course-content { min-width:0;min-height:10rem;flex:1;display:flex;flex-direction:column;gap:.5rem; }
+.manjam-course-content h3 { display:-webkit-box;min-height:0;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.45; }
+.manjam-course-content>p { display:-webkit-box;min-height:0;margin:0;overflow:hidden;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-height:1.65; }
+.manjam-course-skeleton .manjam-course-content { gap:.875rem; }
+.manjam-skeleton-cover,.manjam-skeleton-line { position:relative;display:block;overflow:hidden;border-radius:var(--radius-sm);background:var(--manjam-surface-raised); }
+.manjam-skeleton-cover { aspect-ratio:16 / 9;border-radius:0;background:var(--manjam-surface-raised); }
+.manjam-skeleton-line { height:.75rem;width:100%; }
+.manjam-skeleton-line.is-short { width:30%;height:.625rem; }
+.manjam-skeleton-line.is-title { width:78%;height:1.25rem; }
+.manjam-skeleton-line.is-medium { width:62%; }
+.manjam-skeleton-cover::after,.manjam-skeleton-line::after { position:absolute;inset:0;content:"";background:linear-gradient(100deg,transparent,color-mix(in srgb,var(--manjam-text) 8%,transparent),transparent);animation:manjam-course-shimmer 1.4s ease-in-out infinite; }
+@keyframes manjam-course-shimmer { to { transform:translateX(100%); } }
+@media (max-width:64rem) {
+  .manjam-public-header .manjam-header-accounts { display:flex; }
+}
+@media (max-width:48rem) {
+  .manjam-public-header { padding-inline:.5rem; }
+  .manjam-public-header .manjam-header-brand { min-width:0; }
+  .manjam-public-header .manjam-header-brand img { width:5.25rem; }
+  .manjam-public-header .manjam-header-actions,.manjam-public-header .manjam-header-accounts,.manjam-public-header .testo-preference-controls { gap:.25rem; }
+  .manjam-public-header .manjam-header-accounts { display:flex; }
+  .manjam-public-header .testo-preference-language[role="switch"] { width:auto;min-width:3.75rem;height:2.5rem;min-height:2.5rem;padding-inline:.5rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { width:2.5rem;min-width:2.5rem;height:2.5rem;min-height:2.5rem;justify-content:center;padding:.25rem; }
+  .manjam-public-header .testo-preference-language .manjam-switch-label { display:inline;font-size:.6875rem; }
+  .manjam-public-header .testo-preference-theme .manjam-switch-symbol { display:grid; }
+  .manjam-public-header .testo-preference-language .manjam-switch-symbol,.manjam-public-header .testo-preference-language .manjam-switch-track,.manjam-public-header .testo-preference-theme .manjam-switch-label,.manjam-public-header .testo-preference-theme .manjam-switch-track { display:none; }
+  .manjam-public-header .manjam-account-link { min-height:2.5rem;padding-inline:.4rem;border-radius:.625rem;font-size:.625rem; }
+  .manjam-public-header .manjam-header-accounts .is-login { display:inline-flex; }
+}
+@media (max-width:30rem) {
+  .manjam-public-header .manjam-header-brand img { width:4.75rem; }
+  .manjam-public-header .manjam-account-link { padding-inline:.3rem;font-size:.6rem; }
+  .manjam-public-header .testo-preference-language[role="switch"] { min-width:3.5rem;padding-inline:.35rem; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .manjam-course-skeleton::after,.manjam-skeleton-cover::after,.manjam-skeleton-line::after { animation:none; }
+}
+/* Compact the guest header and complete the public footer while retaining the shared tokens. */
+.manjam-public-header { height:4rem;padding-inline:clamp(.625rem,1.5vw,1.25rem); }
+.manjam-public-header .manjam-header-brand { min-width:0; }
+.manjam-public-header .manjam-header-brand img { width:7.25rem; }
+.manjam-public-header .manjam-header-actions { gap:.625rem; }
+.manjam-public-header .testo-preference-controls { gap:.5rem; }
+.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { height:2.375rem;min-height:2.375rem; }
+.manjam-public-header .testo-preference-language[role="switch"],.manjam-public-header .testo-preference-theme[role="switch"] { min-height:2.375rem; }
+.manjam-public-header .manjam-header-accounts { gap:.5rem;margin-inline-start:0; }
+.manjam-public-header .manjam-account-link { min-height:2.5rem;padding-inline:1.125rem;font-size:.875rem; }
+.manjam-footer-main { grid-template-columns:minmax(15rem,1.4fr) repeat(2,minmax(0,1fr)); }
+.manjam-footer-contact p { margin:0 0 .5rem;color:var(--manjam-hero-muted);font-size:.8125rem; }
+.manjam-footer-contact>a { color:var(--manjam-cream);font-size:.8125rem;font-weight:700;overflow-wrap:anywhere; }
+.manjam-footer-contact small { display:block;margin-block-start:.5rem;color:var(--manjam-hero-muted);font-size:.7rem;line-height:1.6; }
+.manjam-footer-brand .manjam-footer-languages { color:var(--manjam-cream);font-weight:700; }
+@media (max-width:64rem) {
+  .manjam-public-header { height:3.75rem; }
+  .manjam-public-header .manjam-header-brand img { width:6.5rem; }
+  .manjam-footer-main { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:48rem) {
+  .manjam-public-header { height:3.5rem;padding-inline:.625rem; }
+  .manjam-public-header .manjam-header-brand img { width:4.75rem; }
+  .manjam-public-header .manjam-header-actions,.manjam-public-header .manjam-header-accounts { gap:.25rem; }
+  .manjam-public-header .testo-preference-controls { gap:.25rem; }
+  .manjam-public-header .testo-preference-language[role="switch"] { min-width:3.5rem;height:2.25rem;min-height:2.25rem;padding-inline:.35rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { width:2.25rem;min-width:2.25rem;height:2.25rem;min-height:2.25rem; }
+  .manjam-public-header .manjam-account-link { min-height:2.25rem;padding-inline:.4rem;font-size:.625rem; }
+  .manjam-footer-main { grid-template-columns:repeat(2,minmax(0,1fr)); }
+}
+@media (max-width:30rem) {
+  .manjam-public-header { padding-inline:.5rem; }
+  .manjam-public-header .manjam-header-brand img { width:4.5rem; }
+  .manjam-public-header .manjam-account-link { padding-inline:.3rem;font-size:.6rem; }
+  .manjam-footer-main { gap:1.25rem 1rem; }
+  .manjam-footer-contact>a { font-size:.75rem; }
+}
+/* Keep the hero close to the navigation and give its content more room. */
+.manjam-hero { padding-block-start:.75rem;padding-block-end:3rem;padding-inline:clamp(1rem,2.5vw,2.5rem); }
+.manjam-hero-box { width:min(100%,84rem);min-height:27rem;padding-block:3rem;transition:filter var(--motion-base); }
+.manjam-hero h1 { max-width:43.5rem; }
+.manjam-hero-box:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+.manjam-course-card,.manjam-benefit-card,.manjam-empty-state { transition:transform var(--motion-base),border-color var(--motion-base),box-shadow var(--motion-base); }
+.manjam-course-card:hover,.manjam-benefit-card:hover { transform:translateY(-.25rem);border-color:var(--manjam-border-strong);box-shadow:var(--shadow-md); }
+.manjam-empty-state:hover { transform:translateY(-.2rem);border-color:var(--manjam-border-strong);box-shadow:var(--shadow-sm); }
+.manjam-button:hover { transform:translateY(-2px);box-shadow:var(--shadow-sm); }
+.manjam-public-header .manjam-account-link,.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { transition:transform var(--motion-fast),background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast); }
+.manjam-public-header :is(.manjam-account-link,.testo-preference-language,.testo-preference-theme):hover { transform:translateY(-1px); }
+.manjam-all-courses { transition:color var(--motion-fast),transform var(--motion-fast); }
+.manjam-all-courses:hover { transform:translateY(-1px); }
+@media (max-width:64rem) {
+  .manjam-hero { padding-block-start:.625rem;padding-block-end:2.5rem; }
+}
+@media (max-width:48rem) {
+  .manjam-hero { padding-block-start:.5rem;padding-block-end:2rem; }
+  .manjam-hero-box { min-height:0;padding-block:2rem 1.5rem; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .manjam-hero-box,.manjam-course-card,.manjam-benefit-card,.manjam-empty-state,.manjam-button,.manjam-all-courses,.manjam-public-header .manjam-account-link,.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { transition:none; }
+}
+/* Shared public-home container and reference-scale layout. */
+.manjam-public-header {
+  height:clamp(4.5rem,5.62vw,6.5rem);
+  gap:1rem;
+  padding-inline:max(calc((100vw - var(--manjam-home-container-max)) / 2 + var(--manjam-home-container-gutter)),calc(var(--manjam-home-container-gutter) + var(--manjam-home-container-gutter)));
+}
+.manjam-public-header .manjam-header-brand img { width:clamp(7rem,9.08vw,10.5rem); }
+.manjam-public-header .manjam-header-actions { gap:1rem; }
+.manjam-public-header .testo-preference-controls { gap:.75rem; }
+.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { height:2.625rem;min-height:2.625rem; }
+.manjam-public-header .manjam-header-accounts { gap:.75rem; }
+.manjam-public-header .manjam-account-link { min-height:3.4375rem;padding-inline:1.5625rem;border-radius:.875rem;font-size:1.125rem;font-weight:700; }
+.manjam-public-header .manjam-account-link.is-register { background:var(--manjam-home-gold);color:var(--manjam-home-on-gold); }
+.manjam-public-header .manjam-account-link.is-register:hover { background:var(--manjam-home-gold-hover); }
+.manjam-public-header .manjam-account-link.is-login { border-color:var(--manjam-home-orbit);background:var(--manjam-navy-soft);color:var(--manjam-cream); }
+.manjam-public-header .manjam-account-link.is-login:hover { border-color:var(--manjam-home-gold);color:var(--manjam-cream); }
+.manjam-public-header .manjam-switch-track { background:var(--manjam-home-gold); }
+.manjam-public-header .manjam-switch-knob { background:var(--manjam-navy); }
+.manjam-public-header .testo-preference-language[aria-checked="true"] .manjam-switch-track,.manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-track { background:var(--manjam-home-gold); }
+.manjam-content-wrap,.manjam-footer-inner {
+  box-sizing:border-box;
+  width:min(calc(100% - var(--manjam-home-container-gutter) - var(--manjam-home-container-gutter)),var(--manjam-home-container-max));
+  margin-inline:auto;
+  padding-inline:var(--manjam-home-container-gutter);
+}
+.manjam-hero { padding-block:clamp(2rem,4.32vw,5rem) clamp(2rem,4.75vw,5.5rem);padding-inline:0; }
+.manjam-hero-box {
+  width:min(calc(100% - var(--manjam-home-container-gutter) - var(--manjam-home-container-gutter) - var(--manjam-home-container-gutter) - var(--manjam-home-container-gutter)),calc(var(--manjam-home-container-max) - var(--manjam-home-container-gutter) - var(--manjam-home-container-gutter)));
+  min-height:30.625rem;
+  grid-template-columns:minmax(0,1.3fr) minmax(17rem,.7fr);
+  gap:1rem;
+  padding-block:4.5rem 3.75rem;
+  padding-inline-start:clamp(2rem,5.57vw,6.4375rem);
+  padding-inline-end:clamp(2rem,3.25vw,3.75rem);
+  border-radius:2.25rem;
+  transition:transform var(--motion-base),box-shadow var(--motion-base);
+}
+.manjam-hero-box::before { inset-block-start:-5rem;inset-inline-end:5%;width:30.625rem;border-color:var(--manjam-home-orbit); }
+.manjam-hero-box::after { inset-block-end:-2rem;inset-inline-end:16.75%;width:13.125rem;background-size:2.1875rem 2.1875rem; }
+.manjam-hero-box:hover { transform:translateY(-2px);box-shadow:var(--shadow-md); }
+.manjam-hero-copy { max-width:48rem; }
+.manjam-hero .manjam-eyebrow { gap:.5rem;font-size:1.125rem;font-weight:700;color:var(--manjam-home-gold); }
+.manjam-hero-dot { width:1.375rem;height:1.375rem;flex-basis:1.375rem;background:radial-gradient(circle,var(--manjam-home-gold) 0 .3125rem,var(--manjam-home-orbit) .33rem 100%); }
+.manjam-hero h1 { max-width:47.5rem;margin:1.75rem 0 1.25rem;font-size:clamp(2.5rem,4.6vw,4.25rem);font-weight:800;line-height:1.2;letter-spacing:-.03em; }
+.manjam-hero-copy>p { max-width:41.25rem;margin:0 0 2.25rem;font-size:1.25rem;line-height:1.6;color:var(--manjam-hero-muted); }
+.manjam-hero-actions { gap:1rem;margin-block-start:0; }
+.manjam-button { min-height:3.4375rem;padding-inline:1.5625rem;border-radius:.875rem;font-size:1.125rem;font-weight:700; }
+.manjam-hero .manjam-button-primary { background:var(--manjam-home-gold);color:var(--manjam-home-on-gold); }
+.manjam-hero .manjam-button-primary:hover { background:var(--manjam-home-gold-hover); }
+.manjam-hero-art { min-height:17rem;transform:translateX(-15%); }
+html[dir="rtl"] .manjam-hero-art { transform:translateX(15%); }
+.manjam-art-orbit-one { width:min(100%,20rem); }
+.manjam-book { width:11.875rem;height:13.75rem;box-shadow:1.1rem 1.1rem 0 var(--manjam-home-gold),var(--shadow-md); }
+.manjam-book-icon { color:var(--manjam-navy);font-size:1.875rem;line-height:1; }
+.manjam-book strong { max-width:none;font-size:1.5rem;line-height:1.15;white-space:pre-line; }
+.manjam-book small { color:var(--manjam-home-gold-text);font-size:.75rem;letter-spacing:.12em; }
+.manjam-float-tag { min-height:2.25rem;gap:.5rem;padding:.5rem .75rem;border-color:var(--manjam-home-orbit);border-radius:var(--radius-md);background:var(--manjam-navy-soft);font-size:.8125rem;font-weight:700;backdrop-filter:none; }
+.manjam-float-tag>span { color:var(--manjam-cream);font-size:.75rem; }
+.manjam-tag-one { inset-block-start:calc(50% - 8.25rem);inset-inline-start:calc(50% - 15.3125rem); }
+.manjam-tag-two { inset-block-end:calc(50% - 8.25rem);inset-inline-end:0; }
+.manjam-courses,.manjam-benefits { padding-inline:0; }
+.manjam-courses { padding-block-start:0;padding-block-end:4.5rem; }
+.manjam-section-heading { align-items:end;gap:2rem;margin-block-end:2.5rem; }
+.manjam-section-heading h2 { margin:.75rem 0 0;font-size:2.5rem;font-weight:800;letter-spacing:-.035em;line-height:1.2; }
+.manjam-section-heading .manjam-eyebrow { font-size:.875rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase; }
+.manjam-courses-intro { max-width:38rem;margin: .75rem 0 0;color:var(--manjam-text-muted);font-size:1.125rem;line-height:1.6; }
+.manjam-course-heading-aside { align-self:end; }
+.manjam-all-courses { color:var(--manjam-home-gold-text);font-size:1rem; }
+.manjam-all-courses:hover { color:var(--manjam-home-gold-text); }
+.manjam-course-category,.manjam-empty-icon,.manjam-benefit-icon { color:var(--manjam-home-gold-text); }
+.manjam-footer-group h3,.manjam-footer nav a:hover { color:var(--manjam-home-gold); }
+.manjam-footer-brand .manjam-logo-light,.dark .manjam-footer-brand .manjam-logo-light { display:none!important; }
+.manjam-footer-brand .manjam-logo-dark,.dark .manjam-footer-brand .manjam-logo-dark { display:block!important;filter:none!important; }
+@media (max-width:64rem) {
+  .manjam-public-header { height:clamp(4.5rem,5.62vw,5rem); }
+  .manjam-public-header .manjam-header-brand img { width:clamp(7rem,9.08vw,8.25rem); }
+  .manjam-hero-box { grid-template-columns:minmax(0,1.2fr) minmax(15rem,.8fr);padding-inline:clamp(2rem,5.57vw,3.5rem); }
+  .manjam-hero h1 { font-size:clamp(2.5rem,4.6vw,3.5rem); }
+  .manjam-hero-art { transform:translateX(-8%); }
+  html[dir="rtl"] .manjam-hero-art { transform:translateX(8%); }
+}
+@media (max-width:48rem) {
+  .manjam-public-header { height:3.5rem;padding-inline:calc(var(--manjam-home-container-gutter) + var(--manjam-home-container-gutter));gap:0; }
+  .manjam-public-header .manjam-header-brand img { width:4.25rem; }
+  .manjam-public-header .manjam-header-actions { gap:.5rem; }
+  .manjam-public-header .testo-preference-controls,.manjam-public-header .manjam-header-accounts { gap:.5rem; }
+  .manjam-public-header .manjam-account-link { min-height:2.25rem;padding-inline:.375rem;font-size:.6875rem; }
+  .manjam-public-header .testo-preference-language[role="switch"] { min-width:3.5rem;height:2.25rem;min-height:2.25rem;padding-inline:.35rem; }
+  .manjam-public-header .testo-preference-theme[role="switch"] { width:2.25rem;min-width:2.25rem;height:2.25rem;min-height:2.25rem; }
+  .manjam-hero { padding-block-start:1.5rem;padding-block-end:2.5rem; }
+  .manjam-hero-box { min-height:0;grid-template-columns:minmax(0,1fr);gap:.5rem;padding:2rem 1.5rem 1.5rem;border-radius:var(--radius-xl); }
+  .manjam-hero h1 { max-width:100%;margin-block-start:1rem;font-size:clamp(2.25rem,9vw,3rem); }
+  .manjam-hero-copy>p { font-size:1rem;margin-block-end:1.5rem; }
+  .manjam-button { font-size:.9rem; }
+  .manjam-hero-art { transform:none; }
+  html[dir="rtl"] .manjam-hero-art { transform:none; }
+  .manjam-tag-one { inset-block-start:calc(50% - 7rem);inset-inline-start:calc(50% - 11rem); }
+  .manjam-tag-two { inset-block-end:calc(50% - 7rem);inset-inline-end:0; }
+  .manjam-section-heading { margin-block-end:2rem; }
+  .manjam-section-heading h2 { font-size:2rem; }
+  .manjam-courses-intro { font-size:1rem; }
+}
+@media (max-width:30rem) {
+  .manjam-public-header .manjam-header-brand img { width:4.125rem; }
+  .manjam-public-header .manjam-account-link { padding-inline:.3125rem;font-size:.625rem; }
+  .manjam-hero-actions { gap:.75rem; }
+  .manjam-hero-actions .manjam-button { padding-inline:1rem; }
+  .manjam-float-tag { font-size:.75rem;padding-inline:.625rem; }
+}
