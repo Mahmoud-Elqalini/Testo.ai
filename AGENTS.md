@@ -21,10 +21,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ### Brand and migration rules
 
-- Manjam (منجم) is the current product brand. New screens and screens explicitly included in a rebrand scope use the Manjam logo and the palette documented in `DESIGN_SYSTEM.md`.
+- Manjam (منجم) is the current product brand. Every screen uses the Manjam logo and the palette documented in `DESIGN_SYSTEM.md`, including existing legacy screens.
 - UI work must follow the Manjam Brand Palette in `DESIGN_SYSTEM.md`. Use semantic tokens only; no hardcoded colors; no violet/indigo/purple/fuchsia classes; verify contrast for any new color pair; support light/dark and RTL/LTR.
-- Leave untouched legacy screens visually unchanged until their migration is explicitly in scope. Do not extend the legacy violet palette to new UI, and do not opportunistically restyle unrelated screens.
-- If changing an existing shared token would alter untouched legacy screens, add a semantic Manjam token to `src/app/globals.css` and scope it to the new/rebranded screen. Consolidate legacy and Manjam tokens only when all affected consumers are in an approved migration scope.
+- `--primary` is for fills only; text, icons, borders, and active indicators use `--primary-text`. Primary buttons are gold with dark ink in both themes; the dashboard hero uses the hero tokens, never `--primary`.
+- The full-UI Manjam rebrand includes existing legacy screens; apply the Manjam palette across them while keeping unrelated behavior and content unchanged. Do not extend the retired legacy violet palette to any screen or opportunistically restyle unrelated UI.
+- Keep existing semantic token names and update their values for the Manjam palette across the UI. If a needed semantic role has no token yet, add one to `src/app/globals.css`; never hardcode colors.
 - Keep legacy code identifiers unchanged unless a separate task explicitly migrates them. Current examples include `testo` (legacy package identifier, renamed in a later phase), `testo-` (legacy CSS class prefix, renamed in a later phase), `TestoError` (legacy error identifier, renamed in a later phase), and existing cookie keys (legacy identifiers, renamed in a later phase).
 - The active Manjam logo variant must match the active theme. Use symbol marks for compact spaces, horizontal lockups for headers, and vertical lockups only where their proportions fit the experience.
 - New visitors and accounts default to English and light theme unless a saved preference exists. Preserve existing preference flows; do not add page-specific preference state.

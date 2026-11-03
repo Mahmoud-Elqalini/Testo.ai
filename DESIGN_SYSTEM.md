@@ -9,22 +9,25 @@ This is the persistent, self-contained visual contract for Manjam (منجم). Re
 - Use soft shadows and rounded corners sparingly to distinguish surfaces. Avoid harsh black shadows, strong gradients outside the brand mark, and unrelated accent colors.
 - Use consistent shared navigation, page headers, buttons, fields, cards, badges, tables/lists, dialogs, and empty/loading/error states.
 - Manjam navy and gold communicate brand and primary actions according to the active theme. Semantic success, warning, and danger colors retain their existing meanings. Do not use color alone to communicate state.
-- New screens and screens explicitly included in a rebrand scope use the Manjam palette below. Leave untouched legacy screens visually unchanged until their migration is explicitly in scope; do not extend their legacy palette to new UI.
+- The entire UI uses the Manjam palette below. Migrate existing screens to these colors as part of the full-UI rebrand; do not introduce or extend legacy brand colors.
 
 ## Manjam Brand Palette (single source of truth)
 
-Decision: the whole UI uses the Manjam logo colors. Violet and the violet-to-indigo gradient are retired for new and rebranded screens. Values are defined ONLY in `src/app/globals.css` as semantic tokens; components and CSS files must use tokens, never raw hex/rgb/hsl and never Tailwind violet/indigo/purple/fuchsia classes. Reuse current semantic token names when doing so will not change untouched legacy screens. During the phased migration, define missing Manjam roles as scoped semantic tokens in globals.css rather than repointing shared legacy tokens. After the consumers have migrated, consolidate and remove obsolete legacy token values. Never hardcode a missing role.
+Decision: the whole UI uses the Manjam logo colors. Violet and the violet-to-indigo gradient are retired. Values are defined ONLY in `src/app/globals.css` as semantic tokens; components and CSS files must use tokens, never raw hex/rgb/hsl and never Tailwind violet/indigo/purple/fuchsia classes. Token NAMES stay as they are today; only their VALUES change. If a needed semantic role has no token yet, add one in globals.css, never hardcode.
 
 ### Brand constants (theme-independent)
 | name | hex | source |
 |---|---|---|
 | navy-900 | #0E1020 | logo background |
 | navy-800 | #171A33 | logo ring fill |
-| indigo-700 | #2A3068 | logo ring (light variant interior) |
+| navy-600 | #2A3068 | logo ring (light variant interior) |
 | cream | #F6F1E4 | logo ring / wordmark |
-| gold | #F5B83D | logo accent |
+| gold | #F5B83D | logo, decorative accents, and accent text in Dark |
 | gold-light | #FFD76E | logo sparkle / hover on dark |
 | gold-deep | #D98A0F | logo trail |
+| action-gold | #FFB81C | button fills (matches the shipped public home) |
+| action-gold-hover | #FFC63D | button hover |
+| ink | #14110A | text on action-gold |
 
 ### Semantic tokens by theme
 | role | Dark | Light |
@@ -34,49 +37,59 @@ Decision: the whole UI uses the Manjam logo colors. Violet and the violet-to-ind
 | surface-raised | #1F2347 | #F6F1E4 |
 | text | #F6F1E4 | #171A33 |
 | text-muted | #B8B5CC | #505577 |
-| primary (action fill) | #F5B83D | #171A33 |
-| on-primary (text on action) | #0E1020 | #F6F1E4 |
-| primary-hover | #FFD76E | #2A3068 |
-| accent-text (emphasis text/links) | #F5B83D | #9A5A05 |
+| primary (action fill, fills ONLY) | #FFB81C | #FFB81C |
+| on-primary (text on action) | #14110A | #14110A |
+| primary-hover | #FFC63D | #FFC63D |
+| primary-soft (chips, active backgrounds) | #F5B83D mixed into #171A33 at 15% | #FDF1D6 |
+| primary-soft-strong | #F5B83D mixed into #171A33 at 20% | #FCEBC4 |
+| accent-text / primary-text (text, icons, borders, active indicators) | #F5B83D | #9A5A05 |
 | border-subtle (decorative dividers only) | #2E3470 | #D9D2BC |
 | border-strong (inputs, controls, focus-adjacent) | #6068AE | #767B99 |
 | focus-ring | #F5B83D | #171A33 |
+| hero background gradient start/end | #171A33 / #2A3068 | #171A33 / #2A3068 |
+
+Hero text uses cream `#F6F1E4`; muted hero text uses `#B8B5CC`.
 
 ### Verified contrast (WCAG 2.x)
-Dark: text/background 16.72, text/surface 15.11, text-muted/surface 8.54, on-primary/primary 10.60, accent-text/surface 9.58, border-strong/background 3.67.
-Light: text/background 16.06, text/surface 17.05, text-muted/background 6.81, on-primary/primary 15.11, accent-text/background 5.15, accent-text/surface 5.47, border-strong/background 3.91.
+Dark: text/background 16.72, text/surface 15.11, text-muted/surface 8.54, on-primary/primary 10.88, on-primary/primary-hover 12.02, primary/dark-background 10.89, primary/dark-surface 9.84, accent-text/surface 9.58, border-strong/background 3.67, focus-ring/dark-surface 9.58.
+Light: text/background 16.06, text/surface 17.05, text-muted/background 6.81, on-primary/primary 10.88, on-primary/primary-hover 12.02, primary/light-background 1.63 (shape only; the label text identifies the button, so a visible focus ring is mandatory), accent-text/light-background 5.15, accent-text/light-surface 5.47, border-strong/background 3.91, focus-ring/light-background 16.06.
+accent-text/primary-soft 4.88 (Light), accent-text/primary-soft-strong 4.64 (Light), accent-text/primary-soft 7.05 (Dark), accent-text/primary-soft-strong 6.23 (Dark).
 Rules: normal text >= 4.5:1; large text and UI component boundaries >= 3:1. Any new color pair must be checked and added to this table before use.
 
 ### Usage rules
 - Gold (#F5B83D) is NEVER used as text or as a thin line on a light background (contrast 1.7:1). On light theme use accent-text (#9A5A05) for gold-toned text and navy for primary actions.
-- Primary action: gold fill + navy text in Dark; navy fill + cream text in Light.
-- No gradients by default. Allowed: a subtle navy-900 to navy-800 background gradient on hero/auth backgrounds; a gold to gold-deep gradient on logo-derived decorative accents only. Never violet/indigo.
+- Primary action: vivid gold fill (`primary`) with dark ink text (`on-primary`) in both themes. `primary` is for FILLS only. Icons, text, borders, and active indicators must use `primary-text`/accent-text so they pass contrast on light surfaces; gold must never be used as text or as a thin line on a light background. Gold buttons on light backgrounds must show the 2px focus-ring token with an offset.
+- The dashboard hero uses the hero gradient tokens (`#171A33` to `#2A3068`) in both themes. A subtle navy-900 (`#0E1020`) to navy-800 (`#171A33`) gradient is allowed on auth backgrounds only. A gold to gold-deep gradient is allowed only on logo-derived decorative accents. Never violet or indigo.
 - Status colors (success, warning, danger) are unchanged and semantic. Because brand gold is close to warning amber, warning states MUST always include an icon and text label, never color alone.
 - Both themes (light/dark) and both directions (RTL Arabic / LTR English) must remain fully supported (Constitution principle on bilingual + theme-adaptive UI).
 
 ### Logo usage
 Assets live in `public/images/logo/` (`manjam-symbol`, `manjam-logo-vertical`, `manjam-logo-horizontal`, `manjam-favicon`; each in `-dark` and `-light` variants). `-dark` means the version for dark backgrounds; `-light` for light backgrounds. Symbol alone for small spaces (header/sidebar, <= 48px tall); horizontal lockup for auth pages and wide headers; vertical lockup for splash/empty/hero states; favicon pair for browser icons. The logo must switch with the ACTIVE APP THEME without a hydration flash; the exact mechanism is decided in the implementation phase. Name display: "منجم" in Arabic UI, "Manjam" in English UI (from i18n, not hardcoded).
 
-Untouched legacy screens may retain their current visual appearance until an explicit migration includes them. When a legacy screen is changed or restyled, migrate it to this palette in that same scoped change. The current CSS token values must be updated as part of implementation work that introduces or rebrands affected screens; this documentation change alone does not alter CSS.
+### Token migration notes
 
-For the public home page, add Manjam-specific semantic tokens in `src/app/globals.css` and apply them only to that page while legacy screens still use the current shared token mappings. Do not change global legacy token values as a side effect of the homepage rebrand.
+The legacy `--exam-*` tokens (teal) are retired in the implementation phase and remapped to the shared roles (accent -> primary-text, soft -> surface-raised, ink -> text, muted -> text-muted, line -> border-subtle).
+
+During implementation the scoped `--manjam-*` and `--manjam-home-*` tokens in `src/app/globals.css` are consolidated into the shared semantic tokens. Until that is done they must carry exactly the values defined in this document.
 
 ## Design tokens
 
-All visual tokens are defined in [src/app/globals.css](./src/app/globals.css) with CSS custom properties and Tailwind v4 `@theme`. Components and screen styles consume these semantic values. Keep the existing success, warning, danger, and exam-workspace semantic tokens unless a separately approved change is needed.
+All visual tokens are defined in [src/app/globals.css](./src/app/globals.css) with CSS custom properties and Tailwind v4 `@theme`. Components and screen styles consume these semantic values. Keep the existing success, warning, and danger semantic tokens unless a separately approved change is needed.
 
-Status and neutral token values remain unchanged during the Manjam brand migration:
+Success, warning, and danger color values are unchanged and semantic. Dark-theme soft backgrounds that mix a status or brand color into a surface (color-mix) use the Manjam dark surface #171A33 as the mix base, never the legacy slate #1E293B. Neutral chip colors follow the Manjam palette:
 
 | Role | Light | Dark |
 |---|---|---|
-| Success / soft / border / text | `#10B981` / `#ECFDF5` / `#A7F3D0` / `#047857` | `#10B981` / 15% `#10B981` mixed into `#1E293B` / `#047857` / `#6EE7B7` |
-| Warning soft / border / text | `#FEF3C7` / `#FDE68A` / `#B45309` | 15% `#B45309` mixed into `#1E293B` / `#B45309` / `#FCD34D` |
-| Danger soft / border / text | `#FEE2E2` / `#FECACA` / `#B91C1C` | 15% `#B91C1C` mixed into `#1E293B` / `#B91C1C` / `#FCA5A5` |
-| Neutral chip background / text | `#F1F5F9` / `#334155` | `#334155` / `#F1F5F9` |
+| Success / soft / border / text | `#10B981` / `#ECFDF5` / `#A7F3D0` / `#047857` | `#10B981` / 15% `#10B981` mixed into `#171A33` / `#047857` / `#6EE7B7` |
+| Warning soft / border / text | `#FEF3C7` / `#FDE68A` / `#B45309` | 15% `#B45309` mixed into `#171A33` / `#B45309` / `#FCD34D` |
+| Danger soft / border / text | `#FEE2E2` / `#FECACA` / `#B91C1C` | 15% `#B91C1C` mixed into `#171A33` / `#B91C1C` / `#FCA5A5` |
+| Neutral chip background / text | `#F6F1E4` / `#171A33` | `#2E3470` / `#F6F1E4` |
+
+Resulting dark soft backgrounds are approximately success #16323F, warning #2F232D, danger #2F1A30, with text contrast 8.82, 10.41 and 8.44.
 
 Warning states MUST always include an icon and text label; never communicate warning by color alone.
 
-Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999px`. Tailwind utilities `rounded-sm/md/lg/xl/full` map to these values. Shadows are `sm: 0 1px 2px rgb(15 23 42 / 8%)` and `md: 0 8px 24px rgb(15 23 42 / 12%)`, exposed as `shadow-sm` and `shadow-md`. Spacing uses Tailwind's 4px scale. Motion tokens are `duration-fast: 150ms` and `duration-base: 250ms`. The exam workspace keeps its semantic green accent as tokens in the same file.
+Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999px`. Tailwind utilities `rounded-sm/md/lg/xl/full` map to these values. Shadows are `sm: 0 1px 2px rgb(15 23 42 / 8%)` and `md: 0 8px 24px rgb(15 23 42 / 12%)`, exposed as `shadow-sm` and `shadow-md`. Spacing uses Tailwind's 4px scale. Motion tokens are `duration-fast: 150ms` and `duration-base: 250ms`. The exam workspace uses the shared Manjam brand palette; semantic status colors retain their existing meanings.
 ## Typography, icons, and shape
 
 - Keep the existing font loading: Geist and Geist Mono through `next/font/google`, with DM Sans and Cairo from the existing Google Fonts CSS import. Reference the stacks through the `--font-sans`, `--font-ui`, and `--font-arabic` tokens.
@@ -113,7 +126,7 @@ Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999
 - The public root route (`/`) is the Manjam landing page for signed-out visitors. Authenticated visitors continue to their existing authorized dashboard destination.
 - The landing page uses the Manjam horizontal logo, concise hero, featured courses, a short benefits section, and a footer with brand/about copy, account links, and contact information. Its header contains only the linked logo, compact language and theme switches, sign-in, and account creation; it has no section-navigation links or mobile menu. Keep those actions usable at narrow widths and reach page sections through in-page calls to action. Clearly label placeholder contact values until approved real details are available.
 - The public header, hero card, section content, and footer content share the same centered 1475px container with responsive gutters. The reference desktop rhythm uses a 104px header, an 80px header-to-hero gap, an 88px hero-to-courses gap, and a 40px heading-to-card gap; scale these values down at narrower widths.
-- The public home uses scoped `--manjam-home-gold`, `--manjam-home-gold-hover`, and `--manjam-home-on-gold` tokens for vivid gold fills and decorative accents without changing legacy palette tokens. Use `--manjam-home-gold-text` for text over light surfaces and the vivid gold token for text over dark surfaces; keep gold button fills vivid in both themes.
+- The public home uses the shared Manjam semantic palette for vivid gold fills and decorative accents. Use the accessible accent-text token for gold-toned text over light surfaces and the gold token for text over dark surfaces.
 - Show only real, approved public course data. The production course catalog is not yet available; until it exists, production uses a localized empty state and never falls back to development fixtures.
 - The isolated public-home seed may be used only in local development when `MANJAM_PUBLIC_HOME_SEED=true` is set in the ignored root `.env.local`. It lives in `src/lib/fixtures/public-home-course-seed.server.ts`, uses no database writes, and is never exposed in production. Real public courses always take precedence. Remove the setting, its single integration call, and the fixture file to remove it.
 - Keep account creation accessible from the registration link on the sign-in screen. Preserve the existing sign-in, registration, localization, and authentication flows.
@@ -139,12 +152,12 @@ Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999
 - Use a full-width page with no persistent sidebar at any viewport size. Keep the content focused on the authenticated user's real learning and teaching activity.
 - Header: a surface 64px bar with a thin bottom border and the provided Manjam symbol/wordmark assets, not a text `T`. Center the brand row vertically. Use English when no language preference has been saved; respect an existing saved preference. In LTR, place the hamburger opposite the language/theme controls and make the drawer enter from the hamburger's physical side. Mirror these sides in RTL. Use compact, accessible controls with at least 40px hit areas. Keep the header usable at every viewport size and do not render duplicate preference controls.
 - The language control switches immediately, updates the page `lang` and `dir`, and persists through the existing language preference flow. The theme control uses the shared theme provider, preserves saved preferences, and follows the product's light default for new accounts.
-- The greeting uses the user's first name only, stays on one line when space allows, and includes a waving hand. Show the authenticated role in the badge and use the established role-appropriate actions. Use a subtle navy brand background only where it supports the hierarchy; do not use violet-to-indigo gradients.
+- The greeting uses the user's first name only, stays on one line when space allows, and includes a waving hand. Show the authenticated role in the badge and use the established role-appropriate actions. Use a subtle navy brand background only where it supports the hierarchy; do not use violet-to-indigo gradients. The dashboard hero uses the hero gradient tokens in BOTH themes and must never be built from `primary`/`primary-hover` (which are gold).
 - Use the section titles **Continue Learning**, **Explore Featured Courses**, **My Groups Overview**, and **Upcoming & Recent Exams**. Section headings use semantic brand accent icons and a semibold **View All** link on the right without an arrow. Use the shared lucide-react icon convention described above for section and navigation icons.
 - Loading is section-shaped skeleton UI with a shimmer, including the hero and every data section. Replace it with localized data or an empty/error state when loading completes; do not leave blank regions that suddenly populate.
-- Continue Learning cards are about half-width on desktop and full-width on mobile. Include an 80px rounded thumbnail, uppercase semantic accent category, course title and instructor, divider, progress label and percentage, and a green progress bar. Add a compact Continue action only when a real course destination exists; make the card itself a link only when it has that same valid destination.
+- Continue Learning cards are about half-width on desktop and full-width on mobile. Include an 80px rounded thumbnail, uppercase semantic accent category, course title and instructor, divider, progress label and percentage, and a Manjam brand-colored progress bar. Add a compact Continue action only when a real course destination exists; make the card itself a link only when it has that same valid destination.
 - In RTL, fill progress bars from right to left and mirror directional icons. Use logical properties so alignment and control placement follow document direction.
-- Featured courses use a two-column desktop grid and one column on mobile. Course covers are about 220px tall with a white category badge, followed by rating, enrollment count, title, instructor, and a full-width Enroll button. Use the theme-specific Manjam primary action for available courses and a pale green enrolled state. Initially show four courses and provide a centered Show more control when additional real courses exist.
+- Featured courses use a two-column desktop grid and one column on mobile. Course covers are about 220px tall with a white category badge, followed by rating, enrollment count, title, instructor, and a full-width Enroll button. Use the theme-specific Manjam primary action for available courses and a semantic enrolled state. Initially show four courses and provide a centered Show more control when additional real courses exist.
 - The production course catalog and course routes are not part of the current data model. Legacy course fixtures live in `src/lib/fixtures/courses.ts` and use `NEXT_PUBLIC_USE_MOCK_COURSES` (legacy identifier, renamed in a later phase). Keep them separate from the public-home seed. Mock enrollment and progress actions stay disabled. In production, use a localized empty state and a valid existing action; never invent a route or interaction.
 - Present groups in a **My Groups Overview** section. On wide screens, place two equal-width panels side by side: groups the user manages (instructor) and groups they joined (student). Each panel has a small uppercase/muted label, a compact count badge, a divider, and concise group rows. Stack the panels on narrow screens.
 - Group rows show only real authorized fields: the group name, available member/instructor details, and a restrained role badge. Managed-group invitation codes may be copied only when the real usable code is available to the current user; announce a successful copy accessibly. Never invent a count, code, instructor, or role. Make each row or its clear action link to the existing authorized destination.
@@ -168,7 +181,7 @@ Radius tokens are `sm: 8px`, `md: 12px`, `lg: 16px`, `xl: 24px`, and `full: 9999
 
 ### Exam taking
 
-- Use a calm, low-distraction workspace and a restrained green action/progress accent.
+- Use a calm, low-distraction workspace and a restrained Manjam brand action/progress accent.
 - Show exam identity and session status first, then a clear time/saved-status strip.
 - On desktop, use a large question panel beside a narrow question navigator (about 280px). On mobile, stack them and keep navigation usable.
 - Answers are large, full-width selectable rows with a visible selected state; question numbers distinguish current, answered, and review states.
