@@ -9,7 +9,7 @@ html[dir="rtl"] .manjam-home { font-family:var(--font-arabic-stack); }
 .manjam-footer nav a:hover { color:var(--manjam-home-gold); }
 .manjam-header-actions { display:flex;min-width:0;align-items:center;gap:.625rem; }
 .manjam-header-accounts { display:flex;align-items:center;gap:.5rem; }
-.manjam-account-link { display:inline-flex;min-height:2.625rem;align-items:center;justify-content:center;padding-inline:1.125rem;border:1px solid transparent;border-radius:var(--radius-full);font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap;transition:background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast); }
+.manjam-account-link { display:inline-flex;min-height:2.625rem;align-items:center;justify-content:center;padding-inline:1.125rem;border:1px solid transparent;border-radius:var(--radius-full);font-size:.875rem;font-weight:700;text-decoration:none;white-space:nowrap; }
 .manjam-account-link.is-login { border-color:var(--manjam-border-strong);color:var(--manjam-text); }
 .manjam-account-link.is-login:hover { border-color:var(--manjam-home-gold);color:var(--manjam-home-gold-text); }
 .manjam-account-link.is-register { background:var(--manjam-primary);color:var(--manjam-on-primary); }
@@ -37,6 +37,7 @@ html[dir="rtl"] .manjam-home { font-family:var(--font-arabic-stack); }
 .manjam-public-header .manjam-account-link.is-login:hover { background:var(--manjam-surface-raised); }
 .manjam-public-header .manjam-account-link.is-register { background:var(--manjam-home-gold);color:var(--manjam-home-on-gold); }
 .manjam-public-header .manjam-account-link.is-register:hover { background:var(--manjam-home-gold-hover); }
+.manjam-public-header .manjam-account-link:hover { box-shadow:var(--shadow-sm); }
 .manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { display:inline-flex;width:auto;min-width:5.125rem;height:2.125rem;min-height:2.125rem;align-items:center;justify-content:space-between;gap:.375rem;padding:.1875rem .5rem;border-radius:var(--radius-full);background:var(--manjam-surface);font-size:.6875rem; }
 .manjam-public-header .testo-preference-theme { min-width:5.875rem; }
 .manjam-public-header .testo-preference-language[role="switch"],.manjam-public-header .testo-preference-theme[role="switch"] { justify-content:space-between;gap:.375rem; }
@@ -117,7 +118,6 @@ html[dir="rtl"] .manjam-public-header .testo-preference-language[aria-checked="t
 .manjam-footer-brand p { margin:.75rem 0 0;color:var(--manjam-text-muted);font-size:.85rem; }
 .manjam-footer-group h3 { margin:0 0 .75rem;font-size:.9rem;font-weight:800; }
 .manjam-footer-group nav { display:grid;justify-items:start;gap:.5rem; }
-.manjam-footer>small { grid-column:1/-1;padding-block-start:1.25rem;border-block-start:1px solid var(--manjam-border);color:var(--manjam-text-muted);font-size:.78rem; }
 html[dir="rtl"] .manjam-hero h1 { letter-spacing:0; }
 html[dir="rtl"] .manjam-public-header .testo-preference-theme[aria-checked="true"] .manjam-switch-thumb { transform:translateX(-.5rem); }
 html[dir="rtl"] .manjam-cta-arrow { transform:scaleX(-1); }
@@ -345,8 +345,9 @@ html[dir="rtl"] .manjam-hero h1 { letter-spacing:0; }
 .manjam-public-header .manjam-account-link { min-height:2.5rem;padding-inline:1.125rem;font-size:.875rem; }
 .manjam-footer-main { grid-template-columns:minmax(15rem,1.4fr) repeat(2,minmax(0,1fr)); }
 .manjam-footer-contact p { margin:0 0 .5rem;color:var(--manjam-hero-muted);font-size:.8125rem; }
-.manjam-footer-contact>a { color:var(--manjam-cream);font-size:.8125rem;font-weight:700;overflow-wrap:anywhere; }
-.manjam-footer-contact small { display:block;margin-block-start:.5rem;color:var(--manjam-hero-muted);font-size:.7rem;line-height:1.6; }
+.manjam-footer-contact>a { color:var(--manjam-cream);font-size:.8125rem;font-weight:700;overflow-wrap:anywhere;transition:color var(--motion-fast); }
+.manjam-footer-contact>a:hover { color:var(--manjam-home-gold); }
+.manjam-footer-legal { display:grid;gap:.5rem;margin-block-start:1rem;padding-block-start:.875rem;border-block-start:1px solid color-mix(in srgb,var(--manjam-cream) 15%,transparent);color:var(--manjam-hero-muted);font-size:.75rem;line-height:1.5; }
 .manjam-footer-brand .manjam-footer-languages { color:var(--manjam-cream);font-weight:700; }
 @media (max-width:64rem) {
   .manjam-public-header { height:3.75rem; }
@@ -379,8 +380,9 @@ html[dir="rtl"] .manjam-hero h1 { letter-spacing:0; }
 .manjam-course-card:hover,.manjam-benefit-card:hover { transform:translateY(-.25rem);border-color:var(--manjam-border-strong);box-shadow:var(--shadow-md); }
 .manjam-empty-state:hover { transform:translateY(-.2rem);border-color:var(--manjam-border-strong);box-shadow:var(--shadow-sm); }
 .manjam-button:hover { transform:translateY(-2px);box-shadow:var(--shadow-sm); }
-.manjam-public-header .manjam-account-link,.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { transition:transform var(--motion-fast),background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast); }
+.manjam-public-header .manjam-account-link,.manjam-public-header .testo-preference-language,.manjam-public-header .testo-preference-theme { transition:transform var(--motion-fast),background-color var(--motion-fast),color var(--motion-fast),border-color var(--motion-fast),box-shadow var(--motion-fast); }
 .manjam-public-header :is(.manjam-account-link,.testo-preference-language,.testo-preference-theme):hover { transform:translateY(-1px); }
+.manjam-public-header .manjam-account-link:hover:active { transform:translateY(0); }
 .manjam-all-courses { transition:color var(--motion-fast),transform var(--motion-fast); }
 .manjam-all-courses:hover { transform:translateY(-1px); }
 @media (max-width:64rem) {

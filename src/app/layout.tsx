@@ -21,8 +21,22 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Testo",
+  title: "Manjam",
   description: "AI-powered exam platform",
+  icons: {
+    icon: [
+      {
+        url: "/images/logo/manjam-favicon-light.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: light)",
+      },
+      {
+        url: "/images/logo/manjam-favicon-dark.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+  },
 };
 
 // Root layout — Server Component.

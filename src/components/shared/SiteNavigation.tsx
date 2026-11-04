@@ -43,6 +43,7 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
   const supabaseRef = useRef<ReturnType<typeof createClient> | null>(null)
   const isDashboardRoute = pathname === '/dashboard'
   const isPublicHome = pathname === '/'
+  const isAuthRoute = pathname === '/login' || pathname === '/register' || pathname === '/reset-password'
 
   useEffect(() => {
     const supabase = createClient()
@@ -164,6 +165,12 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
             <PreferenceControls variant="compact-switch" />
             <div className="manjam-header-accounts"><Link className="manjam-account-link is-login" href="/login">{t('publicHome.signIn')}</Link><Link className="manjam-account-link is-register" href="/register">{t('publicHome.createAccount')}</Link></div>
           </div>
+        </header> : isAuthRoute ? <header className="dashboard-header global-site-header manjam-public-header manjam-auth-header">
+          <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+          </Link>
+          <div className="manjam-header-actions"><PreferenceControls variant="compact-switch" /></div>
         </header> : <header className="dashboard-header global-site-header">
           <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.home')}>
             <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
@@ -177,7 +184,7 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
           </div>
         </header>}
 
-        {!isPublicHome && <>
+        {!isPublicHome && !isAuthRoute && <>
         <button className={`dashboard-drawer-backdrop${menuOpen ? ' is-visible' : ''}`} type="button" aria-label={t('common.close')} onClick={() => setMenuOpen(false)} tabIndex={-1} aria-hidden={!menuOpen} inert={!menuOpen} />
         <aside
           id="site-navigation-drawer"
@@ -190,8 +197,9 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
           onKeyDown={menuOpen ? keepFocusInDrawer : undefined}
         >
           <div className="dashboard-drawer-header">
-            <Link className="dashboard-header-brand" href="/dashboard" onClick={closeForNavigation}>
-              <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
+            <Link className="dashboard-header-brand" href={account ? '/dashboard' : '/'} onClick={closeForNavigation} aria-label={t('publicHome.brandName')}>
+              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
+              <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
             </Link>
             <button ref={closeButtonRef} className="dashboard-drawer-close" type="button" aria-label={t('common.close')} onClick={() => setMenuOpen(false)}>
               <X size={20} strokeWidth={2} aria-hidden="true" />

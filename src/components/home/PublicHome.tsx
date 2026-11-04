@@ -70,11 +70,35 @@ export default function PublicHome({ courses, coursesLoading = false }: { course
     <footer className="manjam-footer">
       <div className="manjam-footer-inner">
         <div className="manjam-footer-main">
-          <div className="manjam-footer-brand"><Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} /><Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} /><p>{t('publicHome.footerTagline')}</p><p className="manjam-footer-languages">{t('publicHome.footerLanguages')}</p></div>
-          <div className="manjam-footer-group"><h3>{t('publicHome.accountLinks')}</h3><nav aria-label={t('publicHome.footerAccountLinks')}><Link href="/login">{t('auth.login')}</Link><Link href="/register">{t('auth.register')}</Link></nav></div>
-          <div className="manjam-footer-group manjam-footer-contact"><h3>{t('publicHome.footerContact')}</h3><p>{t('publicHome.footerContactNote')}</p><a href={`mailto:${t('publicHome.footerEmail')}`}>{t('publicHome.footerEmail')}</a><small>{t('publicHome.footerTemporary')}</small></div>
+          <div className="manjam-footer-brand">
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+            <p>{t('publicHome.footerTagline')}</p>
+            <p className="manjam-footer-languages">{t('publicHome.footerLanguages')}</p>
+          </div>
+          <div className="manjam-footer-group">
+            <h3>{t('publicHome.quickLinks')}</h3>
+            <nav aria-label={t('publicHome.quickLinks')}>
+              <Link href="/">{t('nav.home')}</Link>
+              <Link href="#courses">{t('publicHome.navCourses')}</Link>
+              <Link href="/login">{t('publicHome.signIn')}</Link>
+              <Link href="/register">{t('publicHome.createAccount')}</Link>
+            </nav>
+          </div>
+          <div className="manjam-footer-group manjam-footer-contact">
+            <h3>{t('publicHome.footerContactLegal')}</h3>
+            <p>{t('publicHome.footerContactNote')}</p>
+            <a href={`mailto:${t('publicHome.footerEmail')}`}>{t('publicHome.footerEmail')}</a>
+            <div className="manjam-footer-legal" role="group" aria-label={t('publicHome.footerLegalLabels')}>
+              <span>{t('publicHome.footerPrivacyPolicy')}</span>
+              <span>{t('publicHome.footerTermsOfService')}</span>
+            </div>
+          </div>
         </div>
-        <div className="manjam-footer-bottom"><span>© {t('publicHome.brandName')} — {t('publicHome.rights')}</span><span>{t('publicHome.footerMotto')}</span></div>
+        <div className="manjam-footer-bottom">
+          <span>© {new Date().getFullYear()} {t('publicHome.brandName')} — {t('publicHome.rights')}</span>
+          <span>{t('publicHome.footerMotto')}</span>
+        </div>
       </div>
     </footer>
   </main>
