@@ -158,8 +158,8 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
       {!isDashboardRoute && <>
         {isPublicHome ? <header className="dashboard-header global-site-header manjam-public-header">
           <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
-            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
-            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={461} height={262} style={{ height: 'auto' }} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} />
           </Link>
           <div className="manjam-header-actions">
             <PreferenceControls variant="compact-switch" />
@@ -167,8 +167,8 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
           </div>
         </header> : isAuthRoute ? <header className="dashboard-header global-site-header manjam-public-header manjam-auth-header">
           <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
-            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
-            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={461} height={262} style={{ height: 'auto' }} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} />
           </Link>
           <div className="manjam-header-actions"><PreferenceControls variant="compact-switch" /></div>
         </header> : <header className="dashboard-header global-site-header">
@@ -198,8 +198,8 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
         >
           <div className="dashboard-drawer-header">
             <Link className="dashboard-header-brand" href={account ? '/dashboard' : '/'} onClick={closeForNavigation} aria-label={t('publicHome.brandName')}>
-              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={150} height={50} />
-              <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={150} height={50} />
+              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={461} height={262} style={{ height: 'auto' }} />
+              <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} />
             </Link>
             <button ref={closeButtonRef} className="dashboard-drawer-close" type="button" aria-label={t('common.close')} onClick={() => setMenuOpen(false)}>
               <X size={20} strokeWidth={2} aria-hidden="true" />

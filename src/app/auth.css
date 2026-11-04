@@ -57,7 +57,7 @@ html[dir="rtl"] .auth-aside-copy h2 { letter-spacing: 0; }
 .auth-panel-compact .auth-heading { margin-block-end: 1.375rem; }
 .auth-heading { margin-block-end: 2rem; }
 .auth-heading-mark { display: grid; width: 2.5rem; height: 2.5rem; margin-block-end: 1.25rem; place-items: center; }
-.auth-heading-mark img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.auth-heading-mark img { display: block; width: auto; height: 100%; object-fit: contain; }
 .auth-heading h1 { margin: 0; color: var(--manjam-text); font-size: clamp(1.7rem, 3vw, 2rem); font-weight: 750; letter-spacing: -.035em; line-height: 1.25; }
 html[dir="rtl"] .auth-heading h1 { letter-spacing: 0; }
 .auth-heading p { margin: .55rem 0 0; color: var(--manjam-text-muted); font-size: .9375rem; line-height: 1.65; }

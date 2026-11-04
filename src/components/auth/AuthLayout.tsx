@@ -34,8 +34,8 @@ export function AuthLayout({
           <div className="auth-card">
             <header className="auth-heading">
               <span className="auth-heading-mark" aria-hidden="true">
-                <Image className="manjam-logo-light" src="/images/logo/manjam-symbol-light.svg" alt="" width={40} height={40} />
-                <Image className="manjam-logo-dark" src="/images/logo/manjam-symbol-dark.svg" alt="" width={40} height={40} />
+                <Image className="manjam-logo-light" src="/images/logo/manjam-symbol-light.svg" alt="" width={184} height={238} style={{ width: 'auto' }} />
+                <Image className="manjam-logo-dark" src="/images/logo/manjam-symbol-dark.svg" alt="" width={184} height={238} style={{ width: 'auto' }} />
               </span>
               <h1>{title}</h1>
               {description && <p>{description}</p>}
