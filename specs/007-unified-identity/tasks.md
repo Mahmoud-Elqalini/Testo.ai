@@ -135,6 +135,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - **T001 → T002 → T003 → T004–T006 → T007 → T008**: harness first, then fixtures, inventory, before tests, baseline run, and committed evidence. No migration or UI work may begin until T008 is checked and its commit hash is recorded.
 - **0014 → 0015 → 0016 → 0017**: each migration depends on the prior migration phase's passing matrix, catalog scan and commit.
 - **0017 → UI phase → 0018 → 0019**: UI role removal follows the database cutover and precedes dropping the old owner/role columns; 0019 is blocked on passing after-suite results.
+- **T027 → T038**: T038 depends on T027 because both edit `src/app/admin/groups/[groupId]/page.tsx`.
 - Within every migration phase, test-writing tasks precede migration edits; run before/after matrix and catalog scan before its commit task.
 - **Coupled 0017 group**: T024–T033 must be reviewed and landed together; none may be separately deployed from the others.
 
@@ -162,3 +163,5 @@ This feature has a mandatory security baseline gate, so no implementation MVP ca
 - `[P]` means separate files and no dependency on an incomplete task; migration phases themselves are sequential.
 - Pre-existing uncommitted UI edits listed above must be preserved; T035 and T036 are the only planned tasks that touch the already-dirty dashboard/shell files.
 - Before-results must be committed before any local database reset/reseed. After fixtures are regenerated from the deterministic manifest and equivalence is asserted by stable IDs, edges, counts, case decisions and manifest hash.
+- Void-attempt and grade-override are not implemented in the current codebase; 007 only tests their absence (T005). When built later in feature 004, they must be owner-only with non-owner denial tests (FR-015).
+- Between 0017 and the UI phase, role-based route guards still exist, so accounts without the old admin role cannot yet reach `/admin` pages; this is accepted because this is local development with no real users.
