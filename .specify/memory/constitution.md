@@ -1,7 +1,7 @@
 <!--
 Sync Impact Report
-Version change: 3.2.0 -> 4.0.0
-Modified principles: III. Defense in Depth for Exam Access (authorization migration safety and ownership restrictions)
+Version change: 4.0.0 -> 4.0.1
+Modified principles: IV. Exam Lifecycle Integrity (voiding authority clarified as the exam owner); X. Automated Free-Text Grading (override authority clarified as the exam owner)
 Added sections: XII. Unified Identity, No Fixed Roles; XIII. Protected Course Content
 Removed sections: none
 Follow-up TODOs: Add a “superseded by 007” note to specs/001-foundation, specs/002-automated-grading, specs/003-notifications, specs/004-admin-insights, and specs/005-group-invitations when Feature 007 is specified; do not amend those specs as part of this constitution change.
@@ -27,7 +27,7 @@ No work a student has already done may be silently lost, and no attempt may be m
 
 - **Autosave cadence:** answers MUST be saved via a bounded, debounced event — on MCQ choice selection, or after a short pause in typing / on field blur for free-text essay answers — never on every keystroke. Write volume must scale with real activity, not typing speed.
 - **Offline handling:** if the client loses connectivity, new or changed answers MUST be queued locally and the UI MUST clearly show an "unsynced" state rather than a false "saved" confirmation — an answer is only considered saved once the server acknowledges it. Any queued answer that reaches the server after the attempt's window has already been closed under Principle I MUST be rejected and MUST NOT be counted; client-side queuing is a UX convenience, never a way to extend an exam past its authoritative end time.
-- **Attempt lifecycle:** every attempt MUST move through an enforced state machine: `pending` (token/attempt row exists, student has not yet opened it) → `in_progress` → one of `submitted`, `auto_submitted`, or `abandoned` (the exam window closed with no submission ever recorded). An Admin MAY move any non-`pending` attempt to `voided`, for a documented reason, recording who voided it and when — this is the only sanctioned path for correcting a technical error or an interrupted attempt, and MUST NOT be done through direct, unlogged database edits.
+- **Attempt lifecycle:** every attempt MUST move through an enforced state machine: `pending` (token/attempt row exists, student has not yet opened it) → `in_progress` → one of `submitted`, `auto_submitted`, or `abandoned` (the exam window closed with no submission ever recorded). The exam owner MAY move any non-`pending` attempt to `voided`, for a documented reason, recording who voided it and when — this is the only sanctioned path for correcting a technical error or an interrupted attempt, and MUST NOT be done through direct, unlogged database edits.
 - An attempt whose time has expired MUST be closed and graded automatically by a server-side scheduled process — the platform MUST NOT depend on the student's browser staying open. A token or attempt MUST NOT be usable more than once.
 
 **Rationale:** exams are high-stakes and often one-shot; a lost answer, a double-submission, or an attempt stuck in an undefined state directly harms a student's grade and the platform's credibility.
@@ -63,7 +63,7 @@ Essay/free-text questions are graded automatically by a server-side grading mech
 - **Advisory flags are audit-only, never a hidden gate:** the system MAY compute heuristic warning signals (e.g. a likely negation/contradiction between a student's answer and the reference, or a likely keyword-stuffing pattern) to support later review. These flags MUST be logged and MUST NOT block, delay, or alter automatic grade finalization — introducing a silent human-review step for flagged answers would contradict the fully-automatic grading decision (Principle VII) and MUST NOT happen. Flags exist solely so a later dispute or audit has more to go on than a bare score.
 - **Full audit trail:** every automated grading pass and its result MUST be logged — the exact answer text graded, which reference answer(s)/rubric and model version were used, the raw score, any advisory flags raised, and a timestamp — so a grade can be reviewed or disputed after the fact, even though it was not reviewed before being finalized.
 - **No silent failure:** if a grading pass fails or times out for any reason, the attempt MUST NOT be left silently ungraded. A bounded retry mechanism MUST run, following the same logged/retried pattern as Principle V, and any attempt still stuck in a failed-grading state MUST be visible to the Admin.
-- **Post-hoc override remains possible:** an Admin MUST retain the ability to review and override any automatically-assigned grade after the fact through a documented, audited action (via the `voided`/regrade path in Principle IV) — grading without pre-review does not mean a grade is permanently unchallengeable.
+- **Post-hoc override remains possible:** the exam owner MUST retain the ability to review and override any automatically-assigned grade after the fact through a documented, audited action (via the `voided`/regrade path in Principle IV) — grading without pre-review does not mean a grade is permanently unchallengeable.
 
 **Rationale:** removing human review before finalization raises the stakes of every other safeguard, regardless of whether the mechanism behind the score is an embedding model or an LLM. A single-reference, uncalibrated, unlogged, or silently-failing automated grading path would be worse than no automation at all; these guarantees are what make full automation defensible rather than reckless, and they are written to survive the grading mechanism changing under them.
 
@@ -118,4 +118,4 @@ Paid course media and files MUST be stored in private storage buckets. Access MU
 - **Conflicting amendments:** if two developers propose conflicting amendments, the conflict is resolved by discussion among the project's developers before either is merged — an amendment is never force-merged over an open objection.
 - **Compliance review:** every `plan.md` MUST pass the Constitution Check gate (see Quality Gates above) before implementation tasks are generated.
 
-**Version**: 4.0.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-05
+**Version**: 4.0.1 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-05
