@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-Version change: 3.1.3 -> 3.2.0
-Modified principles: none
-Added sections: XI. Maintainable Design, SOLID, and Problem-Driven Patterns
+Version change: 3.2.0 -> 4.0.0
+Modified principles: III. Defense in Depth for Exam Access (authorization migration safety and ownership restrictions)
+Added sections: XII. Unified Identity, No Fixed Roles; XIII. Protected Course Content
 Removed sections: none
-Follow-up TODOs: none
+Follow-up TODOs: Add a “superseded by 007” note to specs/001-foundation, specs/002-automated-grading, specs/003-notifications, specs/004-admin-insights, and specs/005-group-invitations when Feature 007 is specified; do not amend those specs as part of this constitution change.
 -->
 
 # Testo Constitution
@@ -18,7 +18,9 @@ The client (browser, mobile app) is never trusted to determine exam timing, exam
 No grading criteria — whether an MCQ's correct-answer flag (`is_correct`) or an essay question's model answer/scoring rubric used for automated grading — MUST be queryable, readable, or transmitted to a student-facing client at any point while that student's attempt is still open. Student-facing endpoints returning exam questions MUST exclude all grading-criteria fields at the query level, not merely hide them in the UI. All comparison of a student's answer against grading criteria — whether the deterministic MCQ comparison or the automated essay evaluation (Principle X) — MUST run in server-side/trusted code only. Privileged credentials (service-role keys, admin API keys, or any credential capable of bypassing access control) MUST NEVER be embedded in frontend code or any artifact shipped to the browser. **Rationale:** hiding grading criteria in the UI while still sending it over the network, or exposing a rubric a smart student could reverse-engineer answers from, is not security; this principle prevents the single most damaging failure mode of an exam platform — for either question type.
 
 ### III. Defense in Depth for Exam Access
-No single mechanism is ever relied upon alone to grant exam access. Every attempt MUST be protected by the composition of: Authentication (verified logged-in user); Authorization (row-level policies restricting each user to their own data); a unique, unguessable, time-scoped attempt token bound to one student/exam/attempt triple and valid only within the exam's actual scheduled window; and server-side time/state validation re-checked on every request, not just at token issuance. A leaked or guessed link alone MUST NEVER be sufficient to access or influence an exam. **Rationale:** each layer covers the others' potential failure.
+No single mechanism is ever relied upon alone to grant exam access. Every attempt MUST be protected by the composition of: Authentication (verified logged-in user); Authorization (row-level policies restricting each user to their own data); a unique, unguessable, time-scoped attempt token bound to one authenticated user/exam/attempt triple and valid only within the exam's actual scheduled window; and server-side time/state validation re-checked on every request, not just at token issuance. A user MUST NOT attempt an exam they own, and MUST NOT join as a member a group they own. A leaked or guessed link alone MUST NEVER be sufficient to access or influence an exam.
+
+Authorization changes MUST preserve or strengthen protection at every migration step: no migration may leave an intermediate state less secure than the state before the migration. Every migration that changes authorization MUST ship security tests that run against the state before and after the migration. Removing a role-based check MUST include a documented replacement check that is equally or more restrictive and is enforced server-side. **Rationale:** each access layer covers the others' potential failure; staged migration safety and tested replacement checks prevent authorization gaps while the model changes.
 
 ### IV. Data Integrity and Resilience Take Priority Over Convenience
 No work a student has already done may be silently lost, and no attempt may be manipulated into an inconsistent state.
@@ -74,6 +76,16 @@ Every new or updated `spec.md` MUST stay focused on user outcomes and testable, 
 
 **Rationale:** consistent boundaries and focused responsibilities make features easier to change without weakening data or authorization guarantees. Requiring a reason for abstractions prevents pattern cargo-culting and keeps this project maintainable at its current scale.
 
+### XII. Unified Identity, No Fixed Roles
+An account MUST NOT have a fixed student or admin role. One account MUST be able to learn and teach. Authorization MUST derive only from the authenticated `auth.uid()`, resource ownership (`owner_id`), and membership or enrollment relationships; it MUST NOT trust client-supplied identity, ownership, membership, enrollment, or authorization values. If platform-level administration is ever required, it MUST be a separate server-controlled capability and MUST NOT be represented as a user-facing account role.
+
+**Rationale:** a person may participate in learning and teaching, while access remains tied to verified identity and concrete relationships to resources.
+
+### XIII. Protected Course Content
+Paid course media and files MUST be stored in private storage buckets. Access MUST be provided only through short-lived signed URLs issued after a server-side enrollment or ownership check. Course tables MUST use deny-by-default Row-Level Security (RLS); access MUST be explicitly granted only when the authenticated user satisfies the applicable ownership or enrollment rule.
+
+**Rationale:** private storage and restrictive data access prevent paid course materials from being exposed through public paths or unchecked client requests.
+
 ## Security & Compliance Requirements
 
 - Row-Level Security MUST be enabled by default on every table holding user or exam data; a table is not considered shippable without it.
@@ -106,4 +118,4 @@ Every new or updated `spec.md` MUST stay focused on user outcomes and testable, 
 - **Conflicting amendments:** if two developers propose conflicting amendments, the conflict is resolved by discussion among the project's developers before either is merged — an amendment is never force-merged over an open objection.
 - **Compliance review:** every `plan.md` MUST pass the Constitution Check gate (see Quality Gates above) before implementation tasks are generated.
 
-**Version**: 3.2.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-02
+**Version**: 4.0.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-05
