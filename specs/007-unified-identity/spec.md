@@ -16,6 +16,15 @@ technical boundaries, SOLID assessment, and justified pattern choices in plan.md
 
 **Input**: User description: "Remove fixed learner/teacher roles so each account can join groups and take exams while creating and managing its own groups and exams. Base access on ownership and membership, preserve existing legitimate access without granting access to others, prevent email enumeration, scope profile visibility to owned resources, and provide a unified bilingual, theme-adaptive dashboard."
 
+## Clarifications
+
+### Session 2026-11-05
+
+- Q: Should the existing `profiles.role` values be dropped entirely, or retained as non-authoritative legacy metadata? → A: Drop `profiles.role` entirely, including its mirror and helpers; only remove it after replacing every role-based authorization check with an ownership/membership check so no intermediate state is less secure.
+- Q: Should email lookup remain exact-match, rate-limited, and limited to people associated with groups or exams the requester owns? → A: Require an exact match, an owned group or exam context verified server-side, and rate limits per requester and context; return only id and display name for accounts already associated with that context, never email. Unassociated and not-found responses must have the same shape and uniform timing. Add new group participants through invitation codes; an exam-level invitation may be a later feature.
+- Q: For another person's profile within a group or exam you own, which fields should be visible? → A: An owner may see only display name and email for participants already associated with an owned group or exam through membership, permission, or an attempt. No preferences or other profile data are exposed; access ends immediately when the relationship ends. Participants cannot see the owner's or other participants' emails. Profile reads must be narrowly owner-authorized, never general. Implementation-plan constraint: serve this through a column-limited server-side function/view using SECURITY DEFINER, a fixed `search_path`, authenticated `auth.uid()`, and an ownership check.
+- Q: Must the before-change security suite cover every existing role-based access path, or is representative coverage sufficient? → A: Inventory every role-based read, write, and protected action across all RLS policies, SECURITY DEFINER functions, triggers, and Edge Function paths that depend on `profiles.role`, `private.is_admin`/`private.is_student`, or `admin_id`. Generate and freeze the inventory from the migrations before implementation; record at least one allow and one deny case for each path before the change and re-run those cases after.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Learn and teach with one account (Priority: P1)
@@ -38,19 +47,22 @@ A person uses one account to participate as a learner in groups and exams, and t
 
 ### User Story 2 - Find only profiles within a legitimate scope (Priority: P1)
 
-A user sees profile information only for themselves and people associated with groups or exams they own. Looking up a person by email does not reveal whether arbitrary email addresses belong to accounts.
+A user sees profile information only for themselves and people associated with groups or exams they own. Exact email lookup can identify an already-associated participant for a specific owned context, but never reveals whether an unassociated email address belongs to an account.
 
 **Why this priority**: Removing fixed roles must not broaden access to identity or personal information.
 
-**Independent Test**: As two unrelated users, attempt profile reads and email lookups across unrelated resources, then repeat for a user associated with an owned group or exam. Verify only scoped requests return permitted profile information and lookup responses do not enable enumeration.
+**Independent Test**: As two unrelated users, attempt profile reads and exact email lookups across unrelated resources, then repeat in an owned group or exam context for an already-associated participant. Verify only scoped requests return permitted profile information and lookup responses do not enable enumeration.
 
 **Acceptance Scenarios**:
 
 1. **Given** a user requests their own profile, **When** they are authenticated, **Then** they can read their own profile.
-2. **Given** a user owns a group or exam, **When** they request profiles legitimately associated with that resource, **Then** they see only the profile fields allowed for that scope.
-3. **Given** a user requests a profile outside their own groups and exams, **When** they are not otherwise authorized, **Then** the profile is not disclosed.
-4. **Given** a user looks up an email address, **When** the address is not within a legitimate owned-resource scope, **Then** the response does not reveal whether an account exists for that address.
-5. **Given** a user is unauthenticated, **When** they request any private profile information, **Then** no private profile information is returned.
+2. **Given** a user owns a group or exam, **When** they view a participant's profile associated with that resource, **Then** they see only the participant's display name and email, with no preferences or other profile fields.
+3. **Given** the participant's membership, permission, or attempt relationship with the owned resource ends, **When** the owner requests their profile, **Then** access to that profile information ends immediately.
+4. **Given** a participant views an owned group or exam, **When** they view participant information, **Then** they cannot see the owner's or other participants' email addresses.
+5. **Given** a user requests a profile outside their own groups and exams, **When** they are not otherwise authorized, **Then** the profile is not disclosed.
+6. **Given** a user looks up an email address in an owned group or exam context, **When** the account is not already associated with that context or does not exist, **Then** both responses have the same shape and uniform timing and reveal no account existence.
+7. **Given** a user looks up an exact email for an account already associated with the owned context, **When** the lookup is permitted, **Then** only the account ID and display name are returned; the email is never returned by lookup.
+8. **Given** a user is unauthenticated, **When** they request any private profile information, **Then** no private profile information is returned.
 
 ---
 
@@ -106,7 +118,7 @@ This feature supersedes only the following role-dependent portions of earlier sp
 - A group owner attempts to join their own group through an invitation or any other membership path; no membership is created.
 - An exam owner attempts to start an exam as a participant, including through a stale or previously issued attempt link; no attempt is started or exam content disclosed.
 - A user changes ownership or membership relationships while viewing a resource; subsequent access reflects the current authorized relationships and does not retain access that has been revoked.
-- An email lookup is made for an unknown account, an unrelated account, or a scoped participant; responses do not expose arbitrary account existence.
+- An exact email lookup in an owned context targets an unknown or unassociated account; its response is indistinguishable in shape and uniform timing from a not-found response, and is rate-limited per requester and context.
 - A user owns multiple groups and exams, and participates in resources owned by multiple other users; each resource remains scoped to its own relationships.
 - One dashboard section is empty, or a resource is no longer available to the user; the other section remains usable and empty/error states are localized.
 - A user is unauthenticated, has an expired session, or attempts to supply another user's identity or relationship details; private data and protected actions remain unavailable.
@@ -123,15 +135,15 @@ This feature supersedes only the following role-dependent portions of earlier sp
 - **FR-005**: The system MUST deny a user from attempting an exam that they own.
 - **FR-006**: The system MUST deny a user from becoming a member of a group that they own.
 - **FR-007**: The system MUST preserve legitimate access for existing owners, group members, and exam participants through the identity change, and MUST NOT grant access to users who lack the applicable relationship.
-- **FR-008**: Profile information MUST be readable only by the profile owner or within a legitimate scope established by a group or exam owned by the requesting user. The system MUST NOT expose profile information outside those scopes.
-- **FR-009**: Email-based user lookup MUST NOT allow a user to determine whether arbitrary email addresses belong to accounts. Any returned match MUST be limited to a legitimate owned-group or owned-exam scope.
+- **FR-008**: Profile information MUST be readable by the profile owner, or by the owner of a group or exam only while the participant has a membership, permission, or attempt relationship with that resource. In that owner scope, only display name and email may be visible; preferences and all other profile data MUST remain private. Participants MUST NOT see the owner's or other participants' email addresses. The system MUST NOT provide a general, unscoped profile read; self-reads remain limited to the profile owner.
+- **FR-009**: Participant lookup MUST require an exact email and a specific group or exam context that the authenticated requester owns; ownership of that context MUST be verified server-side. Lookup MUST return a match only if the account is already associated with that context, and MUST return only the account ID and display name, never the email. An unassociated account and a nonexistent account MUST produce the same response shape and uniform timing. Lookup MUST be rate-limited per requester and per context. New group participants MUST be added through group invitation codes; direct email lookup MUST NOT add them.
 - **FR-010**: Unauthenticated users MUST NOT read private profiles or resources, create or change protected resources, or create group memberships.
 - **FR-011**: The signed-in experience MUST provide one dashboard with distinct “Learning” and “Teaching” sections. Learning content MUST reflect legitimate group membership or exam participation; teaching content MUST reflect ownership.
 - **FR-012**: The dashboard MUST show localized, truthful empty and error states for each section, and MUST keep one section usable when the other section has no data or an error.
 - **FR-013**: The dashboard and account-facing flows MUST support English/LTR and Arabic/RTL, and light and dark themes, using the user's saved preferences where available.
-- **FR-014**: Before any authorization change is made, the before-change security suite MUST be written and run against the current role-based authorization state, and its results MUST be recorded as the baseline for comparison with the after-change suite.
+- **FR-014**: Before any authorization change is made, an inventory MUST be generated from the migrations and frozen before implementation. It MUST include every role-based read, write, and protected action in each RLS policy, SECURITY DEFINER function, trigger, and Edge Function path that depends on `profiles.role`, `private.is_admin`, `private.is_student`, or `admin_id`. The security suite MUST include at least one allow case and one deny case for every inventoried path, MUST be written and run against the current role-based authorization state, and its results MUST be recorded as the baseline for comparison with the same cases after the change. Every role-based authorization check MUST be replaced by an ownership or membership check before `profiles.role`, its mirror, or its helpers are removed; no intermediate state may be less secure.
 - **FR-015**: Actions previously limited to the Admin role MUST remain restricted to the owner of the relevant group or exam: student lookup and invitation management MUST be scoped to the owned group; viewing attempts/results, voiding attempts, and overriding grades MUST be scoped to the owned exam. Tests MUST prove that non-owners cannot access another owner's data or perform these actions.
-- **FR-016**: Before-and-after security tests MUST verify that users cannot read or modify another user's data without a legitimate relationship, unauthenticated users receive no private data or protected access, and all previously blocked actions remain blocked.
+- **FR-016**: Before-and-after security tests MUST verify that users cannot read or modify another user's data without a legitimate relationship, unauthenticated users receive no private data or protected access, and all previously blocked actions remain blocked. Every inventoried path MUST have at least one passing allow case and one passing deny case both before and after the change.
 - **FR-017**: The before-and-after security tests MUST also verify that legitimate existing owners and participants retain their access, and that users cannot take their own exams or join their own groups.
 
 ### Key Entities *(include if feature involves data)*
@@ -147,16 +159,17 @@ This feature supersedes only the following role-dependent portions of earlier sp
 
 ### Measurable Outcomes
 
-- **SC-001**: Before any authorization change, the security suite is run against the current role-based state and its results are recorded; the same suite's comparable cases run after the change.
-- **SC-002**: Before-and-after security tests pass with zero unauthorized reads or modifications of another user's data across profiles, groups, and exams.
+- **SC-001**: Before implementation, the complete migration-derived authorization inventory is frozen. Before any authorization change, the security suite is run against the current role-based state, with at least one recorded allow and deny result for every inventory entry; the same cases are re-run after the change.
+- **SC-002**: Before-and-after security tests pass with zero unauthorized reads or modifications of another user's data across profiles, groups, and exams; owner-scoped participant profile access exposes only display name and email and ends when the relationship is removed.
 - **SC-003**: Before-and-after security tests pass with zero private-data disclosures or protected actions available to unauthenticated users.
 - **SC-004**: 100% of previously blocked actions represented in the security suite remain blocked after the identity change.
 - **SC-005**: 100% of legitimate existing ownership, group membership, and exam participation cases represented in the security suite retain their authorized access.
 - **SC-006**: The security suite confirms that no user can take an exam they own or join a group they own.
 - **SC-007**: Email lookup tests reveal no account-existence information for arbitrary addresses outside a legitimate scope.
-- **SC-008**: A user with both owned and joined/authorized group and exam activities can find them in the correct Learning and Teaching dashboard sections in both languages and themes.
-- **SC-009**: Tests confirm that student lookup and invitation management are limited to the owner of the relevant group, and that attempt/result viewing, voiding, and grade overrides are limited to the owner of the relevant exam, with zero leakage to non-owners.
-- **SC-010**: At 320 CSS pixels and wider, dashboard content remains usable in Arabic and English without clipped controls or horizontal page scrolling.
+- **SC-008**: Exact email lookup returns only ID and display name for an account already associated with the owned context; an unassociated account and a nonexistent account produce the same response shape and uniform timing, with rate limits enforced per requester and context.
+- **SC-009**: A user with both owned and joined/authorized group and exam activities can find them in the correct Learning and Teaching dashboard sections in both languages and themes.
+- **SC-010**: Tests confirm that student lookup and invitation management are limited to the owner of the relevant group, and that attempt/result viewing, voiding, and grade overrides are limited to the owner of the relevant exam, with zero leakage to non-owners.
+- **SC-011**: At 320 CSS pixels and wider, dashboard content remains usable in Arabic and English without clipped controls or horizontal page scrolling.
 
 ## Assumptions
 
@@ -164,6 +177,7 @@ This feature supersedes only the following role-dependent portions of earlier sp
 - Development has no real users or production data. Local test data may be reset, but the security baseline must still be run against the current role-based state and recorded before authorization changes; before/after tests must verify legitimate access and denied actions.
 - A single clean authorization migration may be planned for the development environment. It must satisfy Constitution III's migration safety and before-and-after security-test requirements.
 - Group and exam owners are the accounts that create those resources. Ownership cannot be set or reassigned through an untrusted client claim.
+- Direct per-student exam permission by email is replaced by group membership and invitation-based access. New group participants join through existing group invitation codes; an exam-level invitation flow may be considered separately later.
 - Existing exam lifecycle, question confidentiality, grading, notification, and audit guarantees remain applicable unless explicitly superseded above.
 - Platform-level administration is not a user-facing role and is outside this feature unless a separate server-controlled operational need is approved.
 
