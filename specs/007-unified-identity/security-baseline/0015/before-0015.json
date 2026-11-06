@@ -1,0 +1,789 @@
+{
+  "suite": "007-unified-identity-before-0015",
+  "migrationVersions": [
+    "0001",
+    "0002",
+    "0003",
+    "0004",
+    "0005",
+    "0006",
+    "0007",
+    "0008",
+    "0009",
+    "0010",
+    "0011",
+    "0012",
+    "0013",
+    "0014"
+  ],
+  "fixtures": {
+    "version": 1,
+    "namespace": "007-unified-identity-before-v1",
+    "actors": {
+      "ownerA": {
+        "id": "a7000000-0000-4000-8000-000000000001",
+        "email": "owner-a-007@example.test",
+        "role": "admin",
+        "password": "LocalOnly-007-owner-a!"
+      },
+      "ownerB": {
+        "id": "a7000000-0000-4000-8000-000000000002",
+        "email": "owner-b-007@example.test",
+        "role": "admin",
+        "password": "LocalOnly-007-owner-b!"
+      },
+      "participantA": {
+        "id": "a7000000-0000-4000-8000-000000000003",
+        "email": "participant-a-007@example.test",
+        "role": "student",
+        "password": "LocalOnly-007-participant-a!"
+      },
+      "unrelated": {
+        "id": "a7000000-0000-4000-8000-000000000004",
+        "email": "unrelated-007@example.test",
+        "role": "student",
+        "password": "LocalOnly-007-unrelated!"
+      }
+    },
+    "resources": {
+      "groupA": "b7000000-0000-4000-8000-000000000001",
+      "groupB": "b7000000-0000-4000-8000-000000000002",
+      "examA": "c7000000-0000-4000-8000-000000000001",
+      "examB": "c7000000-0000-4000-8000-000000000002",
+      "examRpc": "c7000000-0000-4000-8000-000000000003",
+      "examEdge": "c7000000-0000-4000-8000-000000000004",
+      "questionA": "d7000000-0000-4000-8000-000000000001",
+      "questionRpc": "d7000000-0000-4000-8000-000000000002",
+      "questionEdge": "d7000000-0000-4000-8000-000000000003",
+      "attemptA": "e7000000-0000-4000-8000-000000000001",
+      "answerA": "f7000000-0000-4000-8000-000000000001"
+    },
+    "relationships": [
+      {
+        "kind": "ownership",
+        "owner": "ownerA",
+        "resource": "groupA"
+      },
+      {
+        "kind": "ownership",
+        "owner": "ownerB",
+        "resource": "groupB"
+      },
+      {
+        "kind": "ownership",
+        "owner": "ownerA",
+        "resource": "examA"
+      },
+      {
+        "kind": "ownership",
+        "owner": "ownerB",
+        "resource": "examB"
+      },
+      {
+        "kind": "membership",
+        "actor": "participantA",
+        "resource": "groupA"
+      },
+      {
+        "kind": "exam_permission",
+        "group": "groupA",
+        "resource": "examA"
+      },
+      {
+        "kind": "attempt",
+        "actor": "participantA",
+        "resource": "examA"
+      }
+    ]
+  },
+  "fixtureHash": "740df71750b99c902ed1f7983e67a83046268a172d4f0f1a33835b76eaaa7baf",
+  "command": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase before-0015",
+  "recordedAtUtc": "2026-11-06T21:08:16.092Z",
+  "caseCount": 134,
+  "passCount": 128,
+  "failCount": 6,
+  "results": [
+    {
+      "case_id": "policy:profiles_admin_read_scoped_students.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:profiles_admin_read_scoped_students.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:groups_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:groups_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:groups_admin_insert.allow",
+      "status": "PASS",
+      "details": "HTTP 201; owner operation accepted"
+    },
+    {
+      "case_id": "policy:groups_admin_insert.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated operation denied"
+    },
+    {
+      "case_id": "policy:groups_admin_update.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner updates group"
+    },
+    {
+      "case_id": "policy:groups_admin_update.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner update hidden"
+    },
+    {
+      "case_id": "policy:groups_admin_delete.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner deletes disposable group"
+    },
+    {
+      "case_id": "policy:groups_admin_delete.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner delete hidden"
+    },
+    {
+      "case_id": "policy:group_students_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:group_students_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:group_students_admin_insert.allow",
+      "status": "PASS",
+      "details": "HTTP 201; owner operation accepted"
+    },
+    {
+      "case_id": "policy:group_students_admin_insert.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated operation denied"
+    },
+    {
+      "case_id": "policy:group_students_admin_update.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner updates membership"
+    },
+    {
+      "case_id": "policy:group_students_admin_update.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner update hidden"
+    },
+    {
+      "case_id": "policy:group_students_admin_delete.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner deletes disposable membership"
+    },
+    {
+      "case_id": "policy:group_students_admin_delete.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner delete hidden"
+    },
+    {
+      "case_id": "policy:exams_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:exams_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:exams_admin_insert.allow",
+      "status": "PASS",
+      "details": "HTTP 201; owner operation accepted"
+    },
+    {
+      "case_id": "policy:exams_admin_insert.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated operation denied"
+    },
+    {
+      "case_id": "policy:exams_admin_update.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner updates exam"
+    },
+    {
+      "case_id": "policy:exams_admin_update.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner update hidden"
+    },
+    {
+      "case_id": "policy:exams_admin_delete.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner delete hidden"
+    },
+    {
+      "case_id": "policy:exams_student_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:exams_student_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_insert.allow",
+      "status": "PASS",
+      "details": "HTTP 201; owner operation accepted"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_insert.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated operation denied"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_update.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner updates permission"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_update.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner update hidden"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_delete.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner deletes permission"
+    },
+    {
+      "case_id": "policy:exam_permissions_admin_delete.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner delete hidden"
+    },
+    {
+      "case_id": "policy:exam_permissions_student_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:exam_permissions_student_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:questions_admin_insert.allow",
+      "status": "PASS",
+      "details": "HTTP 201; owner operation accepted"
+    },
+    {
+      "case_id": "policy:questions_admin_insert.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated operation denied"
+    },
+    {
+      "case_id": "policy:questions_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:questions_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:questions_admin_update.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner updates question"
+    },
+    {
+      "case_id": "policy:questions_admin_update.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner update hidden"
+    },
+    {
+      "case_id": "policy:questions_admin_delete.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner delete hidden"
+    },
+    {
+      "case_id": "policy:questions_admin_delete.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner deletes disposable question"
+    },
+    {
+      "case_id": "policy:exams_admin_delete.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner deletes disposable exam after its questions"
+    },
+    {
+      "case_id": "policy:exam_attempts_student_select.allow",
+      "status": "FAIL",
+      "details": "HTTP 403; current schema grant/RLS outcome {\"code\":\"42501\",\"details\":null,\"hint\":\"Grant the required privileges to the current role with: GRANT SELECT ON public.exam_attempts TO authenticated;\",\"message\":\"permission denied for table exam_attempts\"}"
+    },
+    {
+      "case_id": "policy:exam_attempts_student_select.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated actor gets no attempt"
+    },
+    {
+      "case_id": "policy:exam_attempts_admin_select.allow",
+      "status": "FAIL",
+      "details": "HTTP 403; current schema grant/RLS outcome {\"code\":\"42501\",\"details\":null,\"hint\":\"Grant the required privileges to the current role with: GRANT SELECT ON public.exam_attempts TO authenticated;\",\"message\":\"permission denied for table exam_attempts\"}"
+    },
+    {
+      "case_id": "policy:exam_attempts_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 403; other owner gets no attempt"
+    },
+    {
+      "case_id": "policy:answers_student_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:answers_student_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "policy:answers_admin_select.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching authorized row returned"
+    },
+    {
+      "case_id": "policy:answers_admin_select.deny",
+      "status": "PASS",
+      "details": "HTTP 200; unrelated row hidden"
+    },
+    {
+      "case_id": "function:private.is_admin.allow",
+      "status": "PASS",
+      "details": "admin fixture is recognized as admin"
+    },
+    {
+      "case_id": "function:private.is_admin.deny",
+      "status": "PASS",
+      "details": "student fixture is not recognized as admin"
+    },
+    {
+      "case_id": "function:private.is_student.allow",
+      "status": "PASS",
+      "details": "participant fixture is recognized as student"
+    },
+    {
+      "case_id": "function:private.is_student.deny",
+      "status": "PASS",
+      "details": "admin fixture is not recognized as student"
+    },
+    {
+      "case_id": "function:private.owns_group.allow",
+      "status": "PASS",
+      "details": "owner sees own group ownership"
+    },
+    {
+      "case_id": "function:private.owns_group.deny",
+      "status": "PASS",
+      "details": "owner cannot claim unrelated group"
+    },
+    {
+      "case_id": "function:private.owns_exam.allow",
+      "status": "PASS",
+      "details": "owner sees own exam ownership"
+    },
+    {
+      "case_id": "function:private.owns_exam.deny",
+      "status": "PASS",
+      "details": "owner cannot claim unrelated exam"
+    },
+    {
+      "case_id": "function:private.is_admin_scoped_student.allow",
+      "status": "PASS",
+      "details": "owner sees associated participant profile"
+    },
+    {
+      "case_id": "function:private.is_admin_scoped_student.deny",
+      "status": "PASS",
+      "details": "owner cannot see another owner profile outside their groups and exams"
+    },
+    {
+      "case_id": "function:private.owns_exam_attempt.allow",
+      "status": "PASS",
+      "details": "exam owner owns associated attempt context"
+    },
+    {
+      "case_id": "function:private.owns_exam_attempt.deny",
+      "status": "PASS",
+      "details": "different exam owner cannot see the attempt context"
+    },
+    {
+      "case_id": "function:public.fn_protect_profile_role.allow",
+      "status": "PASS",
+      "details": "unchanged role permits ordinary profile update"
+    },
+    {
+      "case_id": "trigger:trg_protect_profile_role.allow",
+      "status": "PASS",
+      "details": "role-protection trigger permits non-role profile update"
+    },
+    {
+      "case_id": "function:public.fn_sync_user_role.allow",
+      "status": "PASS",
+      "details": "trusted role update is mirrored"
+    },
+    {
+      "case_id": "trigger:trg_sync_user_role.allow",
+      "status": "PASS",
+      "details": "role mirror trigger synchronizes trusted update"
+    },
+    {
+      "case_id": "function:public.fn_create_profile_on_signup.allow",
+      "status": "PASS",
+      "details": "auth signup creates the linked profile"
+    },
+    {
+      "case_id": "function:public.fn_create_profile_on_signup.deny",
+      "status": "PASS",
+      "details": "client metadata cannot create an admin role"
+    },
+    {
+      "case_id": "trigger:trg_create_profile_on_signup.allow",
+      "status": "PASS",
+      "details": "signup trigger creates profile row"
+    },
+    {
+      "case_id": "trigger:trg_create_profile_on_signup.deny",
+      "status": "PASS",
+      "details": "signup trigger rejects requested admin role"
+    },
+    {
+      "case_id": "function:public.search_student_by_email.allow",
+      "status": "PASS",
+      "details": "HTTP 200; admin exact-match lookup returns one row"
+    },
+    {
+      "case_id": "function:public.search_student_by_email.deny",
+      "status": "PASS",
+      "details": "HTTP 200; student cannot enumerate an unrelated account"
+    },
+    {
+      "case_id": "function:public.list_group_students.allow",
+      "status": "PASS",
+      "details": "HTTP 200; group owner lists an associated participant"
+    },
+    {
+      "case_id": "function:public.list_group_students.deny",
+      "status": "PASS",
+      "details": "HTTP 200; another owner receives no participant rows"
+    },
+    {
+      "case_id": "function:public.list_exam_permissions.allow",
+      "status": "PASS",
+      "details": "HTTP 200; exam owner lists permissions"
+    },
+    {
+      "case_id": "function:public.list_exam_permissions.deny",
+      "status": "PASS",
+      "details": "HTTP 200; non-owner receives no permission rows"
+    },
+    {
+      "case_id": "function:public.create_group_invitation.allow",
+      "status": "PASS",
+      "details": "HTTP 200; group owner creates an invitation"
+    },
+    {
+      "case_id": "function:public.create_group_invitation.deny",
+      "status": "PASS",
+      "details": "HTTP 403; non-owner cannot create an invitation"
+    },
+    {
+      "case_id": "function:public.rotate_group_invitation.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner rotates invitation code"
+    },
+    {
+      "case_id": "function:public.rotate_group_invitation.deny",
+      "status": "PASS",
+      "details": "HTTP 403; non-owner cannot rotate the invitation"
+    },
+    {
+      "case_id": "function:public.get_group_invitation_status.allow",
+      "status": "PASS",
+      "details": "HTTP 200; owner reads invitation status"
+    },
+    {
+      "case_id": "function:public.get_group_invitation_status.deny",
+      "status": "PASS",
+      "details": "HTTP 403; non-owner cannot read invitation status"
+    },
+    {
+      "case_id": "function:public.redeem_group_invitation.deny",
+      "status": "PASS",
+      "details": "HTTP 200; owner cannot join their own group"
+    },
+    {
+      "case_id": "function:public.redeem_group_invitation.allow",
+      "status": "PASS",
+      "details": "HTTP 200; student redeems valid code for self"
+    },
+    {
+      "case_id": "function:public.revoke_group_invitation.allow",
+      "status": "PASS",
+      "details": "HTTP 200; group owner revokes invitation"
+    },
+    {
+      "case_id": "function:public.revoke_group_invitation.deny",
+      "status": "PASS",
+      "details": "HTTP 403; non-owner cannot revoke invitation"
+    },
+    {
+      "case_id": "function:public.fn_require_student_group_member.allow",
+      "status": "PASS",
+      "details": "HTTP 201; student membership invokes the role guard"
+    },
+    {
+      "case_id": "trigger:trg_require_student_group_member.allow",
+      "status": "PASS",
+      "details": "HTTP 201; student membership passes the trigger"
+    },
+    {
+      "case_id": "function:public.fn_require_student_group_member.deny",
+      "status": "PASS",
+      "details": "HTTP 400; admin-role identity rejected as group student"
+    },
+    {
+      "case_id": "trigger:trg_require_student_group_member.deny",
+      "status": "PASS",
+      "details": "HTTP 400; trigger rejects non-student membership"
+    },
+    {
+      "case_id": "function:public.fn_require_student_exam_permission.allow",
+      "status": "PASS",
+      "details": "HTTP 201; student permission passes role guard"
+    },
+    {
+      "case_id": "trigger:trg_require_student_exam_permission.allow",
+      "status": "PASS",
+      "details": "HTTP 201; trigger accepts student permission"
+    },
+    {
+      "case_id": "function:public.fn_require_student_exam_permission.deny",
+      "status": "PASS",
+      "details": "HTTP 400; admin identity rejected as direct student permission"
+    },
+    {
+      "case_id": "trigger:trg_require_student_exam_permission.deny",
+      "status": "PASS",
+      "details": "HTTP 400; trigger rejects non-student permission"
+    },
+    {
+      "case_id": "function:public.fn_enforce_group_ownership_on_permission.allow",
+      "status": "PASS",
+      "details": "HTTP 201; exam and group share owner"
+    },
+    {
+      "case_id": "trigger:trg_enforce_group_ownership_on_permission.allow",
+      "status": "PASS",
+      "details": "HTTP 201; same-owner permission passes trigger"
+    },
+    {
+      "case_id": "function:public.fn_enforce_group_ownership_on_permission.deny",
+      "status": "PASS",
+      "details": "HTTP 400; cross-owner group permission rejected"
+    },
+    {
+      "case_id": "trigger:trg_enforce_group_ownership_on_permission.deny",
+      "status": "PASS",
+      "details": "HTTP 400; trigger rejects cross-owner permission"
+    },
+    {
+      "case_id": "function:public.fn_start_attempt.allow",
+      "status": "PASS",
+      "details": "HTTP 200; matching student attempt starts; response={\"attempt_id\":\"fc637477-d2cf-4d0c-995b-e65cabe4aec5\",\"session_id\":\"d3401176-4e94-4ec1-a89f-40a30dfdae55\",\"exam_ends_at\":\"2026-11-06T22:02:55.024+00:00\",\"was_takeover\":false,\"remaining_seconds\":3299}"
+    },
+    {
+      "case_id": "function:public.fn_start_attempt.deny",
+      "status": "PASS",
+      "details": "HTTP 200; attempt cannot start for a different student id"
+    },
+    {
+      "case_id": "function:public.fn_get_exam_questions.allow",
+      "status": "PASS",
+      "details": "HTTP 200; question projection excludes correct_choice and reference_answers; response={\"answers\":[],\"questions\":[{\"id\":\"19d6e35e-cdc2-4860-952e-68999f4c427d\",\"text\":\"007 disposable RPC question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"fc637477-d2cf-4d0c-995b-e65cabe4aec5\",\"remaining_seconds\":3299}"
+    },
+    {
+      "case_id": "function:public.fn_get_exam_questions.deny",
+      "status": "PASS",
+      "details": "HTTP 200; foreign learner receives no question payload; response={\"denial_reason\":\"owner_mismatch\"}"
+    },
+    {
+      "case_id": "function:public.fn_save_attempt_answer.allow",
+      "status": "PASS",
+      "details": "HTTP 200; valid participant answer saves; response={\"saved\":true,\"saved_at\":\"2026-11-06T21:07:55.221579+00:00\",\"question_id\":\"19d6e35e-cdc2-4860-952e-68999f4c427d\"}"
+    },
+    {
+      "case_id": "function:public.fn_save_attempt_answer.deny",
+      "status": "PASS",
+      "details": "HTTP 200; foreign answer save is rejected; response={\"denial_reason\":\"owner_mismatch\"}"
+    },
+    {
+      "case_id": "function:public.fn_submit_attempt.allow",
+      "status": "PASS",
+      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"fc637477-d2cf-4d0c-995b-e65cabe4aec5\",\"finished_at\":\"2026-11-06T21:07:55.292095+00:00\",\"already_submitted\":false}"
+    },
+    {
+      "case_id": "function:public.fn_submit_attempt.deny",
+      "status": "PASS",
+      "details": "HTTP 200; foreign identity cannot submit attempt; response={\"denial_reason\":\"owner_mismatch\"}"
+    },
+    {
+      "case_id": "function:public.fn_get_student_attempt_result.allow",
+      "status": "PASS",
+      "details": "HTTP 200; own submitted result projection is visible"
+    },
+    {
+      "case_id": "function:public.fn_get_student_attempt_result.deny",
+      "status": "PASS",
+      "details": "HTTP 200; foreign caller receives no result"
+    },
+    {
+      "case_id": "function:public.fn_protect_profile_role.allow",
+      "status": "PASS",
+      "details": "HTTP 200; ordinary profile edit does not alter role"
+    },
+    {
+      "case_id": "trigger:trg_protect_profile_role.allow",
+      "status": "PASS",
+      "details": "HTTP 200; non-role update passes protection trigger"
+    },
+    {
+      "case_id": "function:public.fn_protect_profile_role.deny",
+      "status": "FAIL",
+      "details": "HTTP 200; returned=[{\"id\":\"a7000000-0000-4000-8000-000000000003\",\"role\":\"admin\",\"full_name\":\"007 Participant A\",\"preferred_language\":\"en\",\"preferred_theme\":\"light\"}]; profile_role=admin; mirror_role=admin; authenticated role mutation must not take effect"
+    },
+    {
+      "case_id": "trigger:trg_protect_profile_role.deny",
+      "status": "FAIL",
+      "details": "HTTP 200; returned=[{\"id\":\"a7000000-0000-4000-8000-000000000003\",\"role\":\"admin\",\"full_name\":\"007 Participant A\",\"preferred_language\":\"en\",\"preferred_theme\":\"light\"}]; profile_role=admin; mirror_role=admin; protection trigger must prevent the role change"
+    },
+    {
+      "case_id": "function:public.fn_sync_user_role.deny",
+      "status": "FAIL",
+      "details": "HTTP 200; returned=[{\"id\":\"a7000000-0000-4000-8000-000000000003\",\"role\":\"admin\",\"full_name\":\"007 Participant A\",\"preferred_language\":\"en\",\"preferred_theme\":\"light\"}]; profile_role=admin; mirror_role=admin; rejected update must not reach the mirror function"
+    },
+    {
+      "case_id": "trigger:trg_sync_user_role.deny",
+      "status": "FAIL",
+      "details": "HTTP 200; returned=[{\"id\":\"a7000000-0000-4000-8000-000000000003\",\"role\":\"admin\",\"full_name\":\"007 Participant A\",\"preferred_language\":\"en\",\"preferred_theme\":\"light\"}]; profile_role=admin; mirror_role=admin; rejected update must not alter the role mirror"
+    },
+    {
+      "case_id": "function:public.fn_sync_user_role.allow",
+      "status": "PASS",
+      "details": "HTTP 200; profile remains available after trusted mirror update"
+    },
+    {
+      "case_id": "trigger:trg_sync_user_role.allow",
+      "status": "PASS",
+      "details": "HTTP 200; mirror trigger remains active"
+    },
+    {
+      "case_id": "action:void_attempt.absent",
+      "status": "PASS",
+      "details": "Scanned 79 application/Edge files for a current void-attempt path"
+    },
+    {
+      "case_id": "action:grade_override.absent",
+      "status": "PASS",
+      "details": "Scanned 79 application/Edge files for a current grade-override path"
+    },
+    {
+      "case_id": "edge:start-attempt/index.ts.allow",
+      "status": "PASS",
+      "details": "HTTP 200; authorized participant starts their attempt; response={\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"52483985-ff19-44a3-aff9-38dc7cbeec26\",\"exam_ends_at\":\"2026-11-06T22:06:43.481781+00:00\",\"was_takeover\":false,\"remaining_seconds\":3520}"
+    },
+    {
+      "case_id": "edge:start-attempt/index.ts.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated participant denied despite spoofed body student_id"
+    },
+    {
+      "case_id": "edge:start-attempt/index.ts.anon",
+      "status": "PASS",
+      "details": "HTTP 401; anon denied"
+    },
+    {
+      "case_id": "edge:get-exam-questions/index.ts.allow",
+      "status": "PASS",
+      "details": "HTTP 200; questions omit answer keys; response={\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3516}"
+    },
+    {
+      "case_id": "edge:get-exam-questions/index.ts.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated user denied despite URL identity spoofing"
+    },
+    {
+      "case_id": "edge:get-exam-questions/index.ts.anon",
+      "status": "PASS",
+      "details": "HTTP 401; anon denied"
+    },
+    {
+      "case_id": "edge:save-answer/index.ts.allow",
+      "status": "PASS",
+      "details": "HTTP 200; participant saves valid answer; response={\"saved\":true,\"saved_at\":\"2026-11-06T21:08:09.869952+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
+    },
+    {
+      "case_id": "edge:save-answer/index.ts.deny",
+      "status": "PASS",
+      "details": "HTTP 403; foreign attempt rejected despite spoofed body identity"
+    },
+    {
+      "case_id": "edge:save-answer/index.ts.anon",
+      "status": "PASS",
+      "details": "HTTP 401; anon denied"
+    },
+    {
+      "case_id": "edge:submit-attempt/index.ts.allow",
+      "status": "PASS",
+      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-06T21:08:13.32698+00:00\",\"already_submitted\":false}"
+    },
+    {
+      "case_id": "edge:submit-attempt/index.ts.deny",
+      "status": "PASS",
+      "details": "HTTP 403; unrelated caller denied despite spoofed body identity"
+    },
+    {
+      "case_id": "edge:submit-attempt/index.ts.anon",
+      "status": "PASS",
+      "details": "HTTP 401; anon denied"
+    }
+  ],
+  "decisionComparison": {
+    "referencePath": "D:\\Documents\\01_Github_Project\\05_manjam\\specs\\007-unified-identity\\security-baseline\\before\\raw-results.json",
+    "referenceCases": 134,
+    "matchedCases": 134,
+    "mismatchCount": 0,
+    "mismatches": [],
+    "decisionsUnchanged": true
+  },
+  "localAdvisories": [
+    "public.private_user_roles currently has row-level security disabled; recorded as observed and not changed by the baseline run."
+  ],
+  "fixtureSeed": "supabase/tests/007-unified-identity/fixture-setup.sql (additive; no reset/reseed performed)"
+}

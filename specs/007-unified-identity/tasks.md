@@ -47,7 +47,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 **Purpose**: Prepare unused replacement helpers while all old role policies and functions remain active.
 
-- [ ] T014 [US4] Write tests first proving migration 0015 leaves all frozen allow/deny decisions unchanged and no new helper is callable without its intended checks in `supabase/tests/007-unified-identity/preparation-0015.sql`.
+- [X] T014 [US4] Write tests first proving migration 0015 leaves all frozen allow/deny decisions unchanged and no new helper is callable without its intended checks in `supabase/tests/007-unified-identity/preparation-0015.sql` and `tests/security/007-unified-identity/preparation-0015.test.ts`.
 - [ ] T015 [US4] Add only unused owner/membership helper definitions and their least-privilege grants in `supabase/migrations/0015_relationship_helpers.sql`; do not switch policies, remove permission rows, change membership writes, or disable role paths.
 - [ ] T016 [US4] Run the frozen before/after matrix against schema 0014 and schema 0015 and require identical decisions in `tests/security/007-unified-identity/harness.ts`.
 - [ ] T017 [US4] Scan the schema after migration 0015 for policy/function/trigger/grant/search_path changes and role/admin dependencies; record results in `specs/007-unified-identity/security-baseline/0015/`.
