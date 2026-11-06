@@ -17,11 +17,23 @@ This guide is the required validation sequence for implementation. Do not begin 
    npx supabase start
    ```
 
-2. Run the migration-derived matrix from `plan.md`; every row needs an allow and deny result. Also run anon, client-id spoofing, answer-key, profile scope, direct `group_students` table INSERT allow/deny cases as currently governed by the role-based owner policy, and the separate participant-list and lookup tests.
-3. Export the complete before results and fixture manifest. Record the manifest SHA-256, commit hash, migration version, exact command, UTC timestamp, and raw output under `security-baseline/before/`.
-4. Commit these before-results **before any reset/reseed or authorization change**. Freeze that commit as the baseline source. Do not reset/reseed between producing the results and committing them.
+2. In a second terminal, start the local Edge Function server and leave it running while the suite executes. `supabase start` may leave the Edge Runtime stopped, in which case the HTTP tests otherwise produce 503/400 responses unrelated to the tested authorization rules:
 
-The exact harness command is intentionally not named because the current project scripts do not include this security suite. Implementation must add the harness before 0014; do not substitute `npm test` unless it invokes and individually reports every inventory row.
+   ```powershell
+   npx supabase functions serve
+   ```
+
+3. From the first terminal, run the migration-derived matrix; every row needs an allow and deny result. Also run anon, client-id spoofing, answer-key, profile scope, direct `group_students` table INSERT allow/deny cases as currently governed by the role-based owner policy, and the separate participant-list and lookup tests:
+
+   ```powershell
+   npm run test:security:007:before
+   ```
+
+   The harness writes `raw-results.json` atomically after all cases finish. A nonzero exit means at least one recorded assertion failed; inspect its case ID and response detail. Existing-schema failures are baseline findings to preserve, not a reason to alter migrations before the baseline is committed.
+4. Export the complete before results and fixture manifest. Record the manifest SHA-256, commit hash, migration version, exact command, UTC timestamp, and raw output under `security-baseline/before/`.
+5. Commit these before-results **before any reset/reseed or authorization change**. Freeze that commit as the baseline source. Do not reset/reseed between producing the results and committing them.
+
+Do not substitute `npm test` unless it invokes and individually reports every inventory row.
 
 ## Fixture equivalence
 
