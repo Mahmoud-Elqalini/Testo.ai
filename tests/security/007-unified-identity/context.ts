@@ -88,7 +88,7 @@ function cliJson(stdout: string, matches: (value: Record<string, unknown>) => bo
 
 export type CaseResult = { case_id: string; status: "PASS" | "FAIL"; details: string };
 
-export async function createContext() {
+export async function createContext(expectedLastMigration = "0013") {
   const inventory = JSON.parse(await readFile(resolve(root, "specs/007-unified-identity/security-baseline/inventory.json"), "utf8"));
   const status = cliJson(cliCall(["status", "--output", "json"]), (value) =>
     typeof value.API_URL === "string" && typeof value.ANON_KEY === "string" && typeof value.SERVICE_ROLE_KEY === "string",
@@ -105,7 +105,7 @@ export async function createContext() {
   );
   const migrationRows = migrationPayload.rows as { version: string }[];
   const migrationVersions = migrationRows.map((row) => row.version);
-  if (migrationVersions.at(-1) !== "0013") throw new Error(`Before-suite requires applied schema through 0013, found ${migrationVersions.at(-1) ?? "none"}`);
+  if (migrationVersions.at(-1) !== expectedLastMigration) throw new Error(`Security suite requires applied schema through ${expectedLastMigration}, found ${migrationVersions.at(-1) ?? "none"}`);
 
   const tokens = new Map<string, string>();
   for (const [key, actor] of Object.entries(fixtureManifest.actors)) {

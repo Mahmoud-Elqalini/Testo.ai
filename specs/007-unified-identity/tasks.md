@@ -35,11 +35,11 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 **Purpose**: Add `owner_id` without changing the existing role-based authorization behavior.
 
-- [ ] T009 [US4] Write tests first for insert fill, one-column update mirroring, divergent dual-column rejection and attempted owner transfer on both groups and exams in `supabase/tests/007-unified-identity/owner-mirror-0014.sql`.
-- [ ] T010 [US4] Add `owner_id` columns, backfill from `admin_id`, constraints/indexes, and BEFORE INSERT OR UPDATE equality triggers for groups and exams in `supabase/migrations/0014_owner_id_bridge.sql`; fill a missing value, mirror a single changed value, and reject divergent values while existing RLS still binds `admin_id` to `auth.uid()`.
-- [ ] T011 [US4] Run the frozen allow/deny suite before and after migration 0014 and run `owner-mirror-0014.sql`; prove all existing decisions are unchanged and both columns stay equal in `tests/security/007-unified-identity/harness.ts`.
-- [ ] T012 [US4] Scan `supabase/migrations/0014_owner_id_bridge.sql` and the applied catalog for changed policies, functions, triggers, search paths, grants and ownership references; record the scan under `specs/007-unified-identity/security-baseline/0014/`.
-- [ ] T013 [US4] Commit `supabase/migrations/0014_owner_id_bridge.sql`, its failing-first tests and recorded before/after results together after the scan passes.
+- [X] T009 [US4] Write tests first for insert fill, one-column update mirroring, divergent dual-column rejection and attempted owner transfer on both groups and exams in `supabase/tests/007-unified-identity/owner-mirror-0014.sql` and `tests/security/007-unified-identity/owner-mirror-0014.test.ts`.
+- [X] T010 [US4] Add `owner_id` columns, backfill from `admin_id`, constraints/indexes, and BEFORE INSERT OR UPDATE equality triggers for groups and exams in `supabase/migrations/0014_owner_id_bridge.sql`; fill a missing value, mirror a single changed value, and reject divergent values while existing RLS still binds `admin_id` to `auth.uid()`.
+- [X] T011 [US4] Run the frozen allow/deny suite before and after migration 0014 and run `owner-mirror-0014.sql`; prove all existing decisions are unchanged and both columns stay equal in `tests/security/007-unified-identity/harness.ts`.
+- [X] T012 [US4] Scan `supabase/migrations/0014_owner_id_bridge.sql` and the applied catalog for changed policies, functions, triggers, search paths, grants and ownership references; record the scan under `specs/007-unified-identity/security-baseline/0014/`.
+- [X] T013 [US4] Commit `supabase/migrations/0014_owner_id_bridge.sql`, its failing-first tests and recorded before/after results together after the scan passes.
 
 ---
 

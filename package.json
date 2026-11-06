@@ -9,6 +9,8 @@
     "lint": "eslint",
     "test": "vitest run --configLoader native",
     "test:security:007:before": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase before",
+    "test:security:007:before-0014": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase before-0014",
+    "test:security:007:after-0014": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase after-0014",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "dev:vinext": "vite dev --port 3001",
