@@ -8,6 +8,7 @@ import { runRpcTriggerCases } from "./rpc-trigger-before.test.ts";
 import { runEdgeCases } from "./edge-before.test.ts";
 import { runOwnerMirrorCases } from "./owner-mirror-0014.test.ts";
 import { runPreparation0015Cases } from "./preparation-0015.test.ts";
+import { runProfileProjectionCases } from "./preparation-0016.test.ts";
 
 type CaseResult = { case_id: string; status: "PASS" | "FAIL" | "SKIP"; details: string };
 
@@ -15,11 +16,11 @@ const root = process.cwd();
 const beforeDir = resolve(root, "specs/007-unified-identity/security-baseline/before");
 const phaseArg = process.argv.indexOf("--phase");
 const phase = phaseArg >= 0 ? process.argv[phaseArg + 1] : "before";
-if (!["before", "before-0014", "after-0014", "before-0015", "after-0015"].includes(phase)) {
+if (!["before", "before-0014", "after-0014", "before-0015", "after-0015", "before-0016", "after-0016"].includes(phase)) {
   throw new Error(`Unsupported security suite phase: ${phase}`);
 }
 
-const phaseDirectory = phase.endsWith("0015") ? "0015" : "0014";
+const phaseDirectory = phase.endsWith("0016") ? "0016" : phase.endsWith("0015") ? "0015" : "0014";
 const outputDirectory = phase === "before"
   ? beforeDir
   : resolve(root, `specs/007-unified-identity/security-baseline/${phaseDirectory}`);
@@ -43,7 +44,8 @@ async function compareStatuses(actual: CaseResult[], referencePath: string) {
 }
 
 async function main() {
-  const expectedLastMigration = phase === "after-0015" ? "0015"
+  const expectedLastMigration = phase === "after-0016" ? "0016"
+    : ["after-0015", "before-0016"].includes(phase) ? "0015"
     : ["after-0014", "before-0015"].includes(phase) ? "0014" : "0013";
   const context = await createContext(expectedLastMigration);
   await mkdir(outputDirectory, { recursive: true });
@@ -51,7 +53,8 @@ async function main() {
   await runRpcTriggerCases(context);
   await runEdgeCases(context);
   if (phase === "after-0014") await runOwnerMirrorCases(context);
-  if (phase === "after-0015") await runPreparation0015Cases(context);
+  if (["after-0015", "before-0016", "after-0016"].includes(phase)) await runPreparation0015Cases(context);
+  if (phase === "after-0016") await runProfileProjectionCases(context);
   for (const entry of context.inventory.entries as { id: string }[]) {
     for (const outcome of ["allow", "deny"]) {
       const caseId = `${entry.id}.${outcome}`;
@@ -72,6 +75,10 @@ async function main() {
     decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
   } else if (phase === "after-0015") {
     decisionComparison = await compareStatuses(cases, resolve(outputDirectory, "before-0015.json"));
+  } else if (phase === "before-0016") {
+    decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
+  } else if (phase === "after-0016") {
+    decisionComparison = await compareStatuses(cases, resolve(outputDirectory, "before-0016.json"));
   }
   const report = {
     suite: `007-unified-identity-${phase}`,
