@@ -32,13 +32,20 @@ export function internalError(functionName: string, error: unknown) {
   return json({ error: 'internal_error', message: 'An unexpected error occurred.' }, 500)
 }
 
-export async function authenticate(request: Request) {
-  const authorization = request.headers.get('Authorization')
-  if (!authorization?.startsWith('Bearer ')) return null
+function callerClient(authorization: string) {
   const url = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
   if (!url || !anonKey) throw new Error('Supabase auth configuration is missing')
-  const client = createClient(url, anonKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } })
+  return createClient(url, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+export async function authenticate(request: Request) {
+  const authorization = request.headers.get('Authorization')
+  if (!authorization?.startsWith('Bearer ')) return null
+  const client = callerClient(authorization)
   const { data, error } = await client.auth.getUser()
   if (error || !data.user) return null
   return data.user
@@ -64,7 +71,8 @@ export async function callOperation(request: Request, functionName: string, oper
   try {
     const user = await authenticate(request)
     if (!user) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
-    const { data, error } = await serviceClient().rpc(operation, { ...args, p_student_id: user.id })
+    const authorization = request.headers.get('Authorization')!
+    const { data, error } = await callerClient(authorization).rpc(operation, args)
     if (error) throw error
     const result = data as Record<string, unknown>
     if (typeof result?.denial_reason === 'string') return denial(functionName, user.id, result.denial_reason, attemptId ? { attempt_id: attemptId } : {})
