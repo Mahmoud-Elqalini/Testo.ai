@@ -1,4 +1,6 @@
 import { record, parseJson } from "./context.ts";
+import { mkdir, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
 
 const ownerA = "ownerA";
 const ownerB = "ownerB";
@@ -15,16 +17,33 @@ async function lookup(ctx: any, actor: string, kind: "group" | "exam", id: strin
     method: "POST",
     body: JSON.stringify({ p_context_kind: kind, p_context_id: id, p_email: email }),
   });
+  const rawBody = await response.text();
   const elapsedMs = performance.now() - started;
-  return { response, body: parseJson(await response.text()), elapsedMs };
+  return { response, body: parseJson(rawBody), rawBody, elapsedMs };
 }
 
 function rows(value: unknown): Record<string, unknown>[] { return Array.isArray(value) ? value as Record<string, unknown>[] : []; }
-function responseShape(status: number, body: unknown) {
-  const responseRows = rows(body);
-  return `${status}:${responseRows.map((row) => Object.keys(row).sort().join(",")).sort().join(";")}:${responseRows.length}`;
+function median(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
 }
-function average(values: number[]) { return values.reduce((sum, value) => sum + value, 0) / values.length; }
+function p95(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.ceil(0.95 * sorted.length) - 1];
+}
+function p99(values: number[]) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.ceil(0.99 * sorted.length) - 1];
+}
+function roundMs(value: number) { return Number(value.toFixed(3)); }
+function summarize(samples: ReturnType<typeof toRawSample>[]) {
+  const times = samples.map((sample) => sample.elapsedMs);
+  return { sampleCount: samples.length, medianMs: roundMs(median(times)), p95Ms: roundMs(p95(times)), p99Ms: roundMs(p99(times)) };
+}
+function toRawSample(result: Awaited<ReturnType<typeof lookup>>) {
+  return { elapsedMs: roundMs(result.elapsedMs), status: result.response.status, rawBody: result.rawBody };
+}
 
 async function resetFixtureLimits(ctx: any) {
   const exists = ctx.runSql("SELECT to_regclass('private.associated_profile_lookup_rate_limits') IS NOT NULL").trim() === "t";
@@ -66,26 +85,153 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
     }
 
     await resetFixtureLimits(ctx);
-    const missingSamples: Awaited<ReturnType<typeof lookup>>[] = [];
-    const unrelatedSamples: Awaited<ReturnType<typeof lookup>>[] = [];
-    for (let index = 0; index < 4; index += 1) {
-      missingSamples.push(await lookup(ctx, ownerA, "group", groupA, missingEmail));
-      unrelatedSamples.push(await lookup(ctx, ownerA, "group", groupA, unrelatedEmail));
-    }
-    const sameShape = missingSamples.every((result) => responseShape(result.response.status, result.body) === responseShape(unrelatedSamples[0].response.status, unrelatedSamples[0].body))
-      && unrelatedSamples.every((result) => responseShape(result.response.status, result.body) === responseShape(missingSamples[0].response.status, missingSamples[0].body));
-    await record(ctx, "contract:email_lookup.unassociated_missing_same_shape",
-      endpointAvailable && sameShape && rows(missingSamples[0].body).length === 0 && rows(unrelatedSamples[0].body).length === 0,
-      "unassociated and nonexistent email responses have identical status, row count, and field shape");
+    const sampleCount = 200;
+    const timingGroupIds = Array.from({ length: sampleCount }, () => crypto.randomUUID());
+    const groupValues = timingGroupIds.map((id, index) => `('${id}'::uuid,'007 timing context ${index}','a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
+    const memberValues = timingGroupIds.map((id) => `('${id}'::uuid,'a7000000-0000-4000-8000-000000000003'::uuid)`).join(",");
+    const contexts = timingGroupIds.map((id) => `'${id}'::uuid`).join(",");
+    const standardSamples = { associated: [] as ReturnType<typeof toRawSample>[], unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
+    const largeSamples = { unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
+    const loadMarker = crypto.randomUUID().replaceAll("-", "");
+    const loadEmailPrefix = `007-load-${loadMarker}-`;
+    const loadUnassociatedEmail = `${loadEmailPrefix}2500@example.test`;
+    let syntheticUsersCreated = 0;
+    let syntheticUsersRemaining = 0;
+    let syntheticCleanupVerified = false;
+    ctx.runSql(`INSERT INTO public.groups (id,name,admin_id,owner_id) VALUES ${groupValues}; INSERT INTO public.group_students (group_id,student_id) VALUES ${memberValues}`);
+    try {
+      for (let index = 0; index < timingGroupIds.length; index += 1) {
+        const contextId = timingGroupIds[index];
+        const requests = [
+          { key: "associated" as const, email: participantEmail },
+          { key: "unassociated" as const, email: unrelatedEmail },
+          { key: "nonexistent" as const, email: missingEmail },
+        ];
+        const rotation = index % requests.length;
+        for (let offset = 0; offset < requests.length; offset += 1) {
+          const item = requests[(offset + rotation) % requests.length];
+          const result = await lookup(ctx, ownerA, "group", contextId, item.email);
+          standardSamples[item.key].push(toRawSample(result));
+        }
+      }
 
-    // The server contract applies the same minimum response delay to both
-    // branches. Pairwise timing assertions use multiple samples and a modest
-    // tolerance to avoid treating network jitter as an existence signal.
-    const missingAverage = average(missingSamples.map((result) => result.elapsedMs));
-    const unrelatedAverage = average(unrelatedSamples.map((result) => result.elapsedMs));
+      const loadPrefixSql = loadEmailPrefix.replaceAll("'", "''");
+      ctx.runSql(`
+        WITH shared_password AS (
+          SELECT crypt('LocalOnly-007-load-test!', gen_salt('bf')) AS encrypted_password
+        )
+        INSERT INTO auth.users (
+          id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+          raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_super_admin
+        )
+        SELECT
+          gen_random_uuid(),
+          '00000000-0000-0000-0000-000000000000'::uuid,
+          'authenticated', 'authenticated',
+          '${loadPrefixSql}' || generated.user_number || '@example.test',
+          shared_password.encrypted_password,
+          pg_catalog.now(),
+          '{"provider":"email","providers":["email"]}'::jsonb,
+          jsonb_build_object('full_name', '007 load user ' || generated.user_number),
+          pg_catalog.now(), pg_catalog.now(), false
+        FROM pg_catalog.generate_series(1, 5000) AS generated(user_number)
+        CROSS JOIN shared_password;
+        UPDATE auth.users
+        SET confirmation_token = '', recovery_token = '', email_change_token_new = '', email_change = ''
+        WHERE email LIKE '${loadPrefixSql}%';
+      `);
+      syntheticUsersCreated = Number(ctx.runSql(`SELECT count(*) FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim());
+      if (syntheticUsersCreated !== 5000) throw new Error(`Expected 5000 temporary auth users, found ${syntheticUsersCreated}`);
+
+      for (let index = 0; index < timingGroupIds.length; index += 1) {
+        const contextId = timingGroupIds[index];
+        const requests = [
+          { key: "unassociated" as const, email: loadUnassociatedEmail },
+          { key: "nonexistent" as const, email: missingEmail },
+        ];
+        if (index % 2 === 1) requests.reverse();
+        for (const item of requests) {
+          const result = await lookup(ctx, ownerA, "group", contextId, item.email);
+          largeSamples[item.key].push(toRawSample(result));
+        }
+      }
+    } finally {
+      const loadPrefixSql = loadEmailPrefix.replaceAll("'", "''");
+      ctx.runSql(`DELETE FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`);
+      syntheticUsersRemaining = Number(ctx.runSql(`SELECT count(*) FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim());
+      syntheticCleanupVerified = syntheticUsersRemaining === 0;
+      ctx.runSql(`DELETE FROM private.associated_profile_lookup_rate_limits WHERE requester_id='a7000000-0000-4000-8000-000000000001'::uuid AND context_kind='group' AND context_id IN (${contexts}); DELETE FROM public.groups WHERE id IN (${contexts})`);
+    }
+
+    const standardStats = {
+      associated: summarize(standardSamples.associated),
+      unassociated: summarize(standardSamples.unassociated),
+      nonexistent: summarize(standardSamples.nonexistent),
+    };
+    const largeStats = {
+      unassociated: summarize(largeSamples.unassociated),
+      nonexistent: summarize(largeSamples.nonexistent),
+    };
+    const standardMedianDifferenceMs = roundMs(Math.abs(standardStats.unassociated.medianMs - standardStats.nonexistent.medianMs));
+    const largeMedianDifferenceMs = roundMs(Math.abs(largeStats.unassociated.medianMs - largeStats.nonexistent.medianMs));
+    const fixedFloorRespected = [
+      ...standardSamples.associated, ...standardSamples.unassociated, ...standardSamples.nonexistent,
+      ...largeSamples.unassociated, ...largeSamples.nonexistent,
+    ]
+      .every((sample) => sample.elapsedMs >= 50);
+    const sameStandardNegativeStatusAndBody = standardSamples.unassociated.every((sample) => sample.status === standardSamples.nonexistent[0]?.status && sample.rawBody === standardSamples.nonexistent[0]?.rawBody)
+      && standardSamples.nonexistent.every((sample) => sample.status === standardSamples.unassociated[0]?.status && sample.rawBody === standardSamples.unassociated[0]?.rawBody);
+    const sameLargeNegativeStatusAndBody = largeSamples.unassociated.every((sample) => sample.status === largeSamples.nonexistent[0]?.status && sample.rawBody === largeSamples.nonexistent[0]?.rawBody)
+      && largeSamples.nonexistent.every((sample) => sample.status === largeSamples.unassociated[0]?.status && sample.rawBody === largeSamples.unassociated[0]?.rawBody);
+    const timingReport = {
+      feature: "007-unified-identity",
+      function: "public.lookup_associated_participant(text,uuid,text)",
+      measuredAtUtc: new Date().toISOString(),
+      timingMethod: "Client-side fetch duration through full response-body read. Each sample uses an independently owned group context; request order is rotated per context. The large dataset is inserted before its run and deleted in a finally block.",
+      assertion: { minimumSamplesPerCase: sampleCount, maximumNegativeMedianDifferenceMsExclusive: 5, fixedDelayFloorMs: 50, largeDatasetAuthUserCount: 5000 },
+      fixedDelayFloorRespected: fixedFloorRespected,
+      standardRun: {
+        additionalSyntheticAuthUsers: 0,
+        medianDifferenceMs: standardMedianDifferenceMs,
+        negativeStatusAndRawBodyIdentical: sameStandardNegativeStatusAndBody,
+        cases: {
+          associated: { ...standardStats.associated, rawSamples: standardSamples.associated },
+          unassociated: { ...standardStats.unassociated, rawSamples: standardSamples.unassociated },
+          nonexistent: { ...standardStats.nonexistent, rawSamples: standardSamples.nonexistent },
+        },
+      },
+      largeDatasetRun: {
+        syntheticAuthUsersRequested: 5000,
+        syntheticAuthUsersCreated: syntheticUsersCreated,
+        syntheticAuthUsersRemainingAfterCleanup: syntheticUsersRemaining,
+        syntheticCleanupVerified,
+        medianDifferenceMs: largeMedianDifferenceMs,
+        negativeStatusAndRawBodyIdentical: sameLargeNegativeStatusAndBody,
+        cases: {
+          unassociated: { ...largeStats.unassociated, rawSamples: largeSamples.unassociated },
+          nonexistent: { ...largeStats.nonexistent, rawSamples: largeSamples.nonexistent },
+        },
+      },
+    };
+    await mkdir(resolve(process.cwd(), "specs/007-unified-identity/security-baseline/0016"), { recursive: true });
+    await writeFile(resolve(process.cwd(), "specs/007-unified-identity/security-baseline/0016/lookup-timing.json"), `${JSON.stringify(timingReport, null, 2)}\n`, "utf8");
+
+    await record(ctx, "contract:email_lookup.unassociated_missing_same_shape",
+      endpointAvailable && sameStandardNegativeStatusAndBody && sameLargeNegativeStatusAndBody && standardSamples.unassociated[0]?.status === 200 && standardSamples.unassociated[0]?.rawBody === "[]" && largeSamples.unassociated[0]?.status === 200 && largeSamples.unassociated[0]?.rawBody === "[]",
+      `N=${sampleCount} each per run; same HTTP status/body in both runs: ${standardSamples.unassociated[0]?.status} ${standardSamples.unassociated[0]?.rawBody}`);
     await record(ctx, "contract:email_lookup.uniform_timing",
-      endpointAvailable && missingAverage >= 40 && unrelatedAverage >= 40 && Math.abs(missingAverage - unrelatedAverage) <= 25,
-      `4-sample means missing=${missingAverage.toFixed(1)}ms, unassociated=${unrelatedAverage.toFixed(1)}ms; both must include the minimum delay and differ by at most 25ms`);
+      endpointAvailable
+        && standardStats.associated.sampleCount >= sampleCount
+        && standardStats.unassociated.sampleCount >= sampleCount
+        && standardStats.nonexistent.sampleCount >= sampleCount
+        && largeStats.unassociated.sampleCount >= sampleCount
+        && largeStats.nonexistent.sampleCount >= sampleCount
+        && syntheticUsersCreated === 5000
+        && syntheticCleanupVerified
+        && fixedFloorRespected
+        && standardMedianDifferenceMs < 5
+        && largeMedianDifferenceMs < 5,
+      `N=${sampleCount}; standard median difference=${standardMedianDifferenceMs}ms, large-dataset median difference=${largeMedianDifferenceMs}ms (both required <5ms); p95/p99 and all raw status/body samples saved; 5000 users cleaned=${syntheticCleanupVerified}; 50ms floor respected=${fixedFloorRespected}`);
 
     // The fixed contract is 10 attempts per minute per requester/context.
     // Exhaust one scope, then prove another context and another owner/requester

@@ -100,7 +100,7 @@
   },
   "fixtureHash": "740df71750b99c902ed1f7983e67a83046268a172d4f0f1a33835b76eaaa7baf",
   "command": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase after-0016",
-  "recordedAtUtc": "2026-11-06T21:42:09.857Z",
+  "recordedAtUtc": "2026-11-09T15:20:43.277Z",
   "caseCount": 168,
   "passCount": 162,
   "failCount": 6,
@@ -618,7 +618,7 @@
     {
       "case_id": "function:public.fn_start_attempt.allow",
       "status": "PASS",
-      "details": "HTTP 200; matching student attempt starts; response={\"attempt_id\":\"b104df2c-8b03-427a-9580-feb4445e36dc\",\"session_id\":\"71e3c468-e8ae-4fdf-8d6c-4467932d7c81\",\"exam_ends_at\":\"2026-11-06T22:36:23.68+00:00\",\"was_takeover\":false,\"remaining_seconds\":3299}"
+      "details": "HTTP 200; matching student attempt starts; response={\"attempt_id\":\"ec5f9fc2-d4b9-4c04-a9d0-a6ff90283654\",\"session_id\":\"b6c0677b-d6c8-46b2-bff1-684cfae49fa5\",\"exam_ends_at\":\"2026-11-09T16:12:21.845+00:00\",\"was_takeover\":false,\"remaining_seconds\":3299}"
     },
     {
       "case_id": "function:public.fn_start_attempt.deny",
@@ -628,7 +628,7 @@
     {
       "case_id": "function:public.fn_get_exam_questions.allow",
       "status": "PASS",
-      "details": "HTTP 200; question projection excludes correct_choice and reference_answers; response={\"answers\":[],\"questions\":[{\"id\":\"c5e625ea-9608-429a-9233-d10887eadee4\",\"text\":\"007 disposable RPC question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"b104df2c-8b03-427a-9580-feb4445e36dc\",\"remaining_seconds\":3299}"
+      "details": "HTTP 200; question projection excludes correct_choice and reference_answers; response={\"answers\":[],\"questions\":[{\"id\":\"353966a0-e6a8-4108-9f5a-de358f1583cd\",\"text\":\"007 disposable RPC question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"ec5f9fc2-d4b9-4c04-a9d0-a6ff90283654\",\"remaining_seconds\":3299}"
     },
     {
       "case_id": "function:public.fn_get_exam_questions.deny",
@@ -638,7 +638,7 @@
     {
       "case_id": "function:public.fn_save_attempt_answer.allow",
       "status": "PASS",
-      "details": "HTTP 200; valid participant answer saves; response={\"saved\":true,\"saved_at\":\"2026-11-06T21:41:23.904294+00:00\",\"question_id\":\"c5e625ea-9608-429a-9233-d10887eadee4\"}"
+      "details": "HTTP 200; valid participant answer saves; response={\"saved\":true,\"saved_at\":\"2026-11-09T15:17:22.488799+00:00\",\"question_id\":\"353966a0-e6a8-4108-9f5a-de358f1583cd\"}"
     },
     {
       "case_id": "function:public.fn_save_attempt_answer.deny",
@@ -648,7 +648,7 @@
     {
       "case_id": "function:public.fn_submit_attempt.allow",
       "status": "PASS",
-      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"b104df2c-8b03-427a-9580-feb4445e36dc\",\"finished_at\":\"2026-11-06T21:41:23.960923+00:00\",\"already_submitted\":false}"
+      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"ec5f9fc2-d4b9-4c04-a9d0-a6ff90283654\",\"finished_at\":\"2026-11-09T15:17:22.548664+00:00\",\"already_submitted\":false}"
     },
     {
       "case_id": "function:public.fn_submit_attempt.deny",
@@ -718,7 +718,7 @@
     {
       "case_id": "edge:start-attempt/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; authorized participant starts their attempt; response={\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"ed16da39-277f-4561-8f36-65e8e20829ce\",\"exam_ends_at\":\"2026-11-06T22:40:15.371046+00:00\",\"was_takeover\":false,\"remaining_seconds\":3525}"
+      "details": "HTTP 200; authorized participant starts their attempt; response={\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"253f92dd-8d59-4e17-9637-11f676b7b616\",\"exam_ends_at\":\"2026-11-09T16:16:09.565769+00:00\",\"was_takeover\":false,\"remaining_seconds\":3519}"
     },
     {
       "case_id": "edge:start-attempt/index.ts.deny",
@@ -733,7 +733,7 @@
     {
       "case_id": "edge:get-exam-questions/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; questions omit answer keys; response={\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3521}"
+      "details": "HTTP 200; questions omit answer keys; response={\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3512}"
     },
     {
       "case_id": "edge:get-exam-questions/index.ts.deny",
@@ -748,7 +748,7 @@
     {
       "case_id": "edge:save-answer/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; participant saves valid answer; response={\"saved\":true,\"saved_at\":\"2026-11-06T21:41:38.649247+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
+      "details": "HTTP 200; participant saves valid answer; response={\"saved\":true,\"saved_at\":\"2026-11-09T15:17:43.083962+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
     },
     {
       "case_id": "edge:save-answer/index.ts.deny",
@@ -763,7 +763,7 @@
     {
       "case_id": "edge:submit-attempt/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-06T21:41:43.816857+00:00\",\"already_submitted\":false}"
+      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-09T15:17:49.601623+00:00\",\"already_submitted\":false}"
     },
     {
       "case_id": "edge:submit-attempt/index.ts.deny",
@@ -913,12 +913,12 @@
     {
       "case_id": "contract:email_lookup.unassociated_missing_same_shape",
       "status": "PASS",
-      "details": "unassociated and nonexistent email responses have identical status, row count, and field shape"
+      "details": "N=200 each per run; same HTTP status/body in both runs: 200 []"
     },
     {
       "case_id": "contract:email_lookup.uniform_timing",
       "status": "PASS",
-      "details": "4-sample means missing=80.1ms, unassociated=82.7ms; both must include the minimum delay and differ by at most 25ms"
+      "details": "N=200; standard median difference=1.587ms, large-dataset median difference=0.167ms (both required <5ms); p95/p99 and all raw status/body samples saved; 5000 users cleaned=true; 50ms floor respected=true"
     },
     {
       "case_id": "contract:email_lookup.rate_limit_enforced",

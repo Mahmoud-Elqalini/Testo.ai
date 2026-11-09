@@ -90,6 +90,11 @@ DECLARE
   v_requester uuid := auth.uid();
   v_now timestamptz := pg_catalog.clock_timestamp();
   v_request_count integer;
+  v_lookup_started timestamptz;
+  v_elapsed_seconds double precision;
+  v_candidate_id uuid;
+  v_candidate_name text;
+  v_is_associated boolean := false;
 BEGIN
   IF v_requester IS NULL OR p_context_id IS NULL OR p_context_kind IS NULL
      OR p_context_kind NOT IN ('group', 'exam') THEN
@@ -126,47 +131,58 @@ BEGIN
     RAISE SQLSTATE 'PT429' USING MESSAGE = 'Lookup rate limit exceeded';
   END IF;
 
-  -- Normalize missing and unassociated paths to the same minimum server time.
-  PERFORM pg_catalog.pg_sleep(0.05);
-
-  IF p_email IS NULL OR pg_catalog.btrim(p_email) = '' THEN
-    RETURN;
-  END IF;
+  -- Both negative cases always perform the same candidate lookup and the same
+  -- context association query before deciding whether to return a row.
+  -- auth.users is managed by Supabase; this migration deliberately does not
+  -- alter that schema. Question for a later design review: can a functional
+  -- index on lower(auth.users.email) be supported without changing auth schema?
+  -- Until then lower(email) uses the same scan for each input; cost follows
+  -- table cardinality, not whether the account exists. The delay below is only
+  -- a minimum-duration floor, never the mechanism for equalizing branches.
+  v_lookup_started := pg_catalog.clock_timestamp();
+  SELECT u.id, p.full_name
+    INTO v_candidate_id, v_candidate_name
+  FROM auth.users AS u
+  JOIN public.profiles AS p ON p.id = u.id
+  WHERE pg_catalog.lower(u.email) = pg_catalog.lower(pg_catalog.btrim(p_email))
+  ORDER BY u.id
+  LIMIT 1;
 
   IF p_context_kind = 'group' THEN
-    RETURN QUERY
-      SELECT p.id, p.full_name
-      FROM auth.users AS u
-      JOIN public.profiles AS p ON p.id = u.id
-      WHERE pg_catalog.lower(pg_catalog.btrim(u.email)) = pg_catalog.lower(pg_catalog.btrim(p_email))
-        AND u.id <> v_requester
-        AND EXISTS (
-          SELECT 1 FROM public.group_students AS gs
-          WHERE gs.group_id = p_context_id AND gs.student_id = u.id
-        )
-      LIMIT 1;
+    SELECT EXISTS (
+      SELECT 1
+      FROM public.group_students AS gs
+      WHERE gs.group_id = p_context_id
+        AND gs.student_id = v_candidate_id
+    ) INTO v_is_associated;
   ELSE
-    RETURN QUERY
-      SELECT p.id, p.full_name
-      FROM auth.users AS u
-      JOIN public.profiles AS p ON p.id = u.id
-      WHERE pg_catalog.lower(pg_catalog.btrim(u.email)) = pg_catalog.lower(pg_catalog.btrim(p_email))
-        AND u.id <> v_requester
-        AND (
-          EXISTS (
-            SELECT 1
-            FROM public.exam_permissions AS ep
-            JOIN public.groups AS g ON g.id = ep.group_id AND g.owner_id = v_requester
-            JOIN public.group_students AS gs ON gs.group_id = g.id
-            WHERE ep.exam_id = p_context_id AND gs.student_id = u.id
-          )
-          OR EXISTS (
-            SELECT 1 FROM public.exam_attempts AS ea
-            WHERE ea.exam_id = p_context_id AND ea.student_id = u.id
-          )
-        )
-      LIMIT 1;
+    SELECT
+      EXISTS (
+        SELECT 1
+        FROM public.exam_permissions AS ep
+        JOIN public.groups AS g ON g.id = ep.group_id AND g.owner_id = v_requester
+        JOIN public.group_students AS gs ON gs.group_id = g.id
+        WHERE ep.exam_id = p_context_id
+          AND gs.student_id = v_candidate_id
+      )
+      OR EXISTS (
+        SELECT 1
+        FROM public.exam_attempts AS ea
+        WHERE ea.exam_id = p_context_id
+          AND ea.student_id = v_candidate_id
+      )
+      INTO v_is_associated;
   END IF;
+
+  v_elapsed_seconds := EXTRACT(EPOCH FROM (pg_catalog.clock_timestamp() - v_lookup_started));
+  IF v_elapsed_seconds < 0.05 THEN
+    PERFORM pg_catalog.pg_sleep(0.05 - v_elapsed_seconds);
+  END IF;
+
+  IF v_candidate_id IS NOT NULL AND v_candidate_id <> v_requester AND v_is_associated THEN
+    RETURN QUERY SELECT v_candidate_id, v_candidate_name;
+  END IF;
+  RETURN;
 END;
 $$;
 
