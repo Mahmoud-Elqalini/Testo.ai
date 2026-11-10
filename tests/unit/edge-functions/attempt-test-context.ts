@@ -54,9 +54,36 @@ export async function createAttemptFixture(options: {
   }).select('id').single()
   if (attemptError || !attempt) throw attemptError ?? new Error('Attempt was not created')
 
+  const { data: group, error: groupError } = await adminClient.from('groups').insert({
+    name: `Attempt test group ${crypto.randomUUID()}`,
+    admin_id: admin.userId,
+  }).select('id').single()
+  if (groupError || !group) throw groupError ?? new Error('Group was not created')
+
+  const { error: membershipError } = await adminClient.from('group_students').insert({
+    group_id: group.id,
+    student_id: student.userId,
+  })
+  if (membershipError) throw membershipError
+
+  const { error: permissionError } = await adminClient.from('exam_permissions').insert({
+    exam_id: exam.id,
+    group_id: group.id,
+  })
+  if (permissionError) throw permissionError
+
   return {
     admin, student, examId: exam.id, questionId: question.id, essayQuestionId, attemptId: attempt.id,
-    async cleanup() { await student.cleanup(); await admin.cleanup() },
+    async cleanup() {
+      const { error: permissionCleanupError } = await adminClient.from('exam_permissions').delete().eq('exam_id', exam.id).eq('group_id', group.id)
+      if (permissionCleanupError) throw permissionCleanupError
+      const { error: membershipCleanupError } = await adminClient.from('group_students').delete().eq('group_id', group.id).eq('student_id', student.userId)
+      if (membershipCleanupError) throw membershipCleanupError
+      const { error: groupCleanupError } = await adminClient.from('groups').delete().eq('id', group.id)
+      if (groupCleanupError) throw groupCleanupError
+      await student.cleanup()
+      await admin.cleanup()
+    },
   }
 }
 
