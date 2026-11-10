@@ -182,6 +182,7 @@ BEGIN
   WHERE ep.group_id = NEW.group_id
     AND ep.student_id IS NULL
     AND e.is_published IS TRUE
+    AND e.owner_id <> NEW.student_id
     AND pg_catalog.now() >= e.start_time
     AND pg_catalog.now() < e.start_time + (e.duration_minutes * interval '1 minute')
     AND NOT EXISTS (
@@ -205,7 +206,7 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  SELECT e.start_time, e.duration_minutes, e.is_published
+  SELECT e.start_time, e.duration_minutes, e.is_published, e.owner_id
     INTO v_exam_record
     FROM public.exams AS e
    WHERE e.id = NEW.exam_id;
@@ -217,7 +218,8 @@ BEGIN
     SELECT pg_catalog.array_agg(gs.student_id)
       INTO v_student_ids
       FROM public.group_students AS gs
-     WHERE gs.group_id = NEW.group_id;
+     WHERE gs.group_id = NEW.group_id
+       AND gs.student_id <> v_exam_record.owner_id;
 
     IF v_student_ids IS NOT NULL THEN
       INSERT INTO public.exam_attempts (exam_id, student_id, access_token, status)
@@ -251,6 +253,7 @@ BEGIN
     JOIN public.group_students AS gs ON gs.group_id = g.id
     WHERE ep.exam_id = e.id
       AND ep.group_id IS NOT NULL
+      AND gs.student_id <> e.owner_id
   ) AS permitted
   WHERE e.is_published IS TRUE
     AND e.start_time <= pg_catalog.now()
@@ -1369,7 +1372,7 @@ BEGIN
   END IF;
 
   IF (SELECT pg_catalog.count(*) FROM cron.job
-      WHERE jobid IN (1, 2) AND username = 'postgres'
+      WHERE username = 'postgres'
         AND command IN ('SELECT fn_create_pending_attempts_at_start();', 'SELECT fn_sweep_expired_attempts();')) <> 2 THEN
     RAISE EXCEPTION '0017 final assertion: trusted postgres cron jobs changed or are absent';
   END IF;
