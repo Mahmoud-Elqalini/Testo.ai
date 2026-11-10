@@ -48,10 +48,10 @@ description: "Dependency-ordered implementation tasks for unified identity"
 **Purpose**: Prepare unused replacement helpers while all old role policies and functions remain active.
 
 - [X] T014 [US4] Write tests first proving migration 0015 leaves all frozen allow/deny decisions unchanged and no new helper is callable without its intended checks in `supabase/tests/007-unified-identity/preparation-0015.sql` and `tests/security/007-unified-identity/preparation-0015.test.ts`.
-- [ ] T015 [US4] Add only unused owner/membership helper definitions and their least-privilege grants in `supabase/migrations/0015_relationship_helpers.sql`; do not switch policies, remove permission rows, change membership writes, or disable role paths.
-- [ ] T016 [US4] Run the frozen before/after matrix against schema 0014 and schema 0015 and require identical decisions in `tests/security/007-unified-identity/harness.ts`.
-- [ ] T017 [US4] Scan the schema after migration 0015 for policy/function/trigger/grant/search_path changes and role/admin dependencies; record results in `specs/007-unified-identity/security-baseline/0015/`.
-- [ ] T018 [US4] Commit `supabase/migrations/0015_relationship_helpers.sql`, its tests and passing evidence together after the scan passes.
+- [X] T015 [US4] Add only unused owner/membership helper definitions and their least-privilege grants in `supabase/migrations/0015_relationship_helpers.sql`; do not switch policies, remove permission rows, change membership writes, or disable role paths.
+- [X] T016 [US4] Run the frozen before/after matrix against schema 0014 and schema 0015 and require identical decisions in `tests/security/007-unified-identity/harness.ts`.
+- [X] T017 [US4] Scan the schema after migration 0015 for policy/function/trigger/grant/search_path changes and role/admin dependencies; record results in `specs/007-unified-identity/security-baseline/0015/`.
+- [X] T018 [US4] Commit `supabase/migrations/0015_relationship_helpers.sql`, its tests and passing evidence together after the scan passes.
 
 ---
 
@@ -63,7 +63,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [X] T020 [US2] Add the not-routed-by-the-UI owner-scoped participant-list and associated-email lookup functions with fixed search paths, explicit columns and `auth.uid()` ownership/relationship checks in `supabase/migrations/0016_profile_projections.sql`; grant only intended authenticated execution and return name+email for the list versus id+name for lookup.
 - [X] T021 [US2] Run the complete legacy matrix before and after migration 0016 and run both new contract suites against the candidate functions, including direct authenticated RPC calls that bypass the UI, in `tests/security/007-unified-identity/runner.ts`.
 - [X] T022 [US2] Scan all SECURITY DEFINER functions, grants, search paths and active policy references after migration 0016; record the catalog report in `specs/007-unified-identity/security-baseline/0016/`.
-- [ ] T023 [US2] Commit `supabase/migrations/0016_profile_projections.sql`, the separate failing-first contract tests and passing before/after evidence together after the scan passes.
+- [X] T023 [US2] Commit `supabase/migrations/0016_profile_projections.sql`, the separate failing-first contract tests and passing before/after evidence together after the scan passes.
 
 ---
 
@@ -74,8 +74,8 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [X] T024 [US4] Write after-state tests first for all replacement policies/RPCs/triggers, owner self-join/self-exam denial, cross-owner denial, direct `group_students` INSERT/UPDATE denial for owner/member/unrelated/anon, and invitation redemption as the sole membership creation allow path in `supabase/tests/007-unified-identity/cutover-0017.sql`. Include a self-promotion probe: an authenticated account that sets `profiles.role='admin'` on itself (or a trusted test fixture with that value if the legacy update guard blocks the write) must still be denied access to another owner's groups/exams, participant lookup, invitations, attempts, and results.
 - [X] T025 [US4] Write SECURITY DEFINER audit assertions first for fixed `search_path`, `auth.uid()` and relationship checks on every user-callable function, trusted-only grants for internal trigger/cron helpers, zero callable old `p_student_id` overloads, and no RLS policy trusting client identity values in `supabase/tests/007-unified-identity/security-definer-0017.sql`.
 - [X] T026 [US4] Write Edge integration tests first for caller-JWT forwarding and request-body identity spoofing across all four attempt endpoints in `tests/security/007-unified-identity/edge-cutover-0017.test.ts`.
-- [ ] T027 [US1] Replace the direct `group_students` upsert and email-based add flow with the existing group invitation redemption flow in `src/lib/services/group-service.ts` and `src/app/admin/groups/[groupId]/page.tsx`; retain owner-scoped participant listing and invitation management.
-- [ ] T028 [US4] Update `supabase/functions/_shared/http.ts`, `supabase/functions/start-attempt/index.ts`, `supabase/functions/get-exam-questions/index.ts`, `supabase/functions/save-answer/index.ts`, and `supabase/functions/submit-attempt/index.ts` to authenticate and forward the caller JWT to the new RPCs instead of passing `p_student_id` through a service-role call.
+- [X] T027 [US1] Replace the direct `group_students` upsert and email-based add flow with the existing group invitation redemption flow in `src/lib/services/group-service.ts` and `src/app/admin/groups/[groupId]/page.tsx`; retain owner-scoped participant listing and invitation management.
+- [X] T028 [US4] Update `supabase/functions/_shared/http.ts`, `supabase/functions/start-attempt/index.ts`, `supabase/functions/get-exam-questions/index.ts`, `supabase/functions/save-answer/index.ts`, and `supabase/functions/submit-attempt/index.ts` to authenticate and forward the caller JWT to the new RPCs instead of passing `p_student_id` through a service-role call.
 - [X] T029 [US4] Audit existing SECURITY DEFINER functions in migrations `0001_schema.sql` through `0016_profile_projections.sql` only: require fixed safe `search_path` values, schema-qualified references, and direct `auth.uid()` plus ownership/membership checks for every user-callable function; prove internal trigger/cron helpers cannot be called by anon/authenticated and identify unnecessary grants. Record the audit output as the list of functions that migration 0017 (T030) must fix. Complete this audit before T030; T032 remains the full post-0017 catalog audit.
 - [ ] T030 [US4] **Depends on T029.** In the single transaction `supabase/migrations/0017_unified_authorization_cutover.sql`, replace all role-dependent policies, membership/permission rules, profile access, invitation checks, attempt generation and result guards; remove direct student exam permissions; reject owner self-join/self-exam; remove client `group_students` INSERT/UPDATE grants/policies; revoke EXECUTE from PUBLIC/anon/authenticated/service_role and DROP all old `p_student_id` attempt RPC signatures; create only JWT-based attempt RPC signatures (`fn_start_attempt(uuid,uuid)`, `fn_get_exam_questions(uuid,uuid)`, `fn_save_attempt_answer(uuid,uuid,uuid,text,text)`, `fn_submit_attempt(uuid,uuid)`). Keep direct attempt reads as the selected path: grant authenticated SELECT only on `id, exam_id, student_id, status, started_at, finished_at, session_id` (never `access_token`) and add participant-own-attempt and exam-owner RLS policies; do not grant table-wide SELECT or grant these columns to anon.
 - [ ] T031 [US4] Run the frozen matrix against schema 0016 and the full after-state suite immediately after 0017, including direct membership table write denials and invitation allow; verify old RPC signatures are absent and only caller-JWT signatures are callable in `tests/security/007-unified-identity/harness.ts`. Test direct safe-column attempt SELECT allow for the participant's own attempt and its exam owner, deny for another participant and another owner, and confirm `access_token` is unreadable including through `select=*`. Repeat the T024 self-promotion probe and prove no access to another owner's resources, lookup, invitations, attempts, or results.
@@ -83,6 +83,33 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [ ] T033 [US1] Commit `supabase/migrations/0017_unified_authorization_cutover.sql`, its security tests, `supabase/functions/_shared/http.ts`, the four attempt Edge handlers, and group invitation service/UI changes as one cutover changeset after all tests and catalog scans pass.
 
 **0017 atomicity rule**: T027–T033 are one coupled release group. The database migration cannot be applied/deployed without its matching service and Edge changes; do not leave the UI calling direct membership writes or old RPC signatures.
+
+## Pre-0017-apply follow-ups
+
+**Purpose**: Finish the application/test changes and close the T031 coverage gaps before migration 0017 is applied. These tasks extend the coupled T027–T033 release group; they do not authorize a partial cutover.
+
+- [X] T053 [US4] Update `tests/unit/edge-functions/attempt-test-context.ts` to create and clean up group membership plus group-only exam permission for the attempt participant; completed in commit `30de1da`.
+- [X] T054 [US4] Update `tests/unit/db/student-attempt-operations.test.ts` to call the JWT-signature attempt RPCs through the participant client and cover anon, unrelated-user, and exam-owner denials.
+- [ ] T055 [US4] Update `tests/unit/db/sweep-expired-attempts.test.ts` for the post-0017 contract; invoke the cron database operation through a PostgreSQL connection, not `service_role`.
+- [ ] T056 [US1] Update `tests/unit/services/exam-permissions.test.ts` for group-only permission list, grant, revoke, and picker behavior.
+- [ ] T057 [US1] Update `tests/unit/services/group.test.ts` for invitation-only membership creation and the current group service contract.
+- [ ] T058 [US4] Update `tests/unit/db/privilege-escalation.test.ts` and `tests/unit/db/exam-publish.test.ts` for relationship-based authorization and role-independent publish access.
+- [ ] T059 [US4] Update the visual fixtures in `tests/visual/student-exam-submit.spec.ts` and `tests/visual/student-exam-offline.spec.ts` to establish the required group membership and group permission relationships.
+- [ ] T060 [US1] Rename obsolete add-by-email labels/assertions in the invitation redemption tests to match invitation-only membership creation.
+- [ ] T061 [US1] Rebaseline the affected `tests/visual/admin-groups.spec.ts` snapshots after the email-add flow is removed.
+- [ ] T062 [US4] Add a regression test proving signup still succeeds after EXECUTE is revoked from the intended identity functions.
+- [ ] T063 [US4] Test authenticated and anon denial of `exam_attempts.access_token` and `select=*`, while preserving the exam owner's safe-column read; cover participant/owner and unrelated callers.
+- [ ] T064 [US4] Add a cron success assertion using `cron.job_run_details` after the authorization cutover.
+- [ ] T065 [US4] Test INSERT-only `ON CONFLICT DO NOTHING` upsert behavior for the owner on `exam_permissions(exam_id, group_id)` without UPDATE privilege.
+- [ ] T066 [US4] Expand the self-promotion probe to the full role, resource, lookup, invitation, attempt, and result denial matrix.
+- [ ] T067 [US1] Test invitation redemption by a user who owns an exam in a different context.
+- [ ] T068 [US4] Remove the dead `serviceClient()` export from `supabase/functions/_shared/http.ts` after confirming no remaining consumers.
+- [ ] T069 [US1] Remove orphan exam-permissions and `admin.groups` add/search i18n keys from `src/locales/en.json` and `src/locales/ar.json` after checking all consumers.
+- [ ] T070 [US1] Migrate group/exam owner field use from `admin_id` to `owner_id` in `group-service` createGroup, `exam-service`, `types.ts`, and attempt test fixtures before migration 0018; coordinate with T039/T043.
+
+**Known limitations to carry forward**: Changes to `groups.owner_id` and `exams.owner_id` are not guarded by triggers, which is a future risk for courses. The final cron assertion reads `cron.job`, so applying 0017 requires `pg_cron`. The ExamPermissions picker has a UX gap when no ungranted groups remain.
+
+**Apply gate**: Do not apply 0017 until T027/T028 code, all required updated tests, and all six T031 gap tests (T062–T067) exist. Apply only after a database backup and explicit user approval.
 
 ---
 
