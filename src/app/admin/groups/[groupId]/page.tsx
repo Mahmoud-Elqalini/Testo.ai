@@ -5,10 +5,9 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import GroupInvitation from '@/components/admin/GroupInvitation'
 import { useTranslation } from '@/lib/i18n/use-translation'
-import { addStudentToGroup, getGroup, listGroupStudents, removeStudentFromGroup, searchStudentsByEmail, type GroupStudent } from '@/lib/services/group-service'
+import { getGroup, listGroupStudents, removeStudentFromGroup, type GroupStudent } from '@/lib/services/group-service'
 import type { Group } from '@/lib/types'
 
 export default function AdminGroupDetailPage() {
@@ -16,8 +15,6 @@ export default function AdminGroupDetailPage() {
   const { t } = useTranslation()
   const [group, setGroup] = useState<Group | null>(null)
   const [members, setMembers] = useState<GroupStudent[]>([])
-  const [email, setEmail] = useState('')
-  const [match, setMatch] = useState<GroupStudent | null>(null)
   const [loading, setLoading] = useState(true)
   const [working, setWorking] = useState(false)
   const [message, setMessage] = useState('')
@@ -31,28 +28,9 @@ export default function AdminGroupDetailPage() {
 
   useEffect(() => { void Promise.resolve().then(refresh) }, [groupId]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function lookup(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setWorking(true); setMessage(''); setMatch(null)
-    const result = await searchStudentsByEmail(email)
-    if (result.error) setMessage(t('admin.groups.searchError'))
-    else if (!result.data?.length) setMessage(t('admin.groups.noStudent'))
-    else if (members.some(({ id }) => id === result.data![0].id)) setMessage(t('admin.groups.alreadyMember'))
-    else setMatch(result.data[0])
-    setWorking(false)
-  }
-
-  async function add(student: GroupStudent) {
+  async function remove(memberId: string) {
     setWorking(true); setMessage('')
-    const result = await addStudentToGroup(groupId, student.id)
-    if (result.error) setMessage(t('admin.groups.memberChangeError'))
-    else { setEmail(''); setMatch(null); await refresh() }
-    setWorking(false)
-  }
-
-  async function remove(studentId: string) {
-    setWorking(true); setMessage('')
-    const result = await removeStudentFromGroup(groupId, studentId)
+    const result = await removeStudentFromGroup(groupId, memberId)
     if (result.error) setMessage(t('admin.groups.memberChangeError'))
     else await refresh()
     setWorking(false)
@@ -65,16 +43,7 @@ export default function AdminGroupDetailPage() {
         <div><Link href="/admin/groups" className="text-sm text-primary-text hover:underline dark:text-primary-text">{t('common.backArrow')} {t('admin.groups.title')}</Link><h1 className="mt-3 text-3xl font-bold">{group?.name ?? t('admin.groups.notFound')}</h1><p className="mt-2 text-muted dark:text-muted">{t('admin.groups.members')} ({members.length})</p></div>
         <Link href="/admin/groups"><Button variant="secondary">{t('common.back')}</Button></Link>
       </header>
-      <Card className="space-y-4 p-5">
-        <h2 className="text-lg font-semibold">{t('admin.groups.addStudent')}</h2>
-        <form className="flex flex-col gap-3 sm:flex-row" onSubmit={(event) => void lookup(event)}>
-          <label htmlFor="student-email" className="sr-only">{t('admin.groups.email')}</label>
-          <Input id="student-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder={t('admin.groups.email')} required />
-          <Button type="submit" loading={working}>{t('admin.groups.search')}</Button>
-        </form>
-        {match && <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-surface-soft p-4 dark:bg-surface-soft"><p><span className="font-semibold">{match.full_name || match.email}</span><span className="ms-2 text-sm text-muted dark:text-muted">{match.email}</span></p><Button type="button" loading={working} onClick={() => void add(match)}>{t('admin.groups.add')}</Button></div>}
-        {message && <p role="alert" className="text-sm text-danger-text dark:text-danger-text">{message}</p>}
-      </Card>
+      {message && <p role="alert" className="text-sm text-danger-text dark:text-danger-text">{message}</p>}
       {group && <GroupInvitation groupId={groupId} />}
       {members.length === 0 ? <Card className="p-8 text-center text-muted dark:text-muted">{t('admin.groups.noMembers')}</Card> :
         <ul className="grid gap-3">{members.map((member) => <li key={member.id}><Card className="flex flex-wrap items-center justify-between gap-3 p-4"><p><span className="font-medium">{member.full_name || member.email}</span><span className="ms-2 text-sm text-muted dark:text-muted">{member.email}</span></p><Button type="button" variant="ghost" loading={working} onClick={() => void remove(member.id)}>{t('admin.groups.remove')}</Button></Card></li>)}</ul>}
