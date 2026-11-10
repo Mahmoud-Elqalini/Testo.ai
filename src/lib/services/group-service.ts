@@ -6,6 +6,7 @@ import type { ServiceResult } from './exam-service'
 
 export interface GroupStudent { id: string; email: string; full_name: string }
 export interface JoinedGroup { group_id: string; group_name: string }
+export interface AssociatedParticipant { id: string; display_name: string }
 
 function validationError(message: string): TestoError {
   return { code: 'validation_error', message }
@@ -51,34 +52,38 @@ export async function getGroup(groupId: string): Promise<ServiceResult<Group | n
   } catch (error) { return { data: null, error: normalizeError(error) } }
 }
 
-export async function searchStudentsByEmail(email: string): Promise<ServiceResult<GroupStudent[]>> {
+export async function lookupAssociatedParticipant(contextKind: 'group' | 'exam', contextId: string, email: string): Promise<ServiceResult<AssociatedParticipant[]>> {
   const normalizedEmail = typeof email === 'string' ? email.trim() : ''
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-    return { data: null, error: validationError('Enter a complete student email address.') }
+    return { data: null, error: validationError('Enter a complete email address.') }
   }
   try {
-    const { data, error } = await createClient().rpc('search_student_by_email', { search_email: normalizedEmail })
+    const { data, error } = await createClient().rpc('lookup_associated_participant', {
+      p_context_kind: contextKind,
+      p_context_id: contextId,
+      p_email: normalizedEmail,
+    })
     if (error) throw error
-    return { data: (data ?? []) as GroupStudent[], error: null }
+    return { data: (data ?? []) as AssociatedParticipant[], error: null }
   } catch (error) { return { data: null, error: normalizeError(error) } }
 }
 
 export async function listGroupStudents(groupId: string): Promise<ServiceResult<GroupStudent[]>> {
   if (!groupId) return { data: null, error: validationError('Group id is required.') }
   try {
-    const { data, error } = await createClient().rpc('list_group_students', { target_group_id: groupId })
+    const { data, error } = await createClient().rpc('list_associated_participants', {
+      p_context_kind: 'group',
+      p_context_id: groupId,
+    })
     if (error) throw error
-    return { data: (data ?? []) as GroupStudent[], error: null }
-  } catch (error) { return { data: null, error: normalizeError(error) } }
-}
-
-export async function addStudentToGroup(groupId: string, studentId: string): Promise<ServiceResult<boolean>> {
-  if (!groupId || !studentId) return { data: null, error: validationError('Group and student are required.') }
-  try {
-    const { error } = await createClient().from('group_students')
-      .upsert({ group_id: groupId, student_id: studentId }, { onConflict: 'group_id,student_id', ignoreDuplicates: true })
-    if (error) throw error
-    return { data: true, error: null }
+    return {
+      data: ((data ?? []) as Array<{ id: string; display_name: string; email: string }>).map(({ id, display_name, email }) => ({
+        id,
+        email,
+        full_name: display_name,
+      })),
+      error: null,
+    }
   } catch (error) { return { data: null, error: normalizeError(error) } }
 }
 
