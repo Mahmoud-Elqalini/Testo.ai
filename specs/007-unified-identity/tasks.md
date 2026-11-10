@@ -93,19 +93,19 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [ ] T055 [US4] Update `tests/unit/db/sweep-expired-attempts.test.ts` for the post-0017 contract; invoke the cron database operation through a PostgreSQL connection, not `service_role`.
 - [ ] T056 [US1] Update `tests/unit/services/exam-permissions.test.ts` for group-only permission list, grant, revoke, and picker behavior.
 - [ ] T057 [US1] Update `tests/unit/services/group.test.ts` for invitation-only membership creation and the current group service contract.
-- [ ] T058 [US4] Update `tests/unit/db/privilege-escalation.test.ts` and `tests/unit/db/exam-publish.test.ts` for relationship-based authorization and role-independent publish access.
+- [ ] T058 [US4] Update `tests/unit/services/privilege-escalation.test.ts` and `tests/unit/services/exam-publish.test.ts` for relationship-based authorization and role-independent publish access.
 - [ ] T059 [US4] Update the visual fixtures in `tests/visual/student-exam-submit.spec.ts` and `tests/visual/student-exam-offline.spec.ts` to establish the required group membership and group permission relationships.
 - [ ] T060 [US1] Rename obsolete add-by-email labels/assertions in the invitation redemption tests to match invitation-only membership creation.
 - [ ] T061 [US1] Rebaseline the affected `tests/visual/admin-groups.spec.ts` snapshots after the email-add flow is removed.
-- [ ] T062 [US4] Add a regression test proving signup still succeeds after EXECUTE is revoked from the intended identity functions.
-- [ ] T063 [US4] Test authenticated and anon denial of `exam_attempts.access_token` and `select=*`, while preserving the exam owner's safe-column read; cover participant/owner and unrelated callers.
+- [ ] T062 [US4] Add a regression test proving signup still succeeds (the auth.users trigger still creates the profile) after EXECUTE is revoked from `public.fn_create_profile_on_signup()`.
+- [ ] T063 [US4] Test authenticated and anon denial of `exam_attempts.access_token` and `select=*`, while preserving the exam owner's safe-column read; cover participant/owner and unrelated callers. Anon/authenticated denial must assert permission-denied (SQLSTATE 42501), not just any error; T066 must include an explicit owner self-exam denial case.
 - [ ] T064 [US4] Add a cron success assertion using `cron.job_run_details` after the authorization cutover.
 - [ ] T065 [US4] Test INSERT-only `ON CONFLICT DO NOTHING` upsert behavior for the owner on `exam_permissions(exam_id, group_id)` without UPDATE privilege.
 - [ ] T066 [US4] Expand the self-promotion probe to the full role, resource, lookup, invitation, attempt, and result denial matrix.
 - [ ] T067 [US1] Test invitation redemption by a user who owns an exam in a different context.
 - [ ] T068 [US4] Remove the dead `serviceClient()` export from `supabase/functions/_shared/http.ts` after confirming no remaining consumers.
 - [ ] T069 [US1] Remove orphan exam-permissions and `admin.groups` add/search i18n keys from `src/locales/en.json` and `src/locales/ar.json` after checking all consumers.
-- [ ] T070 [US1] Migrate group/exam owner field use from `admin_id` to `owner_id` in `group-service` createGroup, `exam-service`, `types.ts`, and attempt test fixtures before migration 0018; coordinate with T039/T043.
+- [ ] T070 [US1] Migrate group/exam owner field use from `admin_id` to `owner_id` in `group-service` createGroup, `exam-service`, `types.ts`, and attempt test fixtures before migration 0018; coordinate with T039/T043. (`src/lib/services/group-service.ts:23`, `src/lib/services/exam-service.ts:71`, `src/lib/types.ts:24,38`)
 
 **Known limitations to carry forward**: Changes to `groups.owner_id` and `exams.owner_id` are not guarded by triggers, which is a future risk for courses. The final cron assertion reads `cron.job`, so applying 0017 requires `pg_cron`. The ExamPermissions picker has a UX gap when no ungranted groups remain.
 
