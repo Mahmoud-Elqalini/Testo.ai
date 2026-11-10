@@ -8,6 +8,88 @@ SET LOCAL ROLE authenticated;
 -- Stable 007 fixture identities: owner A, owner B, participant A, unrelated.
 SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000001',true);
 
+-- T063: the exam owner can select only the approved attempt columns, while
+-- access_token and a PostgREST-style select=* are denied with SQLSTATE 42501.
+SELECT 'CASE_RESULT|cutover.attempt.safe_columns.owner_allow|' || CASE WHEN EXISTS (
+  SELECT id, exam_id, student_id, status, started_at, finished_at, session_id
+  FROM public.exam_attempts
+  WHERE id='e7000000-0000-4000-8000-000000000001'
+) THEN 'PASS' ELSE 'FAIL' END || '|exam owner can read the approved attempt columns';
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000003',true);
+SELECT 'CASE_RESULT|cutover.attempt.safe_columns.participant_allow|' || CASE WHEN (
+  SELECT count(*) FROM (
+    SELECT id, exam_id, student_id, status, started_at, finished_at, session_id
+    FROM public.exam_attempts
+    WHERE id='e7000000-0000-4000-8000-000000000001'
+  ) AS own_attempt
+) = 1 THEN 'PASS' ELSE 'FAIL' END || '|participant can read exactly one row for their own attempt using only safe columns';
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);
+SELECT 'CASE_RESULT|cutover.attempt.safe_columns.unrelated_deny|' || CASE WHEN (
+  SELECT count(*) FROM (
+    SELECT id, exam_id, student_id, status, started_at, finished_at, session_id
+    FROM public.exam_attempts
+    WHERE id='e7000000-0000-4000-8000-000000000001'
+  ) AS another_participant_attempt
+) = 0 THEN 'PASS' ELSE 'FAIL' END || '|unrelated authenticated user cannot see another participant attempt through RLS';
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000001',true);
+DO $$
+DECLARE
+  v_access_token_denied boolean := false;
+  v_select_star_denied boolean := false;
+  v_attempt record;
+BEGIN
+  BEGIN
+    EXECUTE 'SELECT access_token FROM public.exam_attempts WHERE id = ''e7000000-0000-4000-8000-000000000001'' LIMIT 1'
+      INTO v_attempt;
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    v_access_token_denied := true;
+  END;
+  BEGIN
+    EXECUTE 'SELECT * FROM public.exam_attempts WHERE id = ''e7000000-0000-4000-8000-000000000001'' LIMIT 1'
+      INTO v_attempt;
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    v_select_star_denied := true;
+  END;
+  IF NOT v_access_token_denied OR NOT v_select_star_denied THEN
+    RAISE EXCEPTION 'T063 authenticated owner expected SQLSTATE 42501 for access_token and select=* (42501)';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.attempt.access_token.authenticated_deny|PASS|authenticated owner receives SQLSTATE 42501 for access_token';
+  RAISE NOTICE 'CASE_RESULT|cutover.attempt.select_star.authenticated_deny|PASS|authenticated owner receives SQLSTATE 42501 for select=*';
+END;
+$$;
+
+RESET ROLE;
+SET LOCAL ROLE anon;
+SELECT set_config('request.jwt.claim.sub','',true);
+DO $$
+DECLARE
+  v_access_token_denied boolean := false;
+  v_select_star_denied boolean := false;
+  v_attempt record;
+BEGIN
+  BEGIN
+    EXECUTE 'SELECT access_token FROM public.exam_attempts WHERE id = ''e7000000-0000-4000-8000-000000000001'' LIMIT 1'
+      INTO v_attempt;
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    v_access_token_denied := true;
+  END;
+  BEGIN
+    EXECUTE 'SELECT * FROM public.exam_attempts WHERE id = ''e7000000-0000-4000-8000-000000000001'' LIMIT 1'
+      INTO v_attempt;
+  EXCEPTION WHEN SQLSTATE '42501' THEN
+    v_select_star_denied := true;
+  END;
+  IF NOT v_access_token_denied OR NOT v_select_star_denied THEN
+    RAISE EXCEPTION 'T063 anon expected SQLSTATE 42501 for access_token and select=* (42501)';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.attempt.access_token.anon_deny|PASS|anon receives SQLSTATE 42501 for access_token';
+  RAISE NOTICE 'CASE_RESULT|cutover.attempt.select_star.anon_deny|PASS|anon receives SQLSTATE 42501 for select=*';
+END;
+$$;
+RESET ROLE;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000001',true);
+
 SELECT 'CASE_RESULT|cutover.group.owner_select|' || CASE WHEN EXISTS (
   SELECT 1 FROM public.groups WHERE id='b7000000-0000-4000-8000-000000000001'
 ) THEN 'PASS' ELSE 'FAIL' END || '|group owner can still read owned group';
@@ -63,6 +145,25 @@ BEGIN
       RAISE EXCEPTION 'T024 expected invitation redemption to create participant membership';
     END IF;
     RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.membership_allow|PASS|invitation redemption creates membership for authenticated user';
+
+    -- Owner B owns another exam and must still be able to join owner A's group.
+    PERFORM set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000002',true);
+    IF NOT EXISTS (
+      SELECT 1 FROM public.exams
+      WHERE id='c7000000-0000-4000-8000-000000000002'
+        AND owner_id='a7000000-0000-4000-8000-000000000002'
+    ) THEN
+      RAISE EXCEPTION 'T067 fixture owner must own a different exam';
+    END IF;
+    v_result := public.redeem_group_invitation(v_code);
+    IF (v_result->>'success')::boolean IS DISTINCT FROM true OR NOT EXISTS (
+      SELECT 1 FROM public.group_students
+      WHERE group_id='b7000000-0000-4000-8000-000000000001'
+        AND student_id='a7000000-0000-4000-8000-000000000002'
+    ) THEN
+      RAISE EXCEPTION 'T067 expected user who owns another exam to redeem this group invitation';
+    END IF;
+    RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.exam_owner_elsewhere_allow|PASS|user who owns another exam can redeem this group invitation';
   END IF;
 END;
 $$;
@@ -92,6 +193,31 @@ BEGIN
   END;
 END;
 $$;
+RESET ROLE;
+ALTER TABLE public.profiles DISABLE TRIGGER trg_protect_profile_role;
+UPDATE public.profiles SET role='admin'::public.user_role
+WHERE id='a7000000-0000-4000-8000-000000000003';
+ALTER TABLE public.profiles ENABLE TRIGGER trg_protect_profile_role;
+SELECT 'CASE_RESULT|cutover.self_promotion.role_fixture|' || CASE WHEN EXISTS (
+  SELECT 1 FROM public.profiles
+  WHERE id='a7000000-0000-4000-8000-000000000003' AND role='admin'::public.user_role
+) THEN 'PASS' ELSE 'FAIL' END || '|self-promotion probe uses an account whose stored role is admin';
+
+-- T066 explicit owner self-exam denial for the promoted account.
+SELECT gen_random_uuid() AS promoted_owner_exam_id \gset
+SELECT gen_random_uuid() AS promoted_owner_attempt_id \gset
+INSERT INTO public.exams (id, title, start_time, duration_minutes, admin_id, owner_id, is_published)
+VALUES (:'promoted_owner_exam_id', 'T066 promoted owner self-exam', now() - interval '1 minute', 30,
+        'a7000000-0000-4000-8000-000000000003', 'a7000000-0000-4000-8000-000000000003', true);
+INSERT INTO public.exam_attempts (id, exam_id, student_id, access_token, status)
+VALUES (:'promoted_owner_attempt_id', :'promoted_owner_exam_id',
+        'a7000000-0000-4000-8000-000000000003', 't066-promoted-owner-self-exam', 'pending');
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000003',true);
+SELECT 'CASE_RESULT|cutover.self_promotion.owner_self_exam_deny|' || CASE WHEN
+  (public.fn_start_attempt(:'promoted_owner_attempt_id'::uuid,gen_random_uuid())->>'denial_reason') = 'owner_mismatch'
+  THEN 'PASS' ELSE 'FAIL' END || '|self-promoted account cannot start its own exam';
+
 SELECT 'CASE_RESULT|cutover.self_promotion.group_deny|' || CASE WHEN NOT EXISTS (
   SELECT 1 FROM public.groups WHERE id='b7000000-0000-4000-8000-000000000001'
 ) THEN 'PASS' ELSE 'FAIL' END || '|role promotion does not grant another owner group access';
@@ -115,6 +241,18 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege THEN
     RAISE NOTICE 'CASE_RESULT|cutover.self_promotion.invitation_create_deny|PASS|role promotion does not grant invitation creation';
   END;
+  BEGIN
+    PERFORM public.rotate_group_invitation('b7000000-0000-4000-8000-000000000001');
+    RAISE EXCEPTION 'T066 expected non-owner invitation rotation denial';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'CASE_RESULT|cutover.self_promotion.invitation_rotate_deny|PASS|role promotion does not grant invitation rotation';
+  END;
+  BEGIN
+    PERFORM public.revoke_group_invitation('b7000000-0000-4000-8000-000000000001');
+    RAISE EXCEPTION 'T066 expected non-owner invitation revocation denial';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'CASE_RESULT|cutover.self_promotion.invitation_revoke_deny|PASS|role promotion does not grant invitation revocation';
+  END;
 END;
 $$;
 SELECT 'CASE_RESULT|cutover.self_promotion.attempt_deny|' || CASE WHEN
@@ -128,6 +266,29 @@ SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000001'
 SELECT 'CASE_RESULT|cutover.owner.self_exam_deny|' || CASE WHEN
   (public.fn_start_attempt('e7000000-0000-4000-8000-000000000099','a7000000-0000-4000-8000-000000000098')->>'denial_reason') IS NOT NULL
   THEN 'PASS' ELSE 'FAIL' END || '|exam owner cannot start their own exam';
+
+-- T065: ON CONFLICT DO NOTHING must work for the owner using INSERT alone.
+RESET ROLE;
+REVOKE UPDATE (exam_id, group_id) ON TABLE public.exam_permissions FROM authenticated;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000001',true);
+SELECT 'CASE_RESULT|cutover.exam_permissions.owner_no_update_privilege|' || CASE WHEN
+  NOT has_column_privilege('authenticated','public.exam_permissions','exam_id','UPDATE') AND
+  NOT has_column_privilege('authenticated','public.exam_permissions','group_id','UPDATE')
+  THEN 'PASS' ELSE 'FAIL' END || '|authenticated owner has no UPDATE privilege for the insert-only conflict probe';
+DO $$
+DECLARE v_rows integer;
+BEGIN
+  INSERT INTO public.exam_permissions (exam_id, group_id)
+  VALUES ('c7000000-0000-4000-8000-000000000001','b7000000-0000-4000-8000-000000000001')
+  ON CONFLICT (exam_id, group_id) DO NOTHING;
+  GET DIAGNOSTICS v_rows = ROW_COUNT;
+  IF v_rows <> 0 THEN
+    RAISE EXCEPTION 'T065 expected duplicate permission insert to do nothing (0 inserted rows)';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.exam_permissions.insert_only_conflict_noop|PASS|owner INSERT ON CONFLICT DO NOTHING succeeds without UPDATE privilege';
+END;
+$$;
 
 -- Unrelated caller must not see another participant's attempts/results.
 SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);

@@ -54,3 +54,27 @@ SELECT 'CASE_RESULT|catalog.internal_helpers_no_public_execute|' || CASE WHEN NO
       WHERE acl.grantee=0 AND acl.privilege_type='EXECUTE'
     )
 ) THEN 'PASS' ELSE 'FAIL' END || '|internal helpers have PUBLIC execution revoked';
+
+-- T062: revoking direct EXECUTE must not prevent PostgreSQL from invoking the
+-- signup trigger function when auth.users receives a new account row.
+BEGIN;
+REVOKE EXECUTE ON FUNCTION public.fn_create_profile_on_signup()
+  FROM PUBLIC, anon, authenticated, service_role;
+SELECT gen_random_uuid() AS signup_revoked_test_id \gset
+SELECT 'CASE_RESULT|signup.profile_trigger_execute_revoked|' || CASE WHEN
+  NOT has_function_privilege('anon', 'public.fn_create_profile_on_signup()', 'EXECUTE')
+  AND NOT has_function_privilege('authenticated', 'public.fn_create_profile_on_signup()', 'EXECUTE')
+  AND NOT has_function_privilege('service_role', 'public.fn_create_profile_on_signup()', 'EXECUTE')
+  THEN 'PASS' ELSE 'FAIL' END || '|client and service roles cannot directly execute the signup trigger function';
+INSERT INTO auth.users (id, instance_id, aud, role, email, encrypted_password, email_confirmed_at,
+                        raw_app_meta_data, raw_user_meta_data, created_at, updated_at, is_super_admin,
+                        confirmation_token, recovery_token, email_change_token_new, email_change)
+VALUES (:'signup_revoked_test_id', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+        'signup-revoked-' || :'signup_revoked_test_id' || '@example.test',
+        crypt('LocalOnly-007-signup-revoked!', gen_salt('bf')), now(),
+        '{"provider":"email","providers":["email"]}', '{"full_name":"Signup Revoked Probe"}',
+        now(), now(), false, '', '', '', '');
+SELECT 'CASE_RESULT|signup.profile_created_after_execute_revoke|' || CASE WHEN EXISTS (
+  SELECT 1 FROM public.profiles WHERE id = :'signup_revoked_test_id'::uuid
+) THEN 'PASS' ELSE 'FAIL' END || '|auth.users insert trigger creates the profile after direct EXECUTE is revoked';
+ROLLBACK;
