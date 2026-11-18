@@ -19,8 +19,13 @@ function runPostgresSql(sql: string): string {
 describe('expired-attempt sweep (local Supabase)', () => {
   let fixtures: Array<Awaited<ReturnType<typeof createAttemptFixture>>> = []
   afterEach(async () => {
-    await Promise.all(fixtures.map((fixture) => fixture.cleanup()))
+    const fixturesToClean = fixtures
     fixtures = []
+    const results = await Promise.allSettled(fixturesToClean.map((fixture) => fixture.cleanup()))
+    const cleanupErrors = results.flatMap((result) => result.status === 'rejected' ? [result.reason] : [])
+    if (cleanupErrors.length > 0) {
+      throw new AggregateError(cleanupErrors, `Cleanup failed for ${cleanupErrors.length} fixture(s)`)
+    }
   }, 60_000)
 
   it('auto-submits expired in-progress attempts and records the finish time', async () => {
@@ -52,6 +57,41 @@ describe('expired-attempt sweep (local Supabase)', () => {
     runPostgresSql('SELECT public.fn_sweep_expired_attempts();')
     const { data: attempt } = await adminClient.from('exam_attempts').select('status,finished_at').eq('id', fixture.attemptId).single()
     expect(attempt).toMatchObject({ status: 'in_progress', finished_at: null })
+  }, 30_000)
+
+  it('protects in-progress group access until the attempt is deleted', async () => {
+    const fixture = await createAttemptFixture({ status: 'in_progress', sessionId: crypto.randomUUID() })
+    fixtures.push(fixture)
+
+    const permissionDeleteWhileInProgress = await adminClient
+      .from('exam_permissions')
+      .delete()
+      .eq('exam_id', fixture.examId)
+    expect(permissionDeleteWhileInProgress.error?.code).toBe('23514')
+
+    const membershipDeleteWhileInProgress = await adminClient
+      .from('group_students')
+      .delete()
+      .eq('student_id', fixture.student.userId)
+    expect(membershipDeleteWhileInProgress.error?.code).toBe('23514')
+
+    const { error: attemptDeleteError } = await adminClient
+      .from('exam_attempts')
+      .delete()
+      .eq('id', fixture.attemptId)
+    expect(attemptDeleteError).toBeNull()
+
+    const permissionDeleteAfterAttempt = await adminClient
+      .from('exam_permissions')
+      .delete()
+      .eq('exam_id', fixture.examId)
+    expect(permissionDeleteAfterAttempt.error).toBeNull()
+
+    const membershipDeleteAfterAttempt = await adminClient
+      .from('group_students')
+      .delete()
+      .eq('student_id', fixture.student.userId)
+    expect(membershipDeleteAfterAttempt.error).toBeNull()
   }, 30_000)
 
   it('does not allow an authenticated client to invoke the privileged sweep', async () => {

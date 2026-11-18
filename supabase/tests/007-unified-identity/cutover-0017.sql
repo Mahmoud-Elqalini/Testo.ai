@@ -112,7 +112,6 @@ SELECT 'CASE_RESULT|cutover.group_students.no_client_insert|' || CASE WHEN
   THEN 'PASS' ELSE 'FAIL' END || '|anon and authenticated have no direct INSERT/UPDATE privilege';
 
 DO $$
-DECLARE v_code text; v_result jsonb;
 BEGIN
   BEGIN
     INSERT INTO public.group_students(group_id,student_id)
@@ -128,45 +127,113 @@ BEGIN
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     NULL;
   END;
+END;
+$$;
 
-  -- Invitation redemption is the sole client path that creates membership.
-  v_code := public.create_group_invitation('b7000000-0000-4000-8000-000000000001')->>'code';
-  IF v_code IS NOT NULL THEN
-    IF (public.redeem_group_invitation(v_code)->>'success')::boolean IS DISTINCT FROM false THEN
-      RAISE EXCEPTION 'T024 expected group owner invitation self-join denial';
-    END IF;
-    PERFORM set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);
-    v_result := public.redeem_group_invitation(v_code);
-    IF (v_result->>'success')::boolean IS DISTINCT FROM true OR NOT EXISTS (
-      SELECT 1 FROM public.group_students
-      WHERE group_id='b7000000-0000-4000-8000-000000000001'
-        AND student_id='a7000000-0000-4000-8000-000000000004'
-    ) THEN
-      RAISE EXCEPTION 'T024 expected invitation redemption to create participant membership';
-    END IF;
-    RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.membership_allow|PASS|invitation redemption creates membership for authenticated user';
-
-    -- Owner B owns another exam and must still be able to join owner A's group.
-    PERFORM set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000002',true);
-    IF NOT EXISTS (
-      SELECT 1 FROM public.exams
-      WHERE id='c7000000-0000-4000-8000-000000000002'
-        AND owner_id='a7000000-0000-4000-8000-000000000002'
-    ) THEN
-      RAISE EXCEPTION 'T067 fixture owner must own a different exam';
-    END IF;
-    v_result := public.redeem_group_invitation(v_code);
-    IF (v_result->>'success')::boolean IS DISTINCT FROM true OR NOT EXISTS (
-      SELECT 1 FROM public.group_students
-      WHERE group_id='b7000000-0000-4000-8000-000000000001'
-        AND student_id='a7000000-0000-4000-8000-000000000002'
-    ) THEN
-      RAISE EXCEPTION 'T067 expected user who owns another exam to redeem this group invitation';
-    END IF;
-    RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.exam_owner_elsewhere_allow|PASS|user who owns another exam can redeem this group invitation';
+-- Invitation redemption is the sole client path that creates membership.
+SELECT public.create_group_invitation('b7000000-0000-4000-8000-000000000001')->>'code' AS t024_code \gset
+SELECT (public.redeem_group_invitation(:'t024_code')->>'success')::boolean IS FALSE AS t024_owner_denied \gset
+\if :t024_owner_denied
+\echo CASE_RESULT|cutover.invitation_redemption.owner_self_join_deny|PASS|group owner cannot redeem own invitation
+\else
+\echo CASE_RESULT|cutover.invitation_redemption.owner_self_join_deny|FAIL|T024 expected group owner invitation self-join denial
+\quit 3
+\endif
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);
+SELECT public.redeem_group_invitation(:'t024_code') AS t024_result \gset
+SELECT 'CASE_RESULT|cutover.invitation_redemption.membership_allow|' || CASE WHEN
+  (:'t024_result'::jsonb->>'success')::boolean IS TRUE AND EXISTS (
+    SELECT 1 FROM public.list_my_joined_groups()
+    WHERE group_id='b7000000-0000-4000-8000-000000000001'
+  ) THEN 'PASS' ELSE 'FAIL' END || '|invitation redemption creates membership visible through list_my_joined_groups';
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.list_my_joined_groups()
+    WHERE group_id='b7000000-0000-4000-8000-000000000001'
+  ) THEN
+    RAISE EXCEPTION 'T024 expected invitation redemption to create participant membership';
   END IF;
 END;
 $$;
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.group_students
+      WHERE group_id='b7000000-0000-4000-8000-000000000001'
+        AND student_id='a7000000-0000-4000-8000-000000000004') <> 0 THEN
+    RAISE EXCEPTION 'T024 expected member direct SELECT to return zero group_students rows';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.group_students.member_no_peer_visibility|PASS|member cannot directly read their membership row (FR-008)';
+END;
+$$;
+RESET ROLE;
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.group_students
+      WHERE group_id='b7000000-0000-4000-8000-000000000001'
+        AND student_id='a7000000-0000-4000-8000-000000000004') <> 1 THEN
+    RAISE EXCEPTION 'T024 expected exactly one participant membership row';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.membership_row_count_allow|PASS|exactly one participant membership row exists';
+END;
+$$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);
+
+-- Owner B owns another exam and must still be able to join owner A's group.
+RESET ROLE;
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.exams
+    WHERE id='c7000000-0000-4000-8000-000000000002'
+      AND owner_id='a7000000-0000-4000-8000-000000000002'
+  ) THEN
+    RAISE EXCEPTION 'T067 fixture owner must own a different exam';
+  END IF;
+END;
+$$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000004',true);
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.exams
+      WHERE id='c7000000-0000-4000-8000-000000000002') <> 0 THEN
+    RAISE EXCEPTION 'T067 redeemer must not directly see another owner exam';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.exam.cross_owner_deny_for_redeemer|PASS|redeemer cannot directly select another owner exam through RLS';
+END;
+$$;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000002',true);
+SELECT public.redeem_group_invitation(:'t024_code') AS t067_result \gset
+SELECT 'CASE_RESULT|cutover.invitation_redemption.exam_owner_elsewhere_allow|' || CASE WHEN
+  (:'t067_result'::jsonb->>'success')::boolean IS TRUE AND EXISTS (
+    SELECT 1 FROM public.list_my_joined_groups()
+    WHERE group_id='b7000000-0000-4000-8000-000000000001'
+  ) THEN 'PASS' ELSE 'FAIL' END || '|user who owns another exam can redeem this group invitation';
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM public.list_my_joined_groups()
+    WHERE group_id='b7000000-0000-4000-8000-000000000001'
+  ) THEN
+    RAISE EXCEPTION 'T067 expected user who owns another exam to redeem this group invitation';
+  END IF;
+END;
+$$;
+RESET ROLE;
+DO $$
+BEGIN
+  IF (SELECT count(*) FROM public.group_students
+      WHERE group_id='b7000000-0000-4000-8000-000000000001'
+        AND student_id='a7000000-0000-4000-8000-000000000002') <> 1 THEN
+    RAISE EXCEPTION 'T067 expected exactly one group membership row';
+  END IF;
+  RAISE NOTICE 'CASE_RESULT|cutover.invitation_redemption.exam_owner_elsewhere_row_count_allow|PASS|exactly one owner B membership row exists';
+END;
+$$;
+SET LOCAL ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000002',true);
 
 -- Create one disposable owner-as-exam-taker row as trusted test setup. This
 -- proves the owner cannot start their own exam and gives the promoted account

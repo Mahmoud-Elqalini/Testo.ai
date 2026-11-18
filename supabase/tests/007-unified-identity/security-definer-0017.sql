@@ -23,10 +23,28 @@ SELECT 'CASE_RESULT|catalog.no_callable_legacy_student_id_rpc|' || CASE WHEN NOT
 
 SELECT 'CASE_RESULT|catalog.internal_helpers_not_client_callable|' || CASE WHEN NOT EXISTS (
   SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+  -- supabase_functions.http_request() is Supabase-managed and outside the
+  -- project-owned public/private helper grant contract; it is asserted below.
   WHERE p.prosecdef
+    AND n.nspname IN ('public','private')
     AND (p.prorettype='trigger'::regtype OR p.proname IN ('fn_create_pending_attempts_at_start','fn_sweep_expired_attempts'))
     AND (has_function_privilege('anon',p.oid,'EXECUTE') OR has_function_privilege('authenticated',p.oid,'EXECUTE'))
 ) THEN 'PASS' ELSE 'FAIL' END || '|trigger and scheduled maintenance helpers cannot be called by client roles';
+
+SELECT 'CASE_RESULT|catalog.supabase_managed_trigger_helper_excluded|' || CASE WHEN
+  (SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+   WHERE p.prosecdef
+     AND n.nspname NOT IN ('public','private')
+     AND (p.prorettype='trigger'::regtype OR p.proname IN ('fn_create_pending_attempts_at_start','fn_sweep_expired_attempts'))
+     AND (has_function_privilege('anon',p.oid,'EXECUTE') OR has_function_privilege('authenticated',p.oid,'EXECUTE'))
+  ) = 1
+  AND EXISTS (
+    SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+    WHERE p.oid='supabase_functions.http_request()'::regprocedure
+      AND p.prosecdef AND p.prorettype='trigger'::regtype
+      AND n.nspname='supabase_functions'
+      AND (has_function_privilege('anon',p.oid,'EXECUTE') OR has_function_privilege('authenticated',p.oid,'EXECUTE'))
+  ) THEN 'PASS' ELSE 'FAIL' END || '|only excluded client-executable trigger/maintenance helper is supabase_functions.http_request()';
 
 SELECT 'CASE_RESULT|catalog.no_rls_client_identity_trust|' || CASE WHEN NOT EXISTS (
   SELECT 1 FROM pg_policy pol

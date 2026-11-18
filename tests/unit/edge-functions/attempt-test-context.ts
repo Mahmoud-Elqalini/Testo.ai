@@ -75,14 +75,31 @@ export async function createAttemptFixture(options: {
   return {
     admin, student, examId: exam.id, questionId: question.id, essayQuestionId, attemptId: attempt.id,
     async cleanup() {
-      const { error: permissionCleanupError } = await adminClient.from('exam_permissions').delete().eq('exam_id', exam.id).eq('group_id', group.id)
-      if (permissionCleanupError) throw permissionCleanupError
-      const { error: membershipCleanupError } = await adminClient.from('group_students').delete().eq('group_id', group.id).eq('student_id', student.userId)
-      if (membershipCleanupError) throw membershipCleanupError
-      const { error: groupCleanupError } = await adminClient.from('groups').delete().eq('id', group.id)
-      if (groupCleanupError) throw groupCleanupError
-      await student.cleanup()
-      await admin.cleanup()
+      const cleanupErrors: unknown[] = []
+      const runCleanupStep = async (label: string, step: () => PromiseLike<{ error?: unknown } | void> | { error?: unknown } | void) => {
+        try {
+          const result = await step()
+          if (result?.error) cleanupErrors.push(new Error(`${label} failed`, { cause: result.error }))
+        } catch (error) {
+          cleanupErrors.push(new Error(`${label} failed`, { cause: error }))
+        }
+      }
+
+      await runCleanupStep('Delete fixture answers', () => adminClient.from('answers').delete().eq('attempt_id', attempt.id))
+      await runCleanupStep('Delete fixture attempt', () => adminClient.from('exam_attempts').delete().eq('id', attempt.id))
+      await runCleanupStep('Delete fixture exam permission', () => adminClient.from('exam_permissions').delete().eq('exam_id', exam.id).eq('group_id', group.id))
+      await runCleanupStep('Delete fixture group membership', () => adminClient.from('group_students').delete().eq('group_id', group.id).eq('student_id', student.userId))
+      await runCleanupStep('Delete fixture group', () => adminClient.from('groups').delete().eq('id', group.id))
+      await runCleanupStep('Delete fixture questions', () => adminClient.from('questions').delete().eq('exam_id', exam.id))
+      await runCleanupStep('Delete fixture exam', () => adminClient.from('exams').delete().eq('id', exam.id))
+      await runCleanupStep('Sign out fixture student', () => student.client.auth.signOut())
+      await runCleanupStep('Sign out fixture admin', () => admin.client.auth.signOut())
+      await runCleanupStep('Delete fixture student user', () => adminClient.auth.admin.deleteUser(student.userId))
+      await runCleanupStep('Delete fixture admin user', () => adminClient.auth.admin.deleteUser(admin.userId))
+
+      if (cleanupErrors.length > 0) {
+        throw new AggregateError(cleanupErrors, `Attempt fixture cleanup had ${cleanupErrors.length} error(s)`)
+      }
     },
   }
 }
