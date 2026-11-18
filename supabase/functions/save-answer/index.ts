@@ -1,9 +1,13 @@
-import { callOperation, isUuid, preflight, readJson, validation } from '../_shared/http.ts'
+import { authenticate, callOperation, internalError, isUuid, json, preflight, readJson, validation } from '../_shared/http.ts'
 
 Deno.serve(async (request) => {
   const options = preflight(request)
   if (options) return options
   if (request.method !== 'POST') return validation('POST is required.')
+  let user
+  try { user = await authenticate(request) }
+  catch (error) { return internalError('save-answer', error) }
+  if (!user) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
   const body = await readJson(request)
   if (!body || !isUuid(body.attempt_id) || !isUuid(body.session_id) || !isUuid(body.question_id)) return validation('Valid attempt_id, session_id, and question_id are required.')
   if (!(body.mcq_answer === null || typeof body.mcq_answer === 'string') || !(body.essay_answer === null || typeof body.essay_answer === 'string')) return validation('Both answer fields must be text or null.')
