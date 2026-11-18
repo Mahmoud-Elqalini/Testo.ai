@@ -8,7 +8,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 **Prerequisites**: `plan.md`, `spec.md`, `research.md`, `data-model.md`, `contracts/`, `quickstart.md`
 
-**Organization**: Phase 0 is a hard baseline gate. Subsequent phases follow migrations 0014–0019, with a unified UI phase after the 0017 database cutover and before the final role drop. Every migration phase is test-first, runs the frozen allow/deny cases before and after, performs a catalog scan, and commits its reviewed result.
+**Organization**: Phase 0 is a hard baseline gate. Subsequent phases follow migrations 0014–0021, with the unified UI phase after the 0017 database cutover and before the owner-column and final role drops. Every migration phase is test-first, runs the frozen allow/deny cases before and after, performs a catalog scan, and commits its reviewed result.
 
 **Test discipline**: Tests are required by FR-014–017, Constitution III and VIII. Write behavior/security tests before implementation; record the current schema's existing behavior in Phase 0 even where a future-state assertion is expected to fail against the old schema.
 
@@ -77,8 +77,8 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [X] T027 [US1] Replace the direct `group_students` upsert and email-based add flow with the existing group invitation redemption flow in `src/lib/services/group-service.ts` and `src/app/admin/groups/[groupId]/page.tsx`; retain owner-scoped participant listing and invitation management.
 - [X] T028 [US4] Update `supabase/functions/_shared/http.ts`, `supabase/functions/start-attempt/index.ts`, `supabase/functions/get-exam-questions/index.ts`, `supabase/functions/save-answer/index.ts`, and `supabase/functions/submit-attempt/index.ts` to authenticate and forward the caller JWT to the new RPCs instead of passing `p_student_id` through a service-role call.
 - [X] T029 [US4] Audit existing SECURITY DEFINER functions in migrations `0001_schema.sql` through `0016_profile_projections.sql` only: require fixed safe `search_path` values, schema-qualified references, and direct `auth.uid()` plus ownership/membership checks for every user-callable function; prove internal trigger/cron helpers cannot be called by anon/authenticated and identify unnecessary grants. Record the audit output as the list of functions that migration 0017 (T030) must fix. Complete this audit before T030; T032 remains the full post-0017 catalog audit.
-- [ ] T030 [US4] **Depends on T029.** In the single transaction `supabase/migrations/0017_unified_authorization_cutover.sql`, replace all role-dependent policies, membership/permission rules, profile access, invitation checks, attempt generation and result guards; remove direct student exam permissions; reject owner self-join/self-exam; remove client `group_students` INSERT/UPDATE grants/policies; revoke EXECUTE from PUBLIC/anon/authenticated/service_role and DROP all old `p_student_id` attempt RPC signatures; create only JWT-based attempt RPC signatures (`fn_start_attempt(uuid,uuid)`, `fn_get_exam_questions(uuid,uuid)`, `fn_save_attempt_answer(uuid,uuid,uuid,text,text)`, `fn_submit_attempt(uuid,uuid)`). Keep direct attempt reads as the selected path: grant authenticated SELECT only on `id, exam_id, student_id, status, started_at, finished_at, session_id` (never `access_token`) and add participant-own-attempt and exam-owner RLS policies; do not grant table-wide SELECT or grant these columns to anon.
-- [ ] T031 [US4] Run the frozen matrix against schema 0016 and the full after-state suite immediately after 0017, including direct membership table write denials and invitation allow; verify old RPC signatures are absent and only caller-JWT signatures are callable in `tests/security/007-unified-identity/harness.ts`. Test direct safe-column attempt SELECT allow for the participant's own attempt and its exam owner, deny for another participant and another owner, and confirm `access_token` is unreadable including through `select=*`. Repeat the T024 self-promotion probe and prove no access to another owner's resources, lookup, invitations, attempts, or results.
+- [X] T030 [US4] **Depends on T029.** In the single transaction `supabase/migrations/0017_unified_authorization_cutover.sql`, replace all role-dependent policies, membership/permission rules, profile access, invitation checks, attempt generation and result guards; remove direct student exam permissions; reject owner self-join/self-exam; remove client `group_students` INSERT/UPDATE grants/policies; revoke EXECUTE from PUBLIC/anon/authenticated/service_role and DROP all old `p_student_id` attempt RPC signatures; create only JWT-based attempt RPC signatures (`fn_start_attempt(uuid,uuid)`, `fn_get_exam_questions(uuid,uuid)`, `fn_save_attempt_answer(uuid,uuid,uuid,text,text)`, `fn_submit_attempt(uuid,uuid)`). Keep direct attempt reads as the selected path: grant authenticated SELECT only on `id, exam_id, student_id, status, started_at, finished_at, session_id` (never `access_token`) and add participant-own-attempt and exam-owner RLS policies; do not grant table-wide SELECT or grant these columns to anon.
+- [X] T031 [US4] Run the frozen matrix against schema 0016 and the full after-state suite immediately after 0017, including direct membership table write denials and invitation allow; verify old RPC signatures are absent and only caller-JWT signatures are callable in `tests/security/007-unified-identity/harness.ts`. Test direct safe-column attempt SELECT allow for the participant's own attempt and its exam owner, deny for another participant and another owner, and confirm `access_token` is unreadable including through `select=*`. Repeat the T024 self-promotion probe and prove no access to another owner's resources, lookup, invitations, attempts, or results.
 - [ ] T032 [US4] Rerun the full SECURITY DEFINER/search_path/auth/grant catalog audit after T030, and enumerate every `INSERT INTO group_students` reference; confirm only `redeem_group_invitation` plus test fixture setup inserts membership; record the post-cutover report in `specs/007-unified-identity/security-baseline/0017/`.
 - [ ] T033 [US1] Commit `supabase/migrations/0017_unified_authorization_cutover.sql`, its security tests, `supabase/functions/_shared/http.ts`, the four attempt Edge handlers, and group invitation service/UI changes as one cutover changeset after all tests and catalog scans pass.
 
@@ -90,22 +90,22 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 - [X] T053 [US4] Update `tests/unit/edge-functions/attempt-test-context.ts` to create and clean up group membership plus group-only exam permission for the attempt participant; completed in commit `30de1da`.
 - [X] T054 [US4] Update `tests/unit/db/student-attempt-operations.test.ts` to call the JWT-signature attempt RPCs through the participant client and cover anon, unrelated-user, and exam-owner denials.
-- [ ] T055 [US4] Update `tests/unit/db/sweep-expired-attempts.test.ts` for the post-0017 contract; invoke the cron database operation through a PostgreSQL connection, not `service_role`.
+- [X] T055 [US4] Update `tests/unit/db/sweep-expired-attempts.test.ts` for the post-0017 contract; invoke the cron database operation through a PostgreSQL connection, not `service_role`.
 - [ ] T056 [US1] Update `tests/unit/services/exam-permissions.test.ts` for group-only permission list, grant, revoke, and picker behavior.
 - [ ] T057 [US1] Update `tests/unit/services/group.test.ts` for invitation-only membership creation and the current group service contract.
 - [ ] T058 [US4] Update `tests/unit/services/privilege-escalation.test.ts` and `tests/unit/services/exam-publish.test.ts` for relationship-based authorization and role-independent publish access.
 - [ ] T059 [US4] Update the visual fixtures in `tests/visual/student-exam-submit.spec.ts` and `tests/visual/student-exam-offline.spec.ts` to establish the required group membership and group permission relationships.
 - [ ] T060 [US1] Rename obsolete add-by-email labels/assertions in the invitation redemption tests to match invitation-only membership creation.
 - [ ] T061 [US1] Rebaseline the affected `tests/visual/admin-groups.spec.ts` snapshots after the email-add flow is removed.
-- [ ] T062 [US4] Add a regression test proving signup still succeeds (the auth.users trigger still creates the profile) after EXECUTE is revoked from `public.fn_create_profile_on_signup()`.
-- [ ] T063 [US4] Test authenticated and anon denial of `exam_attempts.access_token` and `select=*`, while preserving the exam owner's safe-column read; cover participant/owner and unrelated callers. Anon/authenticated denial must assert permission-denied (SQLSTATE 42501), not just any error; T066 must include an explicit owner self-exam denial case.
-- [ ] T064 [US4] Add a cron success assertion using `cron.job_run_details` after the authorization cutover.
-- [ ] T065 [US4] Test INSERT-only `ON CONFLICT DO NOTHING` upsert behavior for the owner on `exam_permissions(exam_id, group_id)` without UPDATE privilege.
-- [ ] T066 [US4] Expand the self-promotion probe to the full role, resource, lookup, invitation, attempt, and result denial matrix.
-- [ ] T067 [US1] Test invitation redemption by a user who owns an exam in a different context.
+- [X] T062 [US4] Add a regression test proving signup still succeeds (the auth.users trigger still creates the profile) after EXECUTE is revoked from `public.fn_create_profile_on_signup()`.
+- [X] T063 [US4] Test authenticated and anon denial of `exam_attempts.access_token` and `select=*`, while preserving the exam owner's safe-column read; cover participant/owner and unrelated callers. Anon/authenticated denial must assert permission-denied (SQLSTATE 42501), not just any error; T066 must include an explicit owner self-exam denial case.
+- [X] T064 [US4] Add a cron success assertion using `cron.job_run_details` after the authorization cutover.
+- [X] T065 [US4] Test INSERT-only `ON CONFLICT DO NOTHING` upsert behavior for the owner on `exam_permissions(exam_id, group_id)` without UPDATE privilege.
+- [X] T066 [US4] Expand the self-promotion probe to the full role, resource, lookup, invitation, attempt, and result denial matrix.
+- [X] T067 [US1] Test invitation redemption by a user who owns an exam in a different context.
 - [ ] T068 [US4] Remove the dead `serviceClient()` export from `supabase/functions/_shared/http.ts` after confirming no remaining consumers.
 - [ ] T069 [US1] Remove orphan exam-permissions and `admin.groups` add/search i18n keys from `src/locales/en.json` and `src/locales/ar.json` after checking all consumers.
-- [ ] T070 [US1] Migrate group/exam owner field use from `admin_id` to `owner_id` in `group-service` createGroup, `exam-service`, `types.ts`, and attempt test fixtures before migration 0018; coordinate with T039/T043. (`src/lib/services/group-service.ts:23`, `src/lib/services/exam-service.ts:71`, `src/lib/types.ts:24,38`)
+- [ ] T070 [US1] Before migration 0020, update group/exam creation services to send `owner_id` instead of `admin_id`, and migrate related reads, `types.ts`, and attempt test fixtures; coordinate with T039/T043. (`src/lib/services/group-service.ts`, `src/lib/services/exam-service.ts`, `src/lib/types.ts:24,38`)
 
 **Known limitations to carry forward**: Changes to `groups.owner_id` and `exams.owner_id` are not guarded by triggers, which is a future risk for courses. The final cron assertion reads `cron.job`, so applying 0017 requires `pg_cron`. The ExamPermissions picker has a UX gap when no ungranted groups remain.
 
@@ -113,7 +113,14 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 ---
 
-## Phase UI: Unified Dashboard and Routes — AFTER 0017, BEFORE 0019
+## Phase 0018: Owner INSERT ... RETURNING Visibility Fix
+
+**Finding**: The after-0017 matrix showed owner INSERT requests for groups and exams failing when PostgREST requested returned rows. The owner SELECT policies called `private.owns_group(id)` and `private.owns_exam(id)`, which look up the row being returned.
+
+- [X] T071 [US4] Add transaction-scoped regression probes for owner INSERT ... RETURNING on groups and exams using `admin_id` only, `owner_id` only, and equal owner fields; retain non-owner read, cross-owner denial, and anon denial cases in `supabase/tests/007-unified-identity/owner-returning-0018.sql` and register the probe in both security SQL runners.
+- [X] T072 [US4] Add `supabase/migrations/0018_fix_owner_returning_visibility.sql` to add the direct `owner_id = auth.uid()` predicate to the groups/exams owner SELECT policies while retaining their existing ownership predicates; assert unchanged other policies and ACLs. Run probes and the legacy after-0017 matrix before proceeding.
+
+## Phase UI: Unified Dashboard and Routes — AFTER 0018, BEFORE 0020
 
 **Purpose**: Consolidate the signed-in experience after relationship-based database authorization is live, and remove every frontend role dependency before dropping `profiles.role`.
 
@@ -122,7 +129,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - [ ] T036 [US3] Remove role-based shell props/navigation and implement ownership/membership-aware unified navigation in `src/components/shared/WorkspaceLayout.tsx` and `src/components/shared/SiteNavigation.tsx` (**FLAGGED: `WorkspaceLayout.tsx` already has uncommitted changes; preserve unrelated hunks**).
 - [ ] T037 [US3] Consolidate `/admin` and `/student` section roots into `/dashboard` and add relationship-authorized redirects for legacy routes in `src/proxy.ts`, `src/app/admin/layout.tsx`, `src/app/admin/page.tsx`, and `src/app/student/page.tsx`; preserve resource deep links only when the caller still has the appropriate ownership or membership relationship.
 - [ ] T038 [US1] Remove fixed-role guards from learner and owner resource pages while retaining resource-level authorization in `src/app/admin/groups/[groupId]/page.tsx`, `src/app/admin/exams/[examId]/edit/page.tsx`, `src/app/admin/exams/[examId]/publish/page.tsx`, `src/app/student/join-group/page.tsx`, `src/app/student/exam/[attemptId]/page.tsx`, and `src/app/student/results/[attemptId]/page.tsx`.
-- [ ] T039 [US3] Replace role-based dashboard aggregation and identity types with relationship-based Learning/Teaching data in `src/lib/services/dashboard-service.ts` and `src/lib/types.ts`; update owner-field reads/writes to `owner_id` in `src/lib/services/group-service.ts` and `src/lib/services/exam-service.ts` before migration 0018; do not add authorization state to the client.
+- [ ] T039 [US3] Replace role-based dashboard aggregation and identity types with relationship-based Learning/Teaching data in `src/lib/services/dashboard-service.ts` and `src/lib/types.ts`; update owner-field reads/writes to `owner_id` in `src/lib/services/group-service.ts` and `src/lib/services/exam-service.ts` before migration 0020; do not add authorization state to the client.
 - [ ] T040 [US3] Add and verify matching English and Arabic labels, empty/error/loading states, redirects and accessibility names in `src/locales/en.json` and `src/locales/ar.json`.
 - [ ] T041 [US3] Run dashboard functional tests and visual review at desktop/mobile widths including 320 CSS pixels, with no horizontal scrolling or clipped controls, in English/LTR and Arabic/RTL, light and dark themes; record screenshots/results without editing `src/app/globals.css`, `src/app/workspace.css`, or `src/components/ui/card.tsx` unless a separate explicitly flagged task is added.
 
@@ -130,28 +137,40 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 ---
 
-## Phase 0018: Drop the Legacy Owner Column
+## Phase 0019: Fix Context-Scoped Lookup Timing
+
+**Purpose**: Bound exact-email candidate matching to identities already associated with the caller-owned group or exam, preventing lookup cost from scaling with all `auth.users`.
+
+- [X] T076 [US2] Fix the uniform-timing enumeration side channel before migration 0019. Add transaction-scoped lookup contract probes and register them in both SQL runners; add `supabase/migrations/0019_fix_lookup_timing.sql` with an atomic context-scoped function replacement, unchanged execution grants/security properties and catalog assertions; extract the uniform-timing case, add the after-0017 `--only uniform-timing` selector, and add an add-only ~500-member group timing case. Retain all existing assertions and the 5 ms limit. Gate committing the timing result on migration 0019 being applied and the focused timing and contract cases passing.
+
+## Phase 0020: Drop the Legacy Owner Column
 
 **Purpose**: Remove `admin_id` only after the app and all database authorization use `owner_id`.
 
-- [ ] T042 [US4] Write migration tests first proving all group/exam owner policies and services use `owner_id` and both old/new authorization decisions still match in `supabase/tests/007-unified-identity/drop-admin-id-0018.sql`.
-- [ ] T043 [US4] Drop the equality triggers and `admin_id` columns from groups and exams in `supabase/migrations/0018_drop_admin_id.sql`; retain `owner_id` as the sole owner field and use reset/replay for local rollback.
-- [ ] T044 [US4] Run the frozen matrix before and after 0018 and assert the owner mirror has no remaining source column in `tests/security/007-unified-identity/harness.ts`.
-- [ ] T045 [US4] Scan database definitions and application source/types for `admin_id`; record zero active database or app references in `specs/007-unified-identity/security-baseline/0018/`.
-- [ ] T046 [US4] Commit `supabase/migrations/0018_drop_admin_id.sql`, its tests and passing evidence together after the catalog/source scan passes.
+- [ ] T042 [US4] Write migration tests first proving all group/exam owner policies and services use `owner_id` and both old/new authorization decisions still match in `supabase/tests/007-unified-identity/drop-admin-id-0020.sql`.
+- [ ] T043 [US4] Drop the equality triggers and `admin_id` columns from groups and exams in `supabase/migrations/0020_drop_admin_id.sql`; retain `owner_id` as the sole owner field and use reset/replay for local rollback.
+- [ ] T044 [US4] Run the frozen matrix before and after 0020 and assert the owner mirror has no remaining source column in `tests/security/007-unified-identity/harness.ts`.
+- [ ] T045 [US4] Scan database definitions and application source/types for `admin_id`; record zero active database or app references in `specs/007-unified-identity/security-baseline/0020/`.
+- [ ] T046 [US4] Commit `supabase/migrations/0020_drop_admin_id.sql`, its tests and passing evidence together after the catalog/source scan passes.
 
 ---
 
-## Phase 0019: Drop Fixed Roles — FINAL DATABASE MIGRATION
+## Phase 0021: Drop Fixed Roles — FINAL DATABASE MIGRATION
 
 **Purpose**: Drop role data and helpers only after all replacement checks, services and UI are active and the full after-suite passes.
 
-- [ ] T047 [US4] Write final catalog and access tests first proving no active policy/function/trigger/Edge/UI path depends on role values and all owner/membership decisions still pass after role removal in `supabase/tests/007-unified-identity/drop-role-0019.sql`.
-- [ ] T048 [US4] Run the complete after-suite on schema 0018 and block migration 0019 unless every inventoried allow/deny case passes and results match the committed baseline expectations in `tests/security/007-unified-identity/harness.ts`.
-- [ ] T049 [US4] Drop `profiles.role`, `private_user_roles`, the role enum, role sync/protection/signup triggers and functions, `private.is_admin`, `private.is_student`, and `get_my_role` in `supabase/migrations/0019_drop_fixed_roles.sql` only after T048 is checked.
-- [ ] T050 [US4] Run the same complete after-suite after migration 0019 and save results in `specs/007-unified-identity/security-baseline/after/`; require identical expected allow/deny decisions in `tests/security/007-unified-identity/harness.ts`.
+- [ ] T047 [US4] Write final catalog and access tests first proving no active policy/function/trigger/Edge/UI path depends on role values and all owner/membership decisions still pass after role removal in `supabase/tests/007-unified-identity/drop-role-0021.sql`.
+- [ ] T048 [US4] Run the complete after-suite on schema 0020 and block migration 0021 unless every inventoried allow/deny case passes and results match the committed baseline expectations in `tests/security/007-unified-identity/harness.ts`.
+- [ ] T049 [US4] Drop `profiles.role`, `private_user_roles`, the role enum, role sync/protection/signup triggers and functions, `private.is_admin`, `private.is_student`, and `get_my_role` in `supabase/migrations/0021_drop_fixed_roles.sql` only after T048 is checked.
+- [ ] T050 [US4] Run the same complete after-suite after migration 0021 and save results in `specs/007-unified-identity/security-baseline/after/`; require identical expected allow/deny decisions in `tests/security/007-unified-identity/harness.ts`.
 - [ ] T051 [US4] Scan the final database catalog and source for role columns/helpers/grants, active policy/function/trigger/Edge dependencies, and SECURITY DEFINER search paths; record the zero-dependency report in `specs/007-unified-identity/security-baseline/after/catalog.md`.
-- [ ] T052 [US4] Commit `supabase/migrations/0019_drop_fixed_roles.sql`, its tests, final catalog report and after-suite evidence as the last database authorization change.
+- [ ] T052 [US4] Commit `supabase/migrations/0021_drop_fixed_roles.sql`, its tests, final catalog report and after-suite evidence as the last database authorization change.
+
+## Follow-ups After 0021
+
+- [ ] T073 Rename the legacy Supabase `project_id` (`05_Testo` in `supabase/config.toml`) to the approved Manjam project identifier after 0021; update any deployment/local-link references in the same change.
+- [ ] T074 After 0021 and final evidence capture, clean up obsolete local security fixture data and temporary database artifacts; preserve the frozen `before/` baseline and committed reports.
+- [ ] T075 After 0021, refactor shared Edge authorization and test infrastructure: add `withAuth`, add optional `callOperation` options, centralize `denial_reason` constants, and introduce typed test helpers. Preserve behavior with focused coverage before removing duplicate patterns.
 
 ---
 
@@ -160,8 +179,9 @@ description: "Dependency-ordered implementation tasks for unified identity"
 ### Hard gates and phase order
 
 - **T001 → T002 → T003 → T004–T006 → T007 → T008**: harness first, then fixtures, inventory, before tests, baseline run, and committed evidence. No migration or UI work may begin until T008 is checked and its commit hash is recorded.
-- **0014 → 0015 → 0016 → 0017**: each migration depends on the prior migration phase's passing matrix, catalog scan and commit.
-- **0017 → UI phase → 0018 → 0019**: UI role removal follows the database cutover and precedes dropping the old owner/role columns; 0019 is blocked on passing after-suite results.
+- **0014 → 0015 → 0016 → 0017 → 0018**: each migration depends on the prior migration phase's passing matrix, catalog scan and commit.
+- **0018 → 0019 → UI phase → 0020 → 0021**: the owner-returning fix follows the cutover; lookup timing is fixed before the UI phase; the UI phase and service owner-field update precede dropping `admin_id`; the final role drop follows the 0020 after-suite.
+- **0021 → T073–T075**: project identifier rename, local database cleanup and shared Edge/test refactor follow final role removal.
 - **T027 → T038**: T038 depends on T027 because both edit `src/app/admin/groups/[groupId]/page.tsx`.
 - Within every migration phase, test-writing tasks precede migration edits; run before/after matrix and catalog scan before its commit task.
 - **Coupled 0017 group**: T024–T033 must be reviewed and landed together; none may be separately deployed from the others.
@@ -171,7 +191,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 - After T003 freezes the inventory, T004, T005 and T006 can be authored in parallel because they cover separate RLS, SQL RPC/trigger, and Edge test files. T007 waits for all three.
 - Within Phase 0017, T024, T025 and T026 can be authored in parallel after Phase 0016; T027 and T028 can be developed after their tests are written. T029 must complete before T030 because both edit `0017_unified_authorization_cutover.sql`; T032 reruns the audit after T030. All changes must be integrated and committed as one cutover group.
 - UI translation work T040 can proceed in parallel with route work T037–T039 after 0017; final UI verification T041 waits for all UI tasks.
-- No migration phases can run in parallel. Phase 0018 and 0019 are sequential gates.
+- No migration phases can run in parallel. Phases 0018, 0019, 0020 and 0021 are sequential gates.
 
 ## Independent Test Criteria by User Story
 
@@ -182,7 +202,7 @@ description: "Dependency-ordered implementation tasks for unified identity"
 
 ## MVP and Implementation Strategy
 
-This feature has a mandatory security baseline gate, so no implementation MVP can start before T008. The first implementation increment is the 0014–0016 additive bridge; the decisive authorization cutover is the single coupled 0017 group. The dashboard consolidation follows that cutover and precedes 0019. A release is complete only after the full post-0019 suite, catalog scan, UI visual review and committed evidence pass.
+This feature has a mandatory security baseline gate, so no implementation MVP can start before T008. The first implementation increment is the 0014–0016 additive bridge; the decisive authorization cutover is the single coupled 0017 group. Migration 0018 fixes owner INSERT ... RETURNING visibility found by the after-0017 matrix. Migration 0019 scopes lookup timing to context members. The dashboard consolidation follows 0018 and precedes owner-column cleanup in 0020. A release is complete only after the full post-0021 suite, catalog scan, UI visual review and committed evidence pass.
 
 ## Notes
 
