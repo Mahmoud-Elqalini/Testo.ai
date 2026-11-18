@@ -17,6 +17,7 @@
     "test:security:007:preparation-0016": "node --experimental-strip-types tests/security/007-unified-identity/preparation-0016.test.ts",
     "test:security:007:before-0016": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase before-0016",
     "test:security:007:after-0016": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase after-0016",
+    "test:security:007:after-0017-sql": "node --experimental-strip-types tests/security/007-unified-identity/after-0017-sql.test.ts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "dev:vinext": "vite dev --port 3001",

@@ -24,7 +24,8 @@ async function request(ctx: any, actor: string, table: string, method = "GET", q
     headers: { Prefer: "return=representation" },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
-  return { response, body: parseJson(await response.text()) };
+  const rawBody = await response.text();
+  return { response, body: parseJson(rawBody), rawBody };
 }
 
 async function readPair(ctx: any, policy: string, table: string, allowActor: string, allowQuery: string, denyActor: string, denyQuery: string) {
@@ -51,7 +52,6 @@ export async function runRlsCases(ctx: any) {
   const extraGroupId = crypto.randomUUID();
   const membershipGroupId = crypto.randomUUID();
   const tempMembership = { group_id: membershipGroupId, student_id: ids.unrelated };
-  const groupPermissionId = crypto.randomUUID();
 
   await readPair(ctx, "profiles_admin_read_scoped_students", "profiles", "ownerA", `id=eq.${ids.participantA}&select=id,full_name`, "ownerA", `id=eq.${ids.ownerB}&select=id,full_name`);
 
@@ -75,10 +75,10 @@ export async function runRlsCases(ctx: any) {
   await record(ctx, "policy:group_students_admin_update.allow", memberUpdate.response.ok && nonempty(memberUpdate.body), `HTTP ${memberUpdate.response.status}; owner updates membership`);
   const memberUpdateDeny = await request(ctx, "ownerB", "group_students", "PATCH", `group_id=eq.${membershipGroupId}&student_id=eq.${ids.unrelated}&select=group_id`, { student_id: ids.participantA });
   await record(ctx, "policy:group_students_admin_update.deny", memberUpdateDeny.response.ok && empty(memberUpdateDeny.body), `HTTP ${memberUpdateDeny.response.status}; non-owner update hidden`);
-  const memberDelete = await request(ctx, "ownerA", "group_students", "DELETE", `group_id=eq.${membershipGroupId}&student_id=eq.${ids.unrelated}&select=group_id`);
-  await record(ctx, "policy:group_students_admin_delete.allow", memberDelete.response.ok && nonempty(memberDelete.body), `HTTP ${memberDelete.response.status}; owner deletes disposable membership`);
   const memberDeleteDeny = await request(ctx, "ownerB", "group_students", "DELETE", `group_id=eq.${membershipGroupId}&student_id=eq.${ids.participantA}&select=group_id`);
   await record(ctx, "policy:group_students_admin_delete.deny", memberDeleteDeny.response.ok && empty(memberDeleteDeny.body), `HTTP ${memberDeleteDeny.response.status}; non-owner delete hidden`);
+  const memberDelete = await request(ctx, "ownerA", "group_students", "DELETE", `group_id=eq.${membershipGroupId}&student_id=eq.${ids.participantA}&select=group_id`);
+  await record(ctx, "policy:group_students_admin_delete.allow", memberDelete.response.ok && nonempty(memberDelete.body), `HTTP ${memberDelete.response.status}; owner deletes disposable membership; response body=${memberDelete.rawBody}`);
 
   await readPair(ctx, "exams_admin_select", "exams", "ownerA", `id=eq.${ids.examA}`, "ownerB", `id=eq.${ids.examA}`);
   await writePair(ctx, "exams_admin_insert", "POST", "exams", "ownerA", { id: examId, title: "007 disposable exam", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA }, "ownerB", { id: crypto.randomUUID(), title: "spoofed", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA });
@@ -92,12 +92,14 @@ export async function runRlsCases(ctx: any) {
 
   await readPair(ctx, "exam_permissions_admin_select", "exam_permissions", "ownerA", `exam_id=eq.${ids.examA}`, "ownerB", `exam_id=eq.${ids.examA}`);
   const extraGroup = await request(ctx, "ownerA", "groups", "POST", "select=id", { id: extraGroupId, name: "007 permission fixture", admin_id: ids.ownerA });
-  await writePair(ctx, "exam_permissions_admin_insert", "POST", "exam_permissions", "ownerA", { id: groupPermissionId, exam_id: ids.examA, group_id: extraGroupId }, "ownerB", { exam_id: ids.examA, group_id: ids.groupA });
-  const permissionUpdate = await request(ctx, "ownerA", "exam_permissions", "PATCH", `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}&select=id`, { group_id: extraGroupId });
+  // 0017 grants INSERT only on exam_id/group_id; use that natural key for the preserved CRUD assertions.
+  await writePair(ctx, "exam_permissions_admin_insert", "POST", "exam_permissions", "ownerA", { exam_id: ids.examA, group_id: extraGroupId }, "ownerB", { exam_id: ids.examA, group_id: ids.groupA });
+  const permissionRowFilter = `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}`;
+  const permissionUpdate = await request(ctx, "ownerA", "exam_permissions", "PATCH", `${permissionRowFilter}&select=id`, { group_id: extraGroupId });
   await record(ctx, "policy:exam_permissions_admin_update.allow", permissionUpdate.response.ok && nonempty(permissionUpdate.body), `HTTP ${permissionUpdate.response.status}; owner updates permission`);
-  const permissionUpdateDeny = await request(ctx, "ownerB", "exam_permissions", "PATCH", `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}&select=id`, { group_id: extraGroupId });
+  const permissionUpdateDeny = await request(ctx, "ownerB", "exam_permissions", "PATCH", `${permissionRowFilter}&select=id`, { group_id: extraGroupId });
   await record(ctx, "policy:exam_permissions_admin_update.deny", permissionUpdateDeny.response.ok && empty(permissionUpdateDeny.body), `HTTP ${permissionUpdateDeny.response.status}; non-owner update hidden`);
-  const permissionDelete = await request(ctx, "ownerA", "exam_permissions", "DELETE", `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}&select=id`);
+  const permissionDelete = await request(ctx, "ownerA", "exam_permissions", "DELETE", `${permissionRowFilter}&select=id`);
   await record(ctx, "policy:exam_permissions_admin_delete.allow", permissionDelete.response.ok && nonempty(permissionDelete.body), `HTTP ${permissionDelete.response.status}; owner deletes permission`);
   const permissionDeleteDeny = await request(ctx, "ownerB", "exam_permissions", "DELETE", `exam_id=eq.${ids.examA}&group_id=eq.${ids.groupA}&select=id`);
   await record(ctx, "policy:exam_permissions_admin_delete.deny", permissionDeleteDeny.response.ok && empty(permissionDeleteDeny.body), `HTTP ${permissionDeleteDeny.response.status}; non-owner delete hidden`);

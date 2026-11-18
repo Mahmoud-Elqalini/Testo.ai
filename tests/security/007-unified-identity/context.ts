@@ -19,7 +19,7 @@ function cliCall(args: string[]) {
   return `${result.stdout}${result.stderr}`;
 }
 
-function dockerSql(sql: string) {
+function dockerSql(sql: string, includeStderr = false) {
   const containers = spawnSync("docker", ["ps", "--filter", "name=supabase_db_", "--format", "{{.Names}}"], { cwd: root, encoding: "utf8" });
   if (containers.status !== 0) throw new Error(containers.stderr || "Unable to locate local Supabase database container");
   const name = containers.stdout.trim().split(/\r?\n/).find(Boolean);
@@ -29,7 +29,7 @@ function dockerSql(sql: string) {
   });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `psql failed (${result.status})`);
-  return result.stdout;
+  return includeStderr ? `${result.stdout}${result.stderr}` : result.stdout;
 }
 
 function cliJson(stdout: string, matches: (value: Record<string, unknown>) => boolean = () => true) {
@@ -86,7 +86,7 @@ function cliJson(stdout: string, matches: (value: Record<string, unknown>) => bo
   return payload;
 }
 
-export type CaseResult = { case_id: string; status: "PASS" | "FAIL"; details: string };
+export type CaseResult = { case_id: string; status: "PASS" | "FAIL" | "removed-by-design"; details: string };
 
 export async function createContext(expectedLastMigration = "0013") {
   const inventory = JSON.parse(await readFile(resolve(root, "specs/007-unified-identity/security-baseline/inventory.json"), "utf8"));
@@ -156,5 +156,5 @@ export function parseJson(text: string): unknown {
 }
 
 export async function runSqlFile(path: string) {
-  return dockerSql(await readFile(resolve(root, path), "utf8"));
+  return dockerSql(await readFile(resolve(root, path), "utf8"), true);
 }

@@ -50,40 +50,8 @@ async function resetFixtureLimits(ctx: any) {
   if (exists) ctx.runSql(`DELETE FROM private.associated_profile_lookup_rate_limits WHERE requester_id IN ('a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000002'::uuid) AND context_id IN ('${groupA}'::uuid,'${examA}'::uuid,'${groupB}'::uuid)`);
 }
 
-export async function runAssociatedEmailLookupCases(ctx: any) {
-  await resetFixtureLimits(ctx);
+export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
   try {
-    const relationshipsBefore = ctx.runSql(`SELECT (SELECT count(*) FROM public.group_students WHERE group_id='${groupA}'::uuid)::text || ':' || (SELECT count(*) FROM public.exam_permissions WHERE exam_id='${examA}'::uuid)::text`).trim();
-    const associated = await lookup(ctx, ownerA, "group", groupA, participantEmail);
-    const successRows = rows(associated.body);
-    const endpointAvailable = associated.response.ok;
-    await record(ctx, "contract:email_lookup.associated_exact_allow",
-      associated.response.ok && successRows.length === 1 && successRows[0].id === "a7000000-0000-4000-8000-000000000003" && successRows[0].display_name === "007 Participant A",
-      `HTTP ${associated.response.status}; associated exact email resolves to id and display name`);
-    await record(ctx, "contract:email_lookup.email_never_returned",
-      successRows.length === 1 && Object.keys(successRows[0]).sort().join(",") === "display_name,id" && !JSON.stringify(associated.body).includes(participantEmail),
-      "lookup response contains only id and display_name, never the email");
-
-    const partial = await lookup(ctx, ownerA, "group", groupA, "participant-a-007");
-    await record(ctx, "contract:email_lookup.partial_not_match",
-      endpointAvailable && partial.response.status !== 404 && partial.response.ok && rows(partial.body).length === 0,
-      "partial email search does not resolve an account");
-    const nonOwner = await lookup(ctx, ownerB, "group", groupA, participantEmail);
-    await record(ctx, "contract:email_lookup.non_owner_deny",
-      endpointAvailable && (!nonOwner.response.ok || rows(nonOwner.body).length === 0),
-      `HTTP ${nonOwner.response.status}; caller who does not own the context gets no account data`);
-
-    ctx.runSql(`DELETE FROM public.group_students WHERE group_id='${groupA}'::uuid AND student_id='a7000000-0000-4000-8000-000000000003'::uuid`);
-    try {
-      const examAttemptHolder = await lookup(ctx, ownerA, "exam", examA, participantEmail);
-      const examLookupRows = rows(examAttemptHolder.body);
-      await record(ctx, "contract:email_lookup.exam_attempt_holder_allow",
-        endpointAvailable && examAttemptHolder.response.ok && examLookupRows.length === 1 && examLookupRows[0].id === "a7000000-0000-4000-8000-000000000003",
-        `HTTP ${examAttemptHolder.response.status}; an existing exam attempt preserves association after group membership removal`);
-    } finally {
-      ctx.runSql(`INSERT INTO public.group_students (group_id, student_id) VALUES ('${groupA}'::uuid,'a7000000-0000-4000-8000-000000000003'::uuid) ON CONFLICT DO NOTHING`);
-    }
-
     await resetFixtureLimits(ctx);
     const sampleCount = 200;
     const timingGroupIds = Array.from({ length: sampleCount }, () => crypto.randomUUID());
@@ -92,14 +60,27 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
     const contexts = timingGroupIds.map((id) => `'${id}'::uuid`).join(",");
     const standardSamples = { associated: [] as ReturnType<typeof toRawSample>[], unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
     const largeSamples = { unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
+    const largeContextSamples = { unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
     const loadMarker = crypto.randomUUID().replaceAll("-", "");
     const loadEmailPrefix = `007-load-${loadMarker}-`;
     const loadUnassociatedEmail = `${loadEmailPrefix}2500@example.test`;
+    // Five paired samples per context: 200 samples per case while staying under the per-context rate limit.
+    const largeContextSamplesPerContext = 5;
+    const largeContextIds = Array.from({ length: Math.ceil(sampleCount / largeContextSamplesPerContext) }, () => crypto.randomUUID());
+    const largeContextGroupValues = largeContextIds.map((id, index) => `('${id}'::uuid,'007 large-context timing ${index}','a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
+    const largeContextValues = largeContextIds.map((id) => `('${id}'::uuid)`).join(",");
+    const largeContextSqlIds = largeContextIds.map((id) => `'${id}'::uuid`).join(",");
     let syntheticUsersCreated = 0;
     let syntheticUsersRemaining = 0;
     let syntheticCleanupVerified = false;
-    ctx.runSql(`INSERT INTO public.groups (id,name,admin_id,owner_id) VALUES ${groupValues}; INSERT INTO public.group_students (group_id,student_id) VALUES ${memberValues}`);
+    let largeContextMemberCount = 0;
+    let largeContextGroupsAtTargetSize = 0;
+    let largeContextGroupsRemaining = 0;
+    let largeContextMembershipsRemaining = 0;
+    let largeContextPendingAttemptsRemaining = 0;
+    let largeContextSyntheticUsersRemaining = 0;
     try {
+      ctx.runSql(`INSERT INTO public.groups (id,name,admin_id,owner_id) VALUES ${groupValues}; INSERT INTO public.group_students (group_id,student_id) VALUES ${memberValues}`);
       for (let index = 0; index < timingGroupIds.length; index += 1) {
         const contextId = timingGroupIds[index];
         const requests = [
@@ -143,6 +124,28 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
       syntheticUsersCreated = Number(ctx.runSql(`SELECT count(*) FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim());
       if (syntheticUsersCreated !== 5000) throw new Error(`Expected 5000 temporary auth users, found ${syntheticUsersCreated}`);
 
+      ctx.runSql(`
+        INSERT INTO public.groups (id,name,admin_id,owner_id)
+      VALUES ${largeContextGroupValues};
+        INSERT INTO public.group_students (group_id,student_id)
+      SELECT group_ids.id, u.id
+      FROM (VALUES ${largeContextValues}) AS group_ids(id)
+      CROSS JOIN auth.users AS u
+        WHERE u.email LIKE '${loadPrefixSql}%'
+          AND split_part(split_part(u.email, '-', 4), '@', 1)::integer BETWEEN 1 AND 500;
+      `);
+      const largeContextSizes = ctx.runSql(`
+        SELECT COALESCE(min(member_count),0)::text || ':' || count(*) FILTER (WHERE member_count=500)::text
+        FROM (
+          SELECT group_ids.id, count(gs.student_id)::integer AS member_count
+          FROM (VALUES ${largeContextValues}) AS group_ids(id)
+          LEFT JOIN public.group_students AS gs ON gs.group_id=group_ids.id
+          GROUP BY group_ids.id
+        ) AS group_sizes;
+      `).trim().split(":");
+      largeContextMemberCount = Number(largeContextSizes[0]);
+      largeContextGroupsAtTargetSize = Number(largeContextSizes[1]);
+
       for (let index = 0; index < timingGroupIds.length; index += 1) {
         const contextId = timingGroupIds[index];
         const requests = [
@@ -155,12 +158,40 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
           largeSamples[item.key].push(toRawSample(result));
         }
       }
+
+      for (let index = 0; index < sampleCount; index += 1) {
+        const contextId = largeContextIds[Math.floor(index / largeContextSamplesPerContext)];
+        const requests = [
+          { key: "unassociated" as const, email: loadUnassociatedEmail },
+          { key: "nonexistent" as const, email: missingEmail },
+        ];
+        const rotation = index % requests.length;
+        for (let offset = 0; offset < requests.length; offset += 1) {
+          const item = requests[(offset + rotation) % requests.length];
+          const result = await lookup(ctx, ownerA, "group", contextId, item.email);
+          largeContextSamples[item.key].push(toRawSample(result));
+        }
+      }
     } finally {
       const loadPrefixSql = loadEmailPrefix.replaceAll("'", "''");
-      ctx.runSql(`DELETE FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`);
-      syntheticUsersRemaining = Number(ctx.runSql(`SELECT count(*) FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim());
+      const syntheticIds = ctx.runSql(`SELECT COALESCE(string_agg(id::text, ','), '') FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim();
+      const syntheticIdsSql = syntheticIds
+        ? `(${syntheticIds.split(",").map((id) => `'${id}'::uuid`).join(",")})`
+        : "(NULL::uuid)";
+      ctx.runSql(`
+        DELETE FROM private.associated_profile_lookup_rate_limits
+        WHERE requester_id='a7000000-0000-4000-8000-000000000001'::uuid
+          AND context_kind='group' AND context_id IN (${contexts},${largeContextSqlIds});
+        DELETE FROM public.groups WHERE id IN (${contexts},${largeContextSqlIds});
+        DELETE FROM public.exam_attempts WHERE status='pending' AND student_id IN ${syntheticIdsSql};
+        DELETE FROM auth.users WHERE email LIKE '${loadPrefixSql}%';
+      `);
+      largeContextGroupsRemaining = Number(ctx.runSql(`SELECT count(*) FROM public.groups WHERE id IN (${largeContextSqlIds})`).trim());
+      largeContextMembershipsRemaining = Number(ctx.runSql(`SELECT count(*) FROM public.group_students WHERE group_id IN (${largeContextSqlIds})`).trim());
+      largeContextPendingAttemptsRemaining = Number(ctx.runSql(`SELECT count(*) FROM public.exam_attempts WHERE status='pending' AND student_id IN ${syntheticIdsSql}`).trim());
+      largeContextSyntheticUsersRemaining = Number(ctx.runSql(`SELECT count(*) FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim());
+      syntheticUsersRemaining = largeContextSyntheticUsersRemaining;
       syntheticCleanupVerified = syntheticUsersRemaining === 0;
-      ctx.runSql(`DELETE FROM private.associated_profile_lookup_rate_limits WHERE requester_id='a7000000-0000-4000-8000-000000000001'::uuid AND context_kind='group' AND context_id IN (${contexts}); DELETE FROM public.groups WHERE id IN (${contexts})`);
     }
 
     const standardStats = {
@@ -172,22 +203,30 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
       unassociated: summarize(largeSamples.unassociated),
       nonexistent: summarize(largeSamples.nonexistent),
     };
+    const largeContextStats = {
+      unassociated: summarize(largeContextSamples.unassociated),
+      nonexistent: summarize(largeContextSamples.nonexistent),
+    };
     const standardMedianDifferenceMs = roundMs(Math.abs(standardStats.unassociated.medianMs - standardStats.nonexistent.medianMs));
     const largeMedianDifferenceMs = roundMs(Math.abs(largeStats.unassociated.medianMs - largeStats.nonexistent.medianMs));
+    const largeContextMedianDifferenceMs = roundMs(Math.abs(largeContextStats.unassociated.medianMs - largeContextStats.nonexistent.medianMs));
     const fixedFloorRespected = [
       ...standardSamples.associated, ...standardSamples.unassociated, ...standardSamples.nonexistent,
       ...largeSamples.unassociated, ...largeSamples.nonexistent,
+      ...largeContextSamples.unassociated, ...largeContextSamples.nonexistent,
     ]
       .every((sample) => sample.elapsedMs >= 50);
     const sameStandardNegativeStatusAndBody = standardSamples.unassociated.every((sample) => sample.status === standardSamples.nonexistent[0]?.status && sample.rawBody === standardSamples.nonexistent[0]?.rawBody)
       && standardSamples.nonexistent.every((sample) => sample.status === standardSamples.unassociated[0]?.status && sample.rawBody === standardSamples.unassociated[0]?.rawBody);
     const sameLargeNegativeStatusAndBody = largeSamples.unassociated.every((sample) => sample.status === largeSamples.nonexistent[0]?.status && sample.rawBody === largeSamples.nonexistent[0]?.rawBody)
       && largeSamples.nonexistent.every((sample) => sample.status === largeSamples.unassociated[0]?.status && sample.rawBody === largeSamples.unassociated[0]?.rawBody);
+    const sameLargeContextNegativeStatusAndBody = largeContextSamples.unassociated.every((sample) => sample.status === largeContextSamples.nonexistent[0]?.status && sample.rawBody === largeContextSamples.nonexistent[0]?.rawBody)
+      && largeContextSamples.nonexistent.every((sample) => sample.status === largeContextSamples.unassociated[0]?.status && sample.rawBody === largeContextSamples.unassociated[0]?.rawBody);
     const timingReport = {
       feature: "007-unified-identity",
       function: "public.lookup_associated_participant(text,uuid,text)",
       measuredAtUtc: new Date().toISOString(),
-      timingMethod: "Client-side fetch duration through full response-body read. Each sample uses an independently owned group context; request order is rotated per context. The large dataset is inserted before its run and deleted in a finally block.",
+      timingMethod: "Client-side fetch duration through full response-body read. Each sample uses an independently owned group context; request order is rotated per context. The large dataset and large-context memberships are inserted before their runs and deleted in a finally block.",
       assertion: { minimumSamplesPerCase: sampleCount, maximumNegativeMedianDifferenceMsExclusive: 5, fixedDelayFloorMs: 50, largeDatasetAuthUserCount: 5000 },
       fixedDelayFloorRespected: fixedFloorRespected,
       standardRun: {
@@ -212,6 +251,25 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
           nonexistent: { ...largeStats.nonexistent, rawSamples: largeSamples.nonexistent },
         },
       },
+      largeContextRun: {
+        addOnly: true,
+        groupMemberCount: largeContextMemberCount,
+        contextCount: largeContextIds.length,
+        sampleCountPerNegativeCase: largeContextSamples.unassociated.length,
+        groupsAtTargetSize: largeContextGroupsAtTargetSize,
+        cleanup: {
+          groupsRemaining: largeContextGroupsRemaining,
+          membershipsRemaining: largeContextMembershipsRemaining,
+          pendingAttemptsRemaining: largeContextPendingAttemptsRemaining,
+          syntheticUsersRemaining: largeContextSyntheticUsersRemaining,
+        },
+        medianDifferenceMs: largeContextMedianDifferenceMs,
+        negativeStatusAndRawBodyIdentical: sameLargeContextNegativeStatusAndBody,
+        cases: {
+          unassociated: { ...largeContextStats.unassociated, rawSamples: largeContextSamples.unassociated },
+          nonexistent: { ...largeContextStats.nonexistent, rawSamples: largeContextSamples.nonexistent },
+        },
+      },
     };
     await mkdir(resolve(process.cwd(), "specs/007-unified-identity/security-baseline/0016"), { recursive: true });
     await writeFile(resolve(process.cwd(), "specs/007-unified-identity/security-baseline/0016/lookup-timing.json"), `${JSON.stringify(timingReport, null, 2)}\n`, "utf8");
@@ -232,6 +290,63 @@ export async function runAssociatedEmailLookupCases(ctx: any) {
         && standardMedianDifferenceMs < 5
         && largeMedianDifferenceMs < 5,
       `N=${sampleCount}; standard median difference=${standardMedianDifferenceMs}ms, large-dataset median difference=${largeMedianDifferenceMs}ms (both required <5ms); p95/p99 and all raw status/body samples saved; 5000 users cleaned=${syntheticCleanupVerified}; 50ms floor respected=${fixedFloorRespected}`);
+    await record(ctx, "contract:email_lookup.uniform_timing_large_context_add_only",
+      endpointAvailable
+        && largeContextMemberCount === 500
+        && largeContextStats.unassociated.sampleCount === sampleCount
+        && largeContextStats.nonexistent.sampleCount === sampleCount
+        && largeContextGroupsAtTargetSize === largeContextIds.length
+        && sameLargeContextNegativeStatusAndBody
+        && largeContextMedianDifferenceMs < 5
+        && largeContextSamples.unassociated.every((sample) => sample.elapsedMs >= 50)
+        && largeContextSamples.nonexistent.every((sample) => sample.elapsedMs >= 50)
+        && largeContextGroupsRemaining === 0
+        && largeContextMembershipsRemaining === 0
+        && largeContextPendingAttemptsRemaining === 0
+        && largeContextSyntheticUsersRemaining === 0,
+      `add-only N=${sampleCount} each; members per context=${largeContextMemberCount}; contexts at 500 members=${largeContextGroupsAtTargetSize}; median difference=${largeContextMedianDifferenceMs}ms (<5ms); same status/body=${sameLargeContextNegativeStatusAndBody}; 50ms floor respected; cleanup remaining groups/memberships/pending attempts/users=${largeContextGroupsRemaining}/${largeContextMembershipsRemaining}/${largeContextPendingAttemptsRemaining}/${largeContextSyntheticUsersRemaining}`);
+
+
+  } finally {
+    await resetFixtureLimits(ctx);
+  }
+}
+
+export async function runAssociatedEmailLookupCases(ctx: any) {
+  await resetFixtureLimits(ctx);
+  try {
+    const relationshipsBefore = ctx.runSql(`SELECT (SELECT count(*) FROM public.group_students WHERE group_id='${groupA}'::uuid)::text || ':' || (SELECT count(*) FROM public.exam_permissions WHERE exam_id='${examA}'::uuid)::text`).trim();
+    const associated = await lookup(ctx, ownerA, "group", groupA, participantEmail);
+    const successRows = rows(associated.body);
+    const endpointAvailable = associated.response.ok;
+    await record(ctx, "contract:email_lookup.associated_exact_allow",
+      associated.response.ok && successRows.length === 1 && successRows[0].id === "a7000000-0000-4000-8000-000000000003" && successRows[0].display_name === "007 Participant A",
+      `HTTP ${associated.response.status}; associated exact email resolves to id and display name`);
+    await record(ctx, "contract:email_lookup.email_never_returned",
+      successRows.length === 1 && Object.keys(successRows[0]).sort().join(",") === "display_name,id" && !JSON.stringify(associated.body).includes(participantEmail),
+      "lookup response contains only id and display_name, never the email");
+
+    const partial = await lookup(ctx, ownerA, "group", groupA, "participant-a-007");
+    await record(ctx, "contract:email_lookup.partial_not_match",
+      endpointAvailable && partial.response.status !== 404 && partial.response.ok && rows(partial.body).length === 0,
+      "partial email search does not resolve an account");
+    const nonOwner = await lookup(ctx, ownerB, "group", groupA, participantEmail);
+    await record(ctx, "contract:email_lookup.non_owner_deny",
+      endpointAvailable && (!nonOwner.response.ok || rows(nonOwner.body).length === 0),
+      `HTTP ${nonOwner.response.status}; caller who does not own the context gets no account data`);
+
+    ctx.runSql(`DELETE FROM public.group_students WHERE group_id='${groupA}'::uuid AND student_id='a7000000-0000-4000-8000-000000000003'::uuid`);
+    try {
+      const examAttemptHolder = await lookup(ctx, ownerA, "exam", examA, participantEmail);
+      const examLookupRows = rows(examAttemptHolder.body);
+      await record(ctx, "contract:email_lookup.exam_attempt_holder_allow",
+        endpointAvailable && examAttemptHolder.response.ok && examLookupRows.length === 1 && examLookupRows[0].id === "a7000000-0000-4000-8000-000000000003",
+        `HTTP ${examAttemptHolder.response.status}; an existing exam attempt preserves association after group membership removal`);
+    } finally {
+      ctx.runSql(`INSERT INTO public.group_students (group_id, student_id) VALUES ('${groupA}'::uuid,'a7000000-0000-4000-8000-000000000003'::uuid) ON CONFLICT DO NOTHING`);
+    }
+
+    await runUniformTimingCase(ctx, endpointAvailable);
 
     // The fixed contract is 10 attempts per minute per requester/context.
     // Exhaust one scope, then prove another context and another owner/requester

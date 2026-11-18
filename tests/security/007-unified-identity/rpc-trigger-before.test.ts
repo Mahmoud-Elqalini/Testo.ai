@@ -37,8 +37,21 @@ async function sourceFiles(path: string): Promise<string[]> {
   return nested.flat();
 }
 
-export async function runRpcTriggerCases(ctx: any) {
-  const helperOutput = await runSqlFile("supabase/tests/007-unified-identity/rpc-trigger-before.sql");
+export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolean } = {}) {
+  const helperSqlPath = "supabase/tests/007-unified-identity/rpc-trigger-before.sql";
+  let helperOutput: string;
+  if (options.after0017) {
+    // 0017 retires this helper; the after-0017 transition table replaces its
+    // two baseline assertions with the scoped participant projection cases.
+    const helperSql = await readFile(resolve(helperSqlPath), "utf8");
+    const after0017HelperSql = helperSql
+      .split(/\r?\n/)
+      .filter((line) => !/^SELECT 'CASE_RESULT\|function:private\.is_admin_scoped_student\./.test(line))
+      .join("\n");
+    helperOutput = ctx.runSql(after0017HelperSql);
+  } else {
+    helperOutput = await runSqlFile(helperSqlPath);
+  }
   for (const line of helperOutput.split(/\r?\n/)) {
     const match = /CASE_RESULT\|([^|]+)\|(PASS|FAIL)\|(.+)/.exec(line);
     if (match) await record(ctx, match[1], match[2] === "PASS", match[3]);
@@ -131,19 +144,37 @@ export async function runRpcTriggerCases(ctx: any) {
     method: "POST", headers: serviceHeaders,
     body: JSON.stringify({ id: rpcQuestionId, exam_id: rpcExamId, type: "mcq", text: "007 disposable RPC question", points: 1, order: 1, mcq_choices: [{ id: "a", text: "A" }, { id: "b", text: "B" }], correct_choice: "b", reference_answers: [{ id: "r1", text: "synthetic reference" }] }),
   });
+  const attemptFixtureBody = {
+    id: rpcAttemptId,
+    exam_id: rpcExamId,
+    student_id: ids.participantA,
+    access_token: `fixture-${rpcAttemptId}`,
+    status: options.after0017 ? "submitted" : "pending",
+    ...(options.after0017 ? { finished_at: new Date().toISOString() } : {}),
+  };
   const attemptFixture = await ctx.request("/rest/v1/exam_attempts", "ownerA", {
-    method: "POST", headers: serviceHeaders,
-    body: JSON.stringify({ id: rpcAttemptId, exam_id: rpcExamId, student_id: ids.participantA, access_token: `fixture-${rpcAttemptId}`, status: "pending" }),
+    // Attempt grants expose only safe SELECT columns; avoid RETURNING the restricted access_token column.
+    method: "POST", headers: { ...serviceHeaders, Prefer: "return=minimal" },
+    body: JSON.stringify(attemptFixtureBody),
   });
   if (!examFixture.ok || !questionFixture.ok || !attemptFixture.ok) {
-    const statuses = `disposable fixture setup failed: exam=${examFixture.status}, question=${questionFixture.status}, attempt=${attemptFixture.status}`;
+    const failedRequests = [
+      !examFixture.ok ? `exam HTTP ${examFixture.status}` : null,
+      !questionFixture.ok ? `question HTTP ${questionFixture.status}` : null,
+      !attemptFixture.ok ? `attempt HTTP ${attemptFixture.status}` : null,
+    ].filter(Boolean).join(", ");
+    const statuses = `disposable fixture setup failed: exam HTTP ${examFixture.status}, question HTTP ${questionFixture.status}, attempt HTTP ${attemptFixture.status}; failed request(s): ${failedRequests}`;
+    await record(ctx, "fixture:rpc_attempt.setup", false, statuses);
     for (const caseId of [
       "function:public.fn_start_attempt.allow", "function:public.fn_start_attempt.deny",
       "function:public.fn_get_exam_questions.allow", "function:public.fn_get_exam_questions.deny",
       "function:public.fn_save_attempt_answer.allow", "function:public.fn_save_attempt_answer.deny",
       "function:public.fn_submit_attempt.allow", "function:public.fn_submit_attempt.deny",
     ]) await record(ctx, caseId, false, statuses);
+    await record(ctx, "function:public.fn_get_student_attempt_result.allow", false, statuses);
+    await record(ctx, "function:public.fn_get_student_attempt_result.deny", false, statuses);
   } else {
+  await record(ctx, "fixture:rpc_attempt.setup", true, `disposable fixture setup succeeded: exam HTTP ${examFixture.status}, question HTTP ${questionFixture.status}, attempt HTTP ${attemptFixture.status}`);
   // Current-schema attempt RPCs are callable only on the service path and accept p_student_id.
   // This verifies their existing logic; Edge tests separately verify the authenticated caller path.
   const sessionId = crypto.randomUUID();
@@ -184,8 +215,8 @@ export async function runRpcTriggerCases(ctx: any) {
   await ctx.request(`/rest/v1/exams?id=eq.${rpcExamId}`, "ownerA", { method: "DELETE", headers: serviceHeaders });
 
   const ordinaryUpdate = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}`, "participantA", { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ full_name: "007 Participant A" }) });
-  await record(ctx, "function:public.fn_protect_profile_role.allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; ordinary profile edit does not alter role`);
-  await record(ctx, "trigger:trg_protect_profile_role.allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; non-role update passes protection trigger`);
+  await record(ctx, "function:public.fn_protect_profile_role.api_allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; ordinary profile edit does not alter role`);
+  await record(ctx, "trigger:trg_protect_profile_role.api_allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; non-role update passes protection trigger`);
   const roleUpdate = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}`, "participantA", { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ role: "admin" }) });
   const roleUpdateBody = parseJson(await roleUpdate.text());
   const roleRead = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}&select=role`, "participantA");
@@ -202,8 +233,8 @@ export async function runRpcTriggerCases(ctx: any) {
   await record(ctx, "trigger:trg_sync_user_role.deny", roleMutationRejected && roleMirrorUnchanged, `${roleDetail}; rejected update must not alter the role mirror`);
   await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}`, "ownerA", { method: "PATCH", headers: serviceHeaders, body: JSON.stringify({ role: "student" }) });
   const mirrored = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}&select=id`, "participantA", { method: "GET" });
-  await record(ctx, "function:public.fn_sync_user_role.allow", mirrored.ok, `HTTP ${mirrored.status}; profile remains available after trusted mirror update`);
-  await record(ctx, "trigger:trg_sync_user_role.allow", mirrored.ok, `HTTP ${mirrored.status}; mirror trigger remains active`);
+  await record(ctx, "function:public.fn_sync_user_role.api_allow", mirrored.ok, `HTTP ${mirrored.status}; profile remains available after trusted mirror update`);
+  await record(ctx, "trigger:trg_sync_user_role.api_allow", mirrored.ok, `HTTP ${mirrored.status}; mirror trigger remains active`);
 
   const absentPaths = [resolve("src"), resolve("supabase/functions")];
   const files = (await Promise.all(absentPaths.map(sourceFiles))).flat();
