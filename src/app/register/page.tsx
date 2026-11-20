@@ -68,7 +68,7 @@ export default function RegisterPage() {
 
   return (
     <AuthLayout title={t('auth.register')} footer={<div>{t('auth.hasAccount')}<Link href="/login" className="font-semibold">{t('auth.login')}</Link></div>}>
-        <form onSubmit={handleRegister}>
+        <form onSubmit={handleRegister} autoComplete="off">
           <FormField
             id="fullName"
             type="text"
@@ -81,6 +81,7 @@ export default function RegisterPage() {
             id="email"
             type="email"
             label={t('auth.email')}
+            autoComplete="off"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -89,6 +90,7 @@ export default function RegisterPage() {
             id="password"
             type="password"
             label={t('auth.password')}
+            autoComplete="new-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
