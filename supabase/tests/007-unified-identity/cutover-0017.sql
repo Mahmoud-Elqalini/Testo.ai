@@ -273,9 +273,9 @@ SELECT 'CASE_RESULT|cutover.self_promotion.role_fixture|' || CASE WHEN EXISTS (
 -- T066 explicit owner self-exam denial for the promoted account.
 SELECT gen_random_uuid() AS promoted_owner_exam_id \gset
 SELECT gen_random_uuid() AS promoted_owner_attempt_id \gset
-INSERT INTO public.exams (id, title, start_time, duration_minutes, admin_id, owner_id, is_published)
+INSERT INTO public.exams (id, title, start_time, duration_minutes, owner_id, is_published)
 VALUES (:'promoted_owner_exam_id', 'T066 promoted owner self-exam', now() - interval '1 minute', 30,
-        'a7000000-0000-4000-8000-000000000003', 'a7000000-0000-4000-8000-000000000003', true);
+        'a7000000-0000-4000-8000-000000000003', true);
 INSERT INTO public.exam_attempts (id, exam_id, student_id, access_token, status)
 VALUES (:'promoted_owner_attempt_id', :'promoted_owner_exam_id',
         'a7000000-0000-4000-8000-000000000003', 't066-promoted-owner-self-exam', 'pending');

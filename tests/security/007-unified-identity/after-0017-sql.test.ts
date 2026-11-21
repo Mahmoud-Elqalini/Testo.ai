@@ -3,11 +3,11 @@ import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
-const sqlFiles = [
+const sharedSqlFiles = [
   "supabase/tests/007-unified-identity/security-definer-0017.sql",
   "supabase/tests/007-unified-identity/cutover-0017.sql",
-  "supabase/tests/007-unified-identity/owner-returning-0018.sql",
   "supabase/tests/007-unified-identity/lookup-context-0019.sql",
+  "supabase/tests/007-unified-identity/drop-admin-id-0021.sql",
 ];
 
 type Result = { file: string; case_id: string; status: "PASS" | "FAIL"; details: string };
@@ -35,6 +35,28 @@ function runPsql(sql: string) {
 async function main() {
   const results: Result[] = [];
   const fileFailures: Array<{ file: string; reason: string }> = [];
+
+  const fixtureSql = await readFile(resolve(root, "supabase/tests/007-unified-identity/fixture-setup.sql"), "utf8");
+  const fixtureExecution = runPsql(fixtureSql);
+  console.log("LOCAL_FIXTURE_SETUP_BEGIN");
+  console.log(fixtureExecution.output);
+  console.log("LOCAL_FIXTURE_SETUP_END");
+  if (fixtureExecution.status !== 0) {
+    throw new Error(`Local security fixture setup failed with psql status ${fixtureExecution.status}`);
+  }
+
+  const legacyColumnCheck = runPsql("SELECT count(*) FROM information_schema.columns WHERE table_schema='public' AND table_name IN ('groups','exams') AND column_name='admin_id'");
+  const legacyColumnCount = Number(legacyColumnCheck.output.trim());
+  if (legacyColumnCheck.status !== 0 || ![0, 2].includes(legacyColumnCount)) {
+    throw new Error(`Unexpected owner column state before SQL security tests: ${legacyColumnCheck.output}`);
+  }
+  const sqlFiles = [
+    sharedSqlFiles[0],
+    sharedSqlFiles[1],
+    ...(legacyColumnCount === 2 ? ["supabase/tests/007-unified-identity/owner-returning-0018.sql"] : []),
+    sharedSqlFiles[2],
+    sharedSqlFiles[3],
+  ];
 
   for (const file of sqlFiles) {
     const sql = await readFile(resolve(root, file), "utf8");

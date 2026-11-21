@@ -37,16 +37,16 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
 
     let examId: string | undefined
     let attemptId: string | undefined
+    let groupId: string | undefined
 
     try {
-      await updateVisualProfile(adminClient!, adminData.user.id, { role: 'admin' })
       await updateVisualProfile(adminClient!, studentData.user.id, { preferred_language: 'en', preferred_theme: 'light' })
 
       const { data: exam, error: examError } = await adminClient!.from('exams').insert({
         title: 'Offline recovery exam',
         start_time: new Date(Date.now() - 30_000).toISOString(),
         duration_minutes: 30,
-        admin_id: adminData.user.id,
+        owner_id: adminData.user.id,
         is_published: true,
       }).select('id').single()
       if (examError || !exam) throw examError ?? new Error('Could not create offline test exam')
@@ -73,10 +73,22 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
       }).select('id').single()
       if (essayError || !essay) throw essayError ?? new Error('Could not create offline test essay')
 
+      const { data: group, error: groupError } = await adminClient!.from('groups').insert({
+        name: 'Offline test group',
+        owner_id: adminData.user.id,
+      }).select('id').single()
+      if (groupError || !group) throw groupError ?? new Error('Could not create offline test group')
+      groupId = group.id
+
+      const { error: memberError } = await adminClient!.from('group_students').insert({
+        group_id: groupId,
+        student_id: studentData.user.id,
+      })
+      if (memberError) throw memberError
+
       const { error: permissionError } = await adminClient!.from('exam_permissions').insert({
         exam_id: examId,
-        student_id: studentData.user.id,
-        group_id: null,
+        group_id: groupId,
       })
       if (permissionError) throw permissionError
 
@@ -103,7 +115,7 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
 
       await page.getByRole('radio', { name: /First answer/ }).check()
       await expect(page.locator('[role="status"]').getByText('Not synced', { exact: true })).toBeVisible({ timeout: 10_000 })
-      await page.getByRole('button', { name: 'Next' }).click()
+      await page.getByRole('button', { name: 'Next', exact: true }).click()
       await expect(page.getByText('Explain your reasoning in a sentence.')).toBeVisible()
       const essayInput = page.getByRole('textbox')
       await essayInput.fill('My answer remains available after reconnecting.')
@@ -150,6 +162,7 @@ test.describe('Student exam offline recovery (local Supabase)', () => {
         await cleanup(() => adminClient!.from('questions').delete().eq('exam_id', examId!))
         await cleanup(() => adminClient!.from('exams').delete().eq('id', examId!))
       }
+      if (groupId) await cleanup(() => adminClient!.from('groups').delete().eq('id', groupId!))
       await cleanup(() => adminClient!.auth.admin.deleteUser(studentData.user.id))
       await cleanup(() => adminClient!.auth.admin.deleteUser(adminData.user.id))
       if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'Offline exam test cleanup failed')

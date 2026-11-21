@@ -55,7 +55,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
     await resetFixtureLimits(ctx);
     const sampleCount = 200;
     const timingGroupIds = Array.from({ length: sampleCount }, () => crypto.randomUUID());
-    const groupValues = timingGroupIds.map((id, index) => `('${id}'::uuid,'007 timing context ${index}','a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
+    const groupValues = timingGroupIds.map((id, index) => `('${id}'::uuid,'007 timing context ${index}','a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
     const memberValues = timingGroupIds.map((id) => `('${id}'::uuid,'a7000000-0000-4000-8000-000000000003'::uuid)`).join(",");
     const contexts = timingGroupIds.map((id) => `'${id}'::uuid`).join(",");
     const standardSamples = { associated: [] as ReturnType<typeof toRawSample>[], unassociated: [] as ReturnType<typeof toRawSample>[], nonexistent: [] as ReturnType<typeof toRawSample>[] };
@@ -67,7 +67,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
     // Five paired samples per context: 200 samples per case while staying under the per-context rate limit.
     const largeContextSamplesPerContext = 5;
     const largeContextIds = Array.from({ length: Math.ceil(sampleCount / largeContextSamplesPerContext) }, () => crypto.randomUUID());
-    const largeContextGroupValues = largeContextIds.map((id, index) => `('${id}'::uuid,'007 large-context timing ${index}','a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
+    const largeContextGroupValues = largeContextIds.map((id, index) => `('${id}'::uuid,'007 large-context timing ${index}','a7000000-0000-4000-8000-000000000001'::uuid)`).join(",");
     const largeContextValues = largeContextIds.map((id) => `('${id}'::uuid)`).join(",");
     const largeContextSqlIds = largeContextIds.map((id) => `'${id}'::uuid`).join(",");
     let syntheticUsersCreated = 0;
@@ -80,7 +80,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
     let largeContextPendingAttemptsRemaining = 0;
     let largeContextSyntheticUsersRemaining = 0;
     try {
-      ctx.runSql(`INSERT INTO public.groups (id,name,admin_id,owner_id) VALUES ${groupValues}; INSERT INTO public.group_students (group_id,student_id) VALUES ${memberValues}`);
+      ctx.runSql(`INSERT INTO public.groups (id,name,owner_id) VALUES ${groupValues}; INSERT INTO public.group_students (group_id,student_id) VALUES ${memberValues}`);
       for (let index = 0; index < timingGroupIds.length; index += 1) {
         const contextId = timingGroupIds[index];
         const requests = [
@@ -125,7 +125,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
       if (syntheticUsersCreated !== 5000) throw new Error(`Expected 5000 temporary auth users, found ${syntheticUsersCreated}`);
 
       ctx.runSql(`
-        INSERT INTO public.groups (id,name,admin_id,owner_id)
+        INSERT INTO public.groups (id,name,owner_id)
       VALUES ${largeContextGroupValues};
         INSERT INTO public.group_students (group_id,student_id)
       SELECT group_ids.id, u.id
@@ -176,7 +176,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
       const loadPrefixSql = loadEmailPrefix.replaceAll("'", "''");
       const syntheticIds = ctx.runSql(`SELECT COALESCE(string_agg(id::text, ','), '') FROM auth.users WHERE email LIKE '${loadPrefixSql}%'`).trim();
       const syntheticIdsSql = syntheticIds
-        ? `(${syntheticIds.split(",").map((id) => `'${id}'::uuid`).join(",")})`
+        ? `(${syntheticIds.split(",").map((id: string) => `'${id}'::uuid`).join(",")})`
         : "(NULL::uuid)";
       ctx.runSql(`
         DELETE FROM private.associated_profile_lookup_rate_limits

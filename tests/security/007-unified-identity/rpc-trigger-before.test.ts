@@ -104,8 +104,8 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   const serviceHeaders = ctx.serviceHeaders();
   const triggerGroupId = crypto.randomUUID();
   const triggerExamId = crypto.randomUUID();
-  await ctx.request("/rest/v1/groups", "ownerA", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ id: triggerGroupId, name: "007 trigger fixture group", admin_id: ids.ownerA }) });
-  await ctx.request("/rest/v1/exams", "ownerA", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ id: triggerExamId, title: "007 trigger fixture exam", description: "synthetic trigger test", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA, is_published: false }) });
+  await ctx.request("/rest/v1/groups", "ownerA", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ id: triggerGroupId, name: "007 trigger fixture group", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA }) });
+  await ctx.request("/rest/v1/exams", "ownerA", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ id: triggerExamId, title: "007 trigger fixture exam", description: "synthetic trigger test", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA, is_published: false }) });
 
   const membership = await ctx.request("/rest/v1/group_students", "ownerA", { method: "POST", headers: { ...serviceHeaders, Prefer: "return=representation" }, body: JSON.stringify({ group_id: triggerGroupId, student_id: ids.unrelated }) });
   await record(ctx, "function:public.fn_require_student_group_member.allow", membership.ok, `HTTP ${membership.status}; student membership invokes the role guard`);
@@ -138,7 +138,7 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   const rpcAttemptId = crypto.randomUUID();
   const examFixture = await ctx.request("/rest/v1/exams", "ownerA", {
     method: "POST", headers: serviceHeaders,
-    body: JSON.stringify({ id: rpcExamId, title: "007 disposable RPC exam", description: "Security baseline probe", start_time: new Date(Date.now() - 5 * 60_000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA, is_published: true }),
+    body: JSON.stringify({ id: rpcExamId, title: "007 disposable RPC exam", description: "Security baseline probe", start_time: new Date(Date.now() - 5 * 60_000).toISOString(), duration_minutes: 60, [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA, is_published: true }),
   });
   const questionFixture = await ctx.request("/rest/v1/questions", "ownerA", {
     method: "POST", headers: serviceHeaders,

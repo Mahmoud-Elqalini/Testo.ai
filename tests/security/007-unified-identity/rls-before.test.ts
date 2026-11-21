@@ -56,7 +56,7 @@ export async function runRlsCases(ctx: any) {
   await readPair(ctx, "profiles_admin_read_scoped_students", "profiles", "ownerA", `id=eq.${ids.participantA}&select=id,full_name`, "ownerA", `id=eq.${ids.ownerB}&select=id,full_name`);
 
   await readPair(ctx, "groups_admin_select", "groups", "ownerA", `id=eq.${ids.groupA}`, "ownerB", `id=eq.${ids.groupA}`);
-  await writePair(ctx, "groups_admin_insert", "POST", "groups", "ownerA", { id: groupId, name: "007 baseline disposable group", admin_id: ids.ownerA }, "ownerB", { id: crypto.randomUUID(), name: "spoofed group", admin_id: ids.ownerA });
+  await writePair(ctx, "groups_admin_insert", "POST", "groups", "ownerA", { id: groupId, name: "007 baseline disposable group", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA }, "ownerB", { id: crypto.randomUUID(), name: "spoofed group", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
   const groupUpdate = await request(ctx, "ownerA", "groups", "PATCH", `id=eq.${ids.groupA}&select=id`, { name: "007 Baseline Group A (temporary update)" });
   await record(ctx, "policy:groups_admin_update.allow", groupUpdate.response.ok && nonempty(groupUpdate.body), `HTTP ${groupUpdate.response.status}; owner updates group`);
   const groupUpdateDeny = await request(ctx, "ownerB", "groups", "PATCH", `id=eq.${ids.groupA}&select=id`, { name: "spoofed" });
@@ -66,7 +66,7 @@ export async function runRlsCases(ctx: any) {
   const groupDeleteDeny = await request(ctx, "ownerB", "groups", "DELETE", `id=eq.${ids.groupA}&select=id`);
   await record(ctx, "policy:groups_admin_delete.deny", groupDeleteDeny.response.ok && empty(groupDeleteDeny.body), `HTTP ${groupDeleteDeny.response.status}; non-owner delete hidden`);
 
-  await request(ctx, "ownerA", "groups", "POST", "select=id", { id: membershipGroupId, name: "007 direct-membership policy fixture", admin_id: ids.ownerA });
+  await request(ctx, "ownerA", "groups", "POST", "select=id", { id: membershipGroupId, name: "007 direct-membership policy fixture", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
   const serviceForMembership = ctx.serviceHeaders();
   await ctx.request("/rest/v1/group_students", "ownerA", { method: "POST", headers: serviceForMembership, body: JSON.stringify({ group_id: membershipGroupId, student_id: ids.participantA }) });
   await readPair(ctx, "group_students_admin_select", "group_students", "ownerA", `group_id=eq.${ids.groupA}&student_id=eq.${ids.participantA}`, "ownerB", `group_id=eq.${ids.groupA}&student_id=eq.${ids.participantA}`);
@@ -81,7 +81,7 @@ export async function runRlsCases(ctx: any) {
   await record(ctx, "policy:group_students_admin_delete.allow", memberDelete.response.ok && nonempty(memberDelete.body), `HTTP ${memberDelete.response.status}; owner deletes disposable membership; response body=${memberDelete.rawBody}`);
 
   await readPair(ctx, "exams_admin_select", "exams", "ownerA", `id=eq.${ids.examA}`, "ownerB", `id=eq.${ids.examA}`);
-  await writePair(ctx, "exams_admin_insert", "POST", "exams", "ownerA", { id: examId, title: "007 disposable exam", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA }, "ownerB", { id: crypto.randomUUID(), title: "spoofed", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, admin_id: ids.ownerA });
+  await writePair(ctx, "exams_admin_insert", "POST", "exams", "ownerA", { id: examId, title: "007 disposable exam", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA }, "ownerB", { id: crypto.randomUUID(), title: "spoofed", description: "fixture", start_time: new Date(Date.now() + 3600000).toISOString(), duration_minutes: 60, [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
   const examUpdate = await request(ctx, "ownerA", "exams", "PATCH", `id=eq.${examId}&select=id`, { title: "007 disposable exam (temporary update)" });
   await record(ctx, "policy:exams_admin_update.allow", examUpdate.response.ok && nonempty(examUpdate.body), `HTTP ${examUpdate.response.status}; owner updates exam`);
   const examUpdateDeny = await request(ctx, "ownerB", "exams", "PATCH", `id=eq.${examId}&select=id`, { title: "spoofed" });
@@ -91,7 +91,7 @@ export async function runRlsCases(ctx: any) {
   await readPair(ctx, "exams_student_select", "exams", "participantA", `id=eq.${ids.examRpc}`, "ownerB", `id=eq.${ids.examRpc}`);
 
   await readPair(ctx, "exam_permissions_admin_select", "exam_permissions", "ownerA", `exam_id=eq.${ids.examA}`, "ownerB", `exam_id=eq.${ids.examA}`);
-  const extraGroup = await request(ctx, "ownerA", "groups", "POST", "select=id", { id: extraGroupId, name: "007 permission fixture", admin_id: ids.ownerA });
+  const extraGroup = await request(ctx, "ownerA", "groups", "POST", "select=id", { id: extraGroupId, name: "007 permission fixture", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
   // 0017 grants INSERT only on exam_id/group_id; use that natural key for the preserved CRUD assertions.
   await writePair(ctx, "exam_permissions_admin_insert", "POST", "exam_permissions", "ownerA", { exam_id: ids.examA, group_id: extraGroupId }, "ownerB", { exam_id: ids.examA, group_id: ids.groupA });
   const permissionRowFilter = `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}`;

@@ -24,11 +24,11 @@ const only = onlyArg >= 0 ? process.argv[onlyArg + 1] : undefined;
 if (only !== undefined && (only !== "uniform-timing" || phase !== "after-0017")) {
   throw new Error("--only currently supports only --phase after-0017 --only uniform-timing");
 }
-if (!["before", "before-0014", "after-0014", "before-0015", "after-0015", "before-0016", "after-0016", "after-0017"].includes(phase)) {
+if (!["before", "before-0014", "after-0014", "before-0015", "after-0015", "before-0016", "after-0016", "after-0017", "after-0021"].includes(phase)) {
   throw new Error(`Unsupported security suite phase: ${phase}`);
 }
 
-const phaseDirectory = phase === "after-0017" ? "0017" : phase.endsWith("0016") ? "0016" : phase.endsWith("0015") ? "0015" : "0014";
+const phaseDirectory = phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021") ? "0017" : phase.endsWith("0016") ? "0016" : phase.endsWith("0015") ? "0015" : "0014";
 const outputDirectory = phase === "before"
   ? beforeDir
   : resolve(root, `specs/007-unified-identity/security-baseline/${phaseDirectory}`);
@@ -119,8 +119,8 @@ addRemovedCases([
 const after0017SqlFiles = [
   "supabase/tests/007-unified-identity/security-definer-0017.sql",
   "supabase/tests/007-unified-identity/cutover-0017.sql",
-  "supabase/tests/007-unified-identity/owner-returning-0018.sql",
   "supabase/tests/007-unified-identity/lookup-context-0019.sql",
+  "supabase/tests/007-unified-identity/drop-admin-id-0021.sql",
 ];
 
 async function compareStatuses(actual: CaseResult[], referencePath: string) {
@@ -141,7 +141,15 @@ async function compareStatuses(actual: CaseResult[], referencePath: string) {
 }
 
 async function runAfter0017SqlCases(context: Awaited<ReturnType<typeof createContext>>) {
-  for (const file of after0017SqlFiles) {
+  const legacyOwnerColumnsExist = !context.migrationVersions.includes("0021");
+  const files = [
+    after0017SqlFiles[0],
+    after0017SqlFiles[1],
+    ...(legacyOwnerColumnsExist ? ["supabase/tests/007-unified-identity/owner-returning-0018.sql"] : []),
+    after0017SqlFiles[2],
+    after0017SqlFiles[3],
+  ];
+  for (const file of files) {
     const output = await runSqlFile(file);
     const parsed = [...output.matchAll(/CASE_RESULT\|([^|\r\n]+)\|(PASS|FAIL)\|([^\r\n]*)/g)];
     if (parsed.length === 0) throw new Error(`No CASE_RESULT lines were emitted by ${file}`);
@@ -164,7 +172,7 @@ async function runAfter0017CallShapeCases(context: Awaited<ReturnType<typeof cre
   // The legacy RLS cases issue select=* by default. Replace only those four
   // case results with the equivalent 0017 safe-column queries; select=* denial
   // remains independently asserted by cutover-0017.sql.
-  const replacedIds = new Set(attemptReads.map((item) => item.caseId));
+  const replacedIds = new Set<string>(attemptReads.map((item) => item.caseId));
   context.results.splice(0, context.results.length, ...context.results.filter((item) => !replacedIds.has(item.case_id)));
   context.results.push({
     case_id: "removed-by-design:exam_attempts.select_star",
@@ -282,7 +290,7 @@ async function compareAfter0017Statuses(actual: CaseResult[], referencePath: str
 
 async function main() {
   const expectedLastMigration = phase === "after-0016" ? "0016"
-    : phase === "after-0017" ? "0019"
+    : phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021") ? "0020"
     : ["after-0015", "before-0016"].includes(phase) ? "0015"
     : ["after-0014", "before-0015"].includes(phase) ? "0014" : "0013";
   const context = await createContext(expectedLastMigration);
@@ -303,13 +311,13 @@ async function main() {
     return;
   }
   await runRlsCases(context);
-  await runRpcTriggerCases(context, { after0017: phase === "after-0017" });
-  if (phase === "after-0017") resetStaticAttemptForEdgeCases(context);
+  await runRpcTriggerCases(context, { after0017: (phase === "after-0017" || phase === "after-0021") });
+  if ((phase === "after-0017" || phase === "after-0021")) resetStaticAttemptForEdgeCases(context);
   await runEdgeCases(context);
   if (phase === "after-0014") await runOwnerMirrorCases(context);
   if (["after-0015", "before-0016", "after-0016"].includes(phase)) await runPreparation0015Cases(context);
-  if (["after-0016", "after-0017"].includes(phase)) await runProfileProjectionCases(context);
-  if (phase === "after-0017") {
+  if (["after-0016", "after-0017", "after-0021"].includes(phase)) await runProfileProjectionCases(context);
+  if ((phase === "after-0017" || phase === "after-0021")) {
     await runAfter0017SqlCases(context);
     await runEdgeCutoverCases(context);
     await runAfter0017CallShapeCases(context);
@@ -325,7 +333,7 @@ async function main() {
   }
   const cases = context.results;
 
-  const failing = cases.filter((item) => phase === "after-0017" ? item.status === "FAIL" : item.status !== "PASS");
+  const failing = cases.filter((item) => (phase === "after-0017" || phase === "after-0021") ? item.status === "FAIL" : item.status !== "PASS");
   let decisionComparison: Awaited<ReturnType<typeof compareStatuses>> | Awaited<ReturnType<typeof compareAfter0017Statuses>> | null = null;
   if (phase === "before-0014") {
     decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
@@ -339,7 +347,7 @@ async function main() {
     decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
   } else if (phase === "after-0016") {
     decisionComparison = await compareStatuses(cases, resolve(outputDirectory, "before-0016.json"));
-  } else if (phase === "after-0017") {
+  } else if ((phase === "after-0017" || phase === "after-0021")) {
     decisionComparison = await compareAfter0017Statuses(cases, resolve(beforeDir, "raw-results.json"));
   }
   const report = {
@@ -350,13 +358,13 @@ async function main() {
     command: phase === "before" ? "npm run test:security:007:before" : `node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase ${phase}`,
     recordedAtUtc: new Date().toISOString(),
     caseCount: cases.length,
-    passCount: phase === "after-0017" ? cases.filter((item) => item.status === "PASS").length : cases.length - failing.length,
+    passCount: (phase === "after-0017" || phase === "after-0021") ? cases.filter((item) => item.status === "PASS").length : cases.length - failing.length,
     failCount: failing.length,
-    mismatchCount: phase === "after-0017" ? decisionComparison?.mismatchCount ?? 0 : 0,
-    removedByDesignCount: phase === "after-0017" ? cases.filter((item) => item.status === "removed-by-design").length : 0,
+    mismatchCount: (phase === "after-0017" || phase === "after-0021") ? decisionComparison?.mismatchCount ?? 0 : 0,
+    removedByDesignCount: (phase === "after-0017" || phase === "after-0021") ? cases.filter((item) => item.status === "removed-by-design").length : 0,
     results: cases,
     decisionComparison,
-    documentedTransitions: phase === "after-0017" ? [...after0017Transitions].map(([case_id, transition]) => {
+    documentedTransitions: (phase === "after-0017" || phase === "after-0021") ? [...after0017Transitions].map(([case_id, transition]) => {
       const replacementResults = transition.replacementCaseIds.map((replacementCaseId) => {
         const replacement = cases.find((item) => item.case_id === replacementCaseId);
         return { case_id: replacementCaseId, status: replacement?.status ?? "MISSING" };
@@ -372,7 +380,7 @@ async function main() {
       };
     }) : undefined,
     localAdvisories: ["public.private_user_roles currently has row-level security disabled; recorded as observed and not changed by the baseline run."],
-    fixtureSeed: phase === "after-0017"
+    fixtureSeed: (phase === "after-0017" || phase === "after-0021")
       ? "supabase/tests/007-unified-identity/fixture-setup.sql (additive); edge-cutover-0017 resets only its static attempt in one transaction before endpoint requests"
       : "supabase/tests/007-unified-identity/fixture-setup.sql (additive; no reset/reseed performed)",
   };
@@ -381,7 +389,7 @@ async function main() {
   const temporaryPath = `${outputPath}.tmp`;
   await writeFile(temporaryPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   await rename(temporaryPath, outputPath);
-  const decisionsMatch = phase === "after-0017"
+  const decisionsMatch = (phase === "after-0017" || phase === "after-0021")
     ? (decisionComparison as Awaited<ReturnType<typeof compareAfter0017Statuses>> | null)?.decisionsMatchDocumentedTransitions ?? null
     : (decisionComparison as Awaited<ReturnType<typeof compareStatuses>> | null)?.decisionsUnchanged ?? null;
   console.log(JSON.stringify({
