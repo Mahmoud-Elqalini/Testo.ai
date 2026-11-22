@@ -24,11 +24,11 @@ const only = onlyArg >= 0 ? process.argv[onlyArg + 1] : undefined;
 if (only !== undefined && (only !== "uniform-timing" || phase !== "after-0017")) {
   throw new Error("--only currently supports only --phase after-0017 --only uniform-timing");
 }
-if (!["before", "before-0014", "after-0014", "before-0015", "after-0015", "before-0016", "after-0016", "after-0017", "after-0021"].includes(phase)) {
+if (!["before", "before-0014", "after-0014", "before-0015", "after-0015", "before-0016", "after-0016", "after-0017", "after-0021", "after-0022"].includes(phase)) {
   throw new Error(`Unsupported security suite phase: ${phase}`);
 }
 
-const phaseDirectory = phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021") ? "0017" : phase.endsWith("0016") ? "0016" : phase.endsWith("0015") ? "0015" : "0014";
+const phaseDirectory = phase === "after-0022" ? "after" : phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? "0017" : phase.endsWith("0016") ? "0016" : phase.endsWith("0015") ? "0015" : "0014";
 const outputDirectory = phase === "before"
   ? beforeDir
   : resolve(root, `specs/007-unified-identity/security-baseline/${phaseDirectory}`);
@@ -140,7 +140,7 @@ async function compareStatuses(actual: CaseResult[], referencePath: string) {
   };
 }
 
-async function runAfter0017SqlCases(context: Awaited<ReturnType<typeof createContext>>) {
+async function runAfter0017SqlCases(context: Awaited<ReturnType<typeof createContext>>, after0022 = false) {
   const legacyOwnerColumnsExist = !context.migrationVersions.includes("0021");
   const files = [
     after0017SqlFiles[0],
@@ -149,6 +149,7 @@ async function runAfter0017SqlCases(context: Awaited<ReturnType<typeof createCon
     after0017SqlFiles[2],
     after0017SqlFiles[3],
   ];
+  if (after0022) files.push("supabase/tests/007-unified-identity/drop-role-0022.sql");
   for (const file of files) {
     const output = await runSqlFile(file);
     const parsed = [...output.matchAll(/CASE_RESULT\|([^|\r\n]+)\|(PASS|FAIL)\|([^\r\n]*)/g)];
@@ -288,9 +289,69 @@ async function compareAfter0017Statuses(actual: CaseResult[], referencePath: str
   };
 }
 
+const after0022RemovedCases = new Map<string, string[]>([
+  ["function:private.is_admin.allow", ["drop_role.owner_a_owned_resources_allow"]],
+  ["function:private.is_admin.deny", ["drop_role.owner_a_cross_owner_deny"]],
+  ["function:private.is_student.allow", ["drop_role.participant_membership_allow"]],
+  ["function:private.is_student.deny", ["drop_role.unrelated_membership_deny"]],
+  ["function:public.fn_protect_profile_role.allow", ["drop_role.safe_profile_update_allow"]],
+  ["trigger:trg_protect_profile_role.allow", ["drop_role.safe_profile_update_allow"]],
+  ["function:public.fn_protect_profile_role.api_allow", ["drop_role.safe_profile_update_allow"]],
+  ["trigger:trg_protect_profile_role.api_allow", ["drop_role.safe_profile_update_allow"]],
+  ["function:public.fn_sync_user_role.allow", ["drop_role.legacy_role_helpers_absent"]],
+  ["trigger:trg_sync_user_role.allow", ["drop_role.no_role_dependent_triggers"]],
+  ["function:public.fn_sync_user_role.api_allow", ["drop_role.legacy_role_helpers_absent"]],
+  ["trigger:trg_sync_user_role.api_allow", ["drop_role.no_role_dependent_triggers"]],
+  ["function:public.fn_create_profile_on_signup.allow", ["drop_role.signup_profile_created"]],
+  ["function:public.fn_create_profile_on_signup.deny", ["drop_role.profiles_role_absent", "drop_role.signup_profile_created"]],
+  ["trigger:trg_create_profile_on_signup.allow", ["drop_role.signup_profile_created"]],
+  ["trigger:trg_create_profile_on_signup.deny", ["drop_role.profiles_role_absent", "drop_role.signup_profile_created"]],
+  ["signup.profile_trigger_execute_revoked", ["drop_role.signup_function_execute_revoked"]],
+  ["signup.profile_created_after_execute_revoke", ["drop_role.signup_profile_created"]],
+  ["cutover.self_promotion.role_fixture", ["drop_role.profiles_role_absent"]],
+]);
+
+async function applyAfter0022Removals(context: Awaited<ReturnType<typeof createContext>>, referencePath: string) {
+  const reference = JSON.parse(await readFile(referencePath, "utf8")) as { results: CaseResult[] };
+  const referenceById = new Map(reference.results.map((item) => [item.case_id, item]));
+  for (const [caseId, replacementCaseIds] of after0022RemovedCases) {
+    const previous = referenceById.get(caseId);
+    if (!previous || previous.status !== "PASS") {
+      throw new Error(`Invalid after-0022 transition for ${caseId}: expected a PASS in after-0021, found ${previous?.status ?? "MISSING"}`);
+    }
+    const missing = replacementCaseIds.filter((replacementId) =>
+      !context.results.some((item) => item.case_id === replacementId && item.status === "PASS"),
+    );
+    if (missing.length > 0) {
+      context.results.push({ case_id: `transition-replacement:${caseId}`, status: "FAIL", details: `Required roleless replacements did not pass: ${missing.join(", ")}` });
+    }
+    context.results.splice(0, context.results.length, ...context.results.filter((item) => item.case_id !== caseId));
+    context.results.push({ case_id: caseId, status: "removed-by-design", details: `0022 removed fixed-role behavior; replacements: ${replacementCaseIds.join(", ")}.` });
+  }
+}
+
+async function compareAfter0022Statuses(actual: CaseResult[], referencePath: string) {
+  const reference = JSON.parse(await readFile(referencePath, "utf8")) as { results: CaseResult[] };
+  const actualById = new Map(actual.map((item) => [item.case_id, item.status]));
+  const mismatches = reference.results.flatMap((previous) => {
+    const expected = after0022RemovedCases.has(previous.case_id) ? "removed-by-design" : previous.status;
+    const received = actualById.get(previous.case_id);
+    return received === expected ? [] : [{ case_id: previous.case_id, expectedAfter0022: expected, actualAfter0022: received ?? "MISSING" }];
+  });
+  return {
+    referencePath,
+    referenceCases: reference.results.length,
+    matchedCases: reference.results.length - mismatches.length,
+    mismatchCount: mismatches.length,
+    transitionCount: after0022RemovedCases.size,
+    mismatches,
+    decisionsMatchDocumentedTransitions: mismatches.length === 0,
+  };
+}
 async function main() {
-  const expectedLastMigration = phase === "after-0016" ? "0016"
-    : phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021") ? "0020"
+  const expectedLastMigration = phase === "after-0022" ? "0022"
+    : phase === "after-0016" ? "0016"
+    : phase === "after-0021" ? "0021" : (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? "0020"
     : ["after-0015", "before-0016"].includes(phase) ? "0015"
     : ["after-0014", "before-0015"].includes(phase) ? "0014" : "0013";
   const context = await createContext(expectedLastMigration);
@@ -311,17 +372,18 @@ async function main() {
     return;
   }
   await runRlsCases(context);
-  await runRpcTriggerCases(context, { after0017: (phase === "after-0017" || phase === "after-0021") });
-  if ((phase === "after-0017" || phase === "after-0021")) resetStaticAttemptForEdgeCases(context);
+  await runRpcTriggerCases(context, { after0017: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022"), after0022: phase === "after-0022" });
+  if ((phase === "after-0017" || phase === "after-0021" || phase === "after-0022")) resetStaticAttemptForEdgeCases(context);
   await runEdgeCases(context);
   if (phase === "after-0014") await runOwnerMirrorCases(context);
   if (["after-0015", "before-0016", "after-0016"].includes(phase)) await runPreparation0015Cases(context);
-  if (["after-0016", "after-0017", "after-0021"].includes(phase)) await runProfileProjectionCases(context);
-  if ((phase === "after-0017" || phase === "after-0021")) {
-    await runAfter0017SqlCases(context);
+  if (["after-0016", "after-0017", "after-0021", "after-0022"].includes(phase)) await runProfileProjectionCases(context);
+  if ((phase === "after-0017" || phase === "after-0021" || phase === "after-0022")) {
+    await runAfter0017SqlCases(context, phase === "after-0022");
     await runEdgeCutoverCases(context);
     await runAfter0017CallShapeCases(context);
     await applyAfter0017Removals(context, resolve(beforeDir, "raw-results.json"));
+    if (phase === "after-0022") await applyAfter0022Removals(context, resolve(root, "specs/007-unified-identity/security-baseline/0021/after-0021.json"));
   }
   for (const entry of context.inventory.entries as { id: string }[]) {
     for (const outcome of ["allow", "deny"]) {
@@ -333,8 +395,8 @@ async function main() {
   }
   const cases = context.results;
 
-  const failing = cases.filter((item) => (phase === "after-0017" || phase === "after-0021") ? item.status === "FAIL" : item.status !== "PASS");
-  let decisionComparison: Awaited<ReturnType<typeof compareStatuses>> | Awaited<ReturnType<typeof compareAfter0017Statuses>> | null = null;
+  const failing = cases.filter((item) => (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? item.status === "FAIL" : item.status !== "PASS");
+  let decisionComparison: Awaited<ReturnType<typeof compareStatuses>> | Awaited<ReturnType<typeof compareAfter0017Statuses>> | Awaited<ReturnType<typeof compareAfter0022Statuses>> | null = null;
   if (phase === "before-0014") {
     decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
   } else if (phase === "after-0014") {
@@ -347,7 +409,9 @@ async function main() {
     decisionComparison = await compareStatuses(cases, resolve(beforeDir, "raw-results.json"));
   } else if (phase === "after-0016") {
     decisionComparison = await compareStatuses(cases, resolve(outputDirectory, "before-0016.json"));
-  } else if ((phase === "after-0017" || phase === "after-0021")) {
+  } else if (phase === "after-0022") {
+    decisionComparison = await compareAfter0022Statuses(cases, resolve(root, "specs/007-unified-identity/security-baseline/0021/after-0021.json"));
+  } else if (phase === "after-0017" || phase === "after-0021") {
     decisionComparison = await compareAfter0017Statuses(cases, resolve(beforeDir, "raw-results.json"));
   }
   const report = {
@@ -358,13 +422,13 @@ async function main() {
     command: phase === "before" ? "npm run test:security:007:before" : `node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase ${phase}`,
     recordedAtUtc: new Date().toISOString(),
     caseCount: cases.length,
-    passCount: (phase === "after-0017" || phase === "after-0021") ? cases.filter((item) => item.status === "PASS").length : cases.length - failing.length,
+    passCount: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? cases.filter((item) => item.status === "PASS").length : cases.length - failing.length,
     failCount: failing.length,
-    mismatchCount: (phase === "after-0017" || phase === "after-0021") ? decisionComparison?.mismatchCount ?? 0 : 0,
-    removedByDesignCount: (phase === "after-0017" || phase === "after-0021") ? cases.filter((item) => item.status === "removed-by-design").length : 0,
+    mismatchCount: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? decisionComparison?.mismatchCount ?? 0 : 0,
+    removedByDesignCount: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? cases.filter((item) => item.status === "removed-by-design").length : 0,
     results: cases,
     decisionComparison,
-    documentedTransitions: (phase === "after-0017" || phase === "after-0021") ? [...after0017Transitions].map(([case_id, transition]) => {
+    documentedTransitions: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022") ? [...after0017Transitions].map(([case_id, transition]) => {
       const replacementResults = transition.replacementCaseIds.map((replacementCaseId) => {
         const replacement = cases.find((item) => item.case_id === replacementCaseId);
         return { case_id: replacementCaseId, status: replacement?.status ?? "MISSING" };
@@ -379,8 +443,9 @@ async function main() {
         everyReplacementPassed: replacementResults.every((item) => item.status === "PASS"),
       };
     }) : undefined,
-    localAdvisories: ["public.private_user_roles currently has row-level security disabled; recorded as observed and not changed by the baseline run."],
-    fixtureSeed: (phase === "after-0017" || phase === "after-0021")
+    roleRemovalTransitions: phase === "after-0022" ? [...after0022RemovedCases].map(([case_id, replacementCaseIds]) => ({ case_id, afterStatus: "removed-by-design", replacementCaseIds })) : undefined,
+    localAdvisories: phase === "after-0022" ? [] : ["public.private_user_roles currently has row-level security disabled; recorded as observed and not changed by the baseline run."],
+    fixtureSeed: (phase === "after-0017" || phase === "after-0021" || phase === "after-0022")
       ? "supabase/tests/007-unified-identity/fixture-setup.sql (additive); edge-cutover-0017 resets only its static attempt in one transaction before endpoint requests"
       : "supabase/tests/007-unified-identity/fixture-setup.sql (additive; no reset/reseed performed)",
   };
@@ -389,9 +454,11 @@ async function main() {
   const temporaryPath = `${outputPath}.tmp`;
   await writeFile(temporaryPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
   await rename(temporaryPath, outputPath);
-  const decisionsMatch = (phase === "after-0017" || phase === "after-0021")
-    ? (decisionComparison as Awaited<ReturnType<typeof compareAfter0017Statuses>> | null)?.decisionsMatchDocumentedTransitions ?? null
-    : (decisionComparison as Awaited<ReturnType<typeof compareStatuses>> | null)?.decisionsUnchanged ?? null;
+  const decisionsMatch = phase === "after-0022"
+    ? (decisionComparison as Awaited<ReturnType<typeof compareAfter0022Statuses>> | null)?.decisionsMatchDocumentedTransitions ?? null
+    : (phase === "after-0017" || phase === "after-0021")
+      ? (decisionComparison as Awaited<ReturnType<typeof compareAfter0017Statuses>> | null)?.decisionsMatchDocumentedTransitions ?? null
+      : (decisionComparison as Awaited<ReturnType<typeof compareStatuses>> | null)?.decisionsUnchanged ?? null;
   console.log(JSON.stringify({
     outputPath,
     caseCount: report.caseCount,

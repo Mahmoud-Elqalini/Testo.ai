@@ -44,7 +44,7 @@ export async function createInvitationTestUser(role: 'admin' | 'student') {
     async cleanup() {
       await client.auth.signOut()
       await adminClient.from('exam_attempts').delete().eq('student_id', data.user.id)
-      if (role === 'admin') await adminClient.from('groups').delete().eq('admin_id', data.user.id)
+      if (role === 'admin') await adminClient.from('groups').delete().eq('owner_id', data.user.id)
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(data.user.id)
       if (deleteError) throw deleteError
     },
@@ -56,7 +56,7 @@ export type InvitationTestUser = Awaited<ReturnType<typeof createInvitationTestU
 export async function createInvitationTestGroup(admin: InvitationTestUser) {
   const { data, error } = await adminClient
     .from('groups')
-    .insert({ name: `Invitation group ${crypto.randomUUID()}`, admin_id: admin.userId })
+    .insert({ name: `Invitation group ${crypto.randomUUID()}`, owner_id: admin.userId })
     .select('id')
     .single()
 

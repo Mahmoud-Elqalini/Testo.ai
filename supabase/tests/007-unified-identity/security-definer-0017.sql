@@ -75,6 +75,13 @@ SELECT 'CASE_RESULT|catalog.internal_helpers_no_public_execute|' || CASE WHEN NO
 
 -- T062: revoking direct EXECUTE must not prevent PostgreSQL from invoking the
 -- signup trigger function when auth.users receives a new account row.
+-- Migration 0022 replaces this role-bearing function with
+-- fn_create_profile_without_role(); its roleless signup contract is checked
+-- by drop-role-0022.sql. Keep this 0017 probe active on schemas where the
+-- legacy function still exists, but do not resolve a dropped function name.
+SELECT to_regprocedure('public.fn_create_profile_on_signup()') IS NOT NULL
+  AS legacy_signup_function_present \gset
+\if :legacy_signup_function_present
 BEGIN;
 REVOKE EXECUTE ON FUNCTION public.fn_create_profile_on_signup()
   FROM PUBLIC, anon, authenticated, service_role;
@@ -96,3 +103,4 @@ SELECT 'CASE_RESULT|signup.profile_created_after_execute_revoke|' || CASE WHEN E
   SELECT 1 FROM public.profiles WHERE id = :'signup_revoked_test_id'::uuid
 ) THEN 'PASS' ELSE 'FAIL' END || '|auth.users insert trigger creates the profile after direct EXECUTE is revoked';
 ROLLBACK;
+\endif

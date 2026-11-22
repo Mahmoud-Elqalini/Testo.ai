@@ -15,7 +15,7 @@ export async function createAttemptFixture(options: {
     title: `Attempt test ${crypto.randomUUID()}`,
     start_time: startTime,
     duration_minutes: options.durationMinutes ?? 30,
-    admin_id: admin.userId,
+    owner_id: admin.userId,
     is_published: true,
   }).select('id').single()
   if (examError || !exam) throw examError ?? new Error('Exam was not created')
@@ -56,7 +56,7 @@ export async function createAttemptFixture(options: {
 
   const { data: group, error: groupError } = await adminClient.from('groups').insert({
     name: `Attempt test group ${crypto.randomUUID()}`,
-    admin_id: admin.userId,
+    owner_id: admin.userId,
   }).select('id').single()
   if (groupError || !group) throw groupError ?? new Error('Group was not created')
 

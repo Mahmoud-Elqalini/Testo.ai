@@ -247,6 +247,11 @@ ON CONFLICT (id) DO NOTHING;
 RESET ROLE;
 SET LOCAL ROLE authenticated;
 
+SELECT CASE WHEN EXISTS (
+  SELECT 1 FROM information_schema.columns
+  WHERE table_schema='public' AND table_name='profiles' AND column_name='role'
+) THEN 'true' ELSE 'false' END AS profile_role_present \gset
+\if :profile_role_present
 -- A student self-promotion attempt is either blocked or inert. Relationship
 -- authorization must still deny another owner's resources and data.
 SELECT set_config('request.jwt.claim.sub','a7000000-0000-4000-8000-000000000003',true);
@@ -270,6 +275,10 @@ SELECT 'CASE_RESULT|cutover.self_promotion.role_fixture|' || CASE WHEN EXISTS (
   WHERE id='a7000000-0000-4000-8000-000000000003' AND role='admin'::public.user_role
 ) THEN 'PASS' ELSE 'FAIL' END || '|self-promotion probe uses an account whose stored role is admin';
 
+\else
+SELECT 'CASE_RESULT|cutover.self_promotion.role_fixture|PASS|fixed role state is absent; roleless owner and membership checks remain active';
+\endif
+RESET ROLE;
 -- T066 explicit owner self-exam denial for the promoted account.
 SELECT gen_random_uuid() AS promoted_owner_exam_id \gset
 SELECT gen_random_uuid() AS promoted_owner_attempt_id \gset

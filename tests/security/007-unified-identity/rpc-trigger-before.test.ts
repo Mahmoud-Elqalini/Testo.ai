@@ -37,10 +37,12 @@ async function sourceFiles(path: string): Promise<string[]> {
   return nested.flat();
 }
 
-export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolean } = {}) {
+export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolean; after0022?: boolean } = {}) {
   const helperSqlPath = "supabase/tests/007-unified-identity/rpc-trigger-before.sql";
   let helperOutput: string;
-  if (options.after0017) {
+  if (options.after0022) {
+    helperOutput = "";
+  } else if (options.after0017) {
     // 0017 retires this helper; the after-0017 transition table replaces its
     // two baseline assertions with the scoped participant projection cases.
     const helperSql = await readFile(resolve(helperSqlPath), "utf8");
@@ -214,6 +216,7 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   }
   await ctx.request(`/rest/v1/exams?id=eq.${rpcExamId}`, "ownerA", { method: "DELETE", headers: serviceHeaders });
 
+  if (!options.after0022) {
   const ordinaryUpdate = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}`, "participantA", { method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ full_name: "007 Participant A" }) });
   await record(ctx, "function:public.fn_protect_profile_role.api_allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; ordinary profile edit does not alter role`);
   await record(ctx, "trigger:trg_protect_profile_role.api_allow", ordinaryUpdate.ok, `HTTP ${ordinaryUpdate.status}; non-role update passes protection trigger`);
@@ -235,6 +238,8 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   const mirrored = await ctx.request(`/rest/v1/profiles?id=eq.${ids.participantA}&select=id`, "participantA", { method: "GET" });
   await record(ctx, "function:public.fn_sync_user_role.api_allow", mirrored.ok, `HTTP ${mirrored.status}; profile remains available after trusted mirror update`);
   await record(ctx, "trigger:trg_sync_user_role.api_allow", mirrored.ok, `HTTP ${mirrored.status}; mirror trigger remains active`);
+
+  }
 
   const absentPaths = [resolve("src"), resolve("supabase/functions")];
   const files = (await Promise.all(absentPaths.map(sourceFiles))).flat();

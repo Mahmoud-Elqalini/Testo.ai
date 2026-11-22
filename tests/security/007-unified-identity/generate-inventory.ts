@@ -173,12 +173,12 @@ if (missingFromCatalog.length || missingFromMigrations.length) {
 const planText = await readFile(resolve(root, "specs/007-unified-identity/plan.md"), "utf8");
 const planMissing = [...policyInventory, ...functionInventory, ...triggerInventory]
   .filter((entry) => {
-    const plannedName = entry.type === "role_dependent_trigger_path"
+    const plannedName = entry.type === "role_dependent_trigger_path" && "source" in entry
       ? entry.source.split(":").at(-1)!.split(".").at(-1)!
       : entry.object.split("(")[0].replace(/^public\./i, "");
     return !planText.toLowerCase().includes(plannedName.toLowerCase());
   });
-if (planMissing.length) throw new Error(`Inventory entries absent from plan matrix: ${planMissing.map(({ kind, object }) => `${kind}:${object}`).join(", ")}`);
+if (planMissing.length) throw new Error(`Inventory entries absent from plan matrix: ${planMissing.map((entry) => `${"kind" in entry ? entry.kind as string | undefined : undefined}:${entry.object}`).join(", ")}`);
 const edgeMissingFromPlan = edgeInventory.filter(({ object }) => !planText.toLowerCase().includes(object.toLowerCase()));
 if (edgeMissingFromPlan.length) throw new Error(`Edge paths absent from plan matrix: ${edgeMissingFromPlan.map(({ source }) => source).join(", ")}`);
 
