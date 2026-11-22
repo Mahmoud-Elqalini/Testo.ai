@@ -32,9 +32,8 @@ test.describe('Student exam-taking visual regression', () => {
       let attemptId: string | undefined
       let examId: string | undefined
       try {
-        await adminClient!.from('profiles').update({ role: 'admin' }).eq('id', adminData.user.id)
         await adminClient!.from('profiles').update({ preferred_language: locale, preferred_theme: theme }).eq('id', data.user.id)
-        const exam = await adminClient!.from('exams').insert({ title: 'Visual exam attempt', start_time: new Date(Date.now() - 30_000).toISOString(), duration_minutes: 30, admin_id: adminData.user.id, is_published: true }).select('id').single()
+        const exam = await adminClient!.from('exams').insert({ title: 'Visual exam attempt', start_time: new Date(Date.now() - 30_000).toISOString(), duration_minutes: 30, owner_id: adminData.user.id, is_published: true }).select('id').single()
         if (exam.error || !exam.data) throw exam.error ?? new Error('Could not create visual test exam')
         examId = exam.data.id
         const question = await adminClient!.from('questions').insert({ exam_id: examId, type: 'mcq', text: 'Which option matches the sample?', points: 2, order: 1, mcq_choices: [{ id: 'a', text: 'First answer' }, { id: 'b', text: 'Second answer' }], correct_choice: 'b' }).select('id').single()

@@ -39,7 +39,6 @@ test.describe('Admin exam creation visual regression', () => {
 
         try {
           await updateVisualProfile(adminClient!, adminUserId, {
-            role: 'admin',
             preferred_language: locale,
             preferred_theme: theme,
           })

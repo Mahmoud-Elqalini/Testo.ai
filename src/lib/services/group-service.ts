@@ -21,7 +21,7 @@ export async function createGroup(input: { name: string }): Promise<ServiceResul
     const { data: { user }, error: authError } = await client.auth.getUser()
     if (authError) throw authError
     if (!user) return { data: null, error: { code: 'access_denied', message: 'Access denied.' } }
-    const { data, error } = await client.from('groups').insert({ name, admin_id: user.id }).select('*').single()
+    const { data, error } = await client.from('groups').insert({ name, owner_id: user.id }).select('*').single()
     if (error) throw error
     return { data: data as Group, error: null }
   } catch (error) { return { data: null, error: normalizeError(error) } }

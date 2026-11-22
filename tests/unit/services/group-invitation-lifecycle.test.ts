@@ -33,7 +33,7 @@ describe('group invitation lifecycle (local Supabase)', () => {
       title: 'Invitation lifecycle exam',
       start_time: new Date(Date.now() - 60_000).toISOString(),
       duration_minutes: 60,
-      admin_id: admin.userId,
+      owner_id: admin.userId,
       is_published: true,
     }).select('id').single()
     expect(examError).toBeNull()

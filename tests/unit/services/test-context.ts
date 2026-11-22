@@ -35,18 +35,6 @@ async function createTestUser(role: 'admin' | 'student') {
   }
 
   const client = role === 'admin' ? createBrowserClient() : createAnonClient()
-  if (role === 'admin') {
-    const { error: roleError } = await adminClient
-      .from('profiles')
-      .update({ role: 'admin' })
-      .eq('id', data.user.id)
-
-    if (roleError) {
-      await adminClient.auth.admin.deleteUser(data.user.id)
-      throw roleError
-    }
-  }
-
   const { error: signInError } = role === 'admin'
     ? await signIn(email, password)
     : await client.auth.signInWithPassword({ email, password })
@@ -68,40 +56,70 @@ async function createTestUser(role: 'admin' | 'student') {
         .eq('student_id', data.user.id)
       if (attemptsError) throw attemptsError
 
-      if (role === 'admin') {
-        const { data: ownedExams, error: examsError } = await adminClient
+      const { data: ownedExams, error: examsError } = await adminClient
+        .from('exams')
+        .select('id')
+        .eq('owner_id', data.user.id)
+      if (examsError) throw examsError
+
+      const examIds = (ownedExams ?? []).map(({ id }) => id)
+      if (examIds.length > 0) {
+        const { error: ownedAttemptsError } = await adminClient
+          .from('exam_attempts')
+          .delete()
+          .in('exam_id', examIds)
+        if (ownedAttemptsError) throw ownedAttemptsError
+
+        const { error: permissionsError } = await adminClient
+          .from('exam_permissions')
+          .delete()
+          .in('exam_id', examIds)
+        if (permissionsError) throw permissionsError
+
+        const { error: questionsError } = await adminClient
+          .from('questions')
+          .delete()
+          .in('exam_id', examIds)
+        if (questionsError) throw questionsError
+
+        const { error: ownedExamsDeleteError } = await adminClient
           .from('exams')
-          .select('id')
-          .eq('admin_id', data.user.id)
-        if (examsError) throw examsError
+          .delete()
+          .in('id', examIds)
+        if (ownedExamsDeleteError) throw ownedExamsDeleteError
+      }
 
-        const examIds = (ownedExams ?? []).map(({ id }) => id)
-        if (examIds.length > 0) {
-          const { error: permissionsError } = await adminClient
-            .from('exam_permissions')
-            .delete()
-            .in('exam_id', examIds)
-          if (permissionsError) throw permissionsError
+      const { data: ownedGroups, error: groupsSelectError } = await adminClient
+        .from('groups')
+        .select('id')
+        .eq('owner_id', data.user.id)
+      if (groupsSelectError) throw groupsSelectError
+      const groupIds = (ownedGroups ?? []).map(({ id }) => id)
+      if (groupIds.length > 0) {
+        const { error: groupPermissionsError } = await adminClient
+          .from('exam_permissions')
+          .delete()
+          .in('group_id', groupIds)
+        if (groupPermissionsError) throw groupPermissionsError
 
-          const { error: questionsError } = await adminClient
-            .from('questions')
-            .delete()
-            .in('exam_id', examIds)
-          if (questionsError) throw questionsError
-
-          const { error: ownedExamsDeleteError } = await adminClient
-            .from('exams')
-            .delete()
-            .in('id', examIds)
-          if (ownedExamsDeleteError) throw ownedExamsDeleteError
-        }
+        const { error: membershipsError } = await adminClient
+          .from('group_students')
+          .delete()
+          .in('group_id', groupIds)
+        if (membershipsError) throw membershipsError
 
         const { error: groupsError } = await adminClient
           .from('groups')
           .delete()
-          .eq('admin_id', data.user.id)
+          .in('id', groupIds)
         if (groupsError) throw groupsError
       }
+
+      const { error: membershipsByStudentError } = await adminClient
+        .from('group_students')
+        .delete()
+        .eq('student_id', data.user.id)
+      if (membershipsByStudentError) throw membershipsByStudentError
 
       const { error: deleteError } = await adminClient.auth.admin.deleteUser(data.user.id)
       if (deleteError) throw deleteError

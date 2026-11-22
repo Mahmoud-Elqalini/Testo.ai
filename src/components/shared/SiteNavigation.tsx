@@ -10,9 +10,7 @@ import { CourseSearch } from '@/components/shared/CourseSearch'
 import { PreferenceControls } from '@/components/shared/PreferenceSwitcher'
 import { useTranslation } from '@/lib/i18n/use-translation'
 import { createClient } from '@/lib/supabase/client'
-import type { UserRole } from '@/lib/types'
-
-type Account = { role: UserRole; fullName: string }
+type Account = { fullName: string }
 type NavigationIcon = 'dashboard' | 'courses' | 'explore' | 'groups' | 'exams' | 'settings' | 'logout'
 
 const navigationIcons: Record<NavigationIcon, LucideIcon> = {
@@ -63,15 +61,15 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
 
       const { data: profile, error } = await supabase
         .from('profiles')
-        .select('role, full_name')
+        .select('full_name')
         .eq('id', userId)
         .maybeSingle()
 
       if (!mounted || currentRequest !== requestId) return
-      if (error || (profile?.role !== 'admin' && profile?.role !== 'student')) {
+      if (error || !profile) {
         setAccount(null)
       } else {
-        setAccount({ role: profile.role, fullName: profile.full_name ?? '' })
+        setAccount({ fullName: profile.full_name ?? '' })
       }
       setAuthResolved(true)
     }
@@ -141,17 +139,13 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
     router.refresh()
   }
 
-  const isAdmin = account?.role === 'admin'
-  const groupHref = isAdmin ? '/admin/groups' : '/student/join-group'
-  const examsHref = isAdmin ? '/admin#exam-list' : '/student#open-exams-title'
-  const isGroupsRoute = isAdmin
-    ? pathname.startsWith('/admin/groups')
-    : pathname === '/student/join-group'
-  const isExamsRoute = isAdmin
-    ? pathname === '/admin' || pathname.startsWith('/admin/exams')
-    : pathname === '/student'
-      || pathname.startsWith('/student/exam/')
-      || pathname.startsWith('/student/results/')
+  const groupHref = '/admin/groups'
+  const examsHref = '/dashboard#dashboard-exams-title'
+  const isGroupsRoute = pathname.startsWith('/admin/groups') || pathname === '/student/join-group'
+  const isExamsRoute = pathname.startsWith('/admin/exams')
+    || pathname.startsWith('/student/exam/')
+    || pathname.startsWith('/student/results/')
+    || isDashboardRoute
 
   return (
     <div className={`dashboard-shell global-app-shell${isDashboardRoute ? ' is-dashboard-route' : ''}`} dir={language === 'ar' ? 'rtl' : 'ltr'}>
@@ -173,7 +167,8 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
           <div className="manjam-header-actions"><PreferenceControls variant="compact-switch" /></div>
         </header> : <header className="dashboard-header global-site-header">
           <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.home')}>
-            <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
+            <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} />
           </Link>
           <CourseSearch isDrawerOpen={menuOpen} onSearchOpen={() => { if (menuOpen) closeForNavigation() }} />
           <div className="dashboard-header-actions">
@@ -221,8 +216,8 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
             </ul>
           </nav>
           {account && <div className="dashboard-account-card">
-            <span className="dashboard-account-avatar" aria-hidden="true">{account.fullName.trim().charAt(0).toLocaleUpperCase(language) || 'T'}</span>
-            <span className="dashboard-account-copy" title={account.fullName || undefined}><strong>{account.fullName || t('dashboard.account')}</strong><small>{isAdmin ? t('nav.adminRole') : t('dashboard.studentRole')}</small></span>
+            <span className="dashboard-account-avatar" aria-hidden="true">{account.fullName.trim().charAt(0).toLocaleUpperCase(language) || t('publicHome.brandName').trim().charAt(0)}</span>
+            <span className="dashboard-account-copy" title={account.fullName || undefined}><strong>{account.fullName || t('dashboard.account')}</strong><small>{t('dashboard.accountMember')}</small></span>
             <button className="dashboard-account-signout" type="button" onClick={() => void handleSignOut()} aria-label={t('dashboard.logout')} title={t('dashboard.logout')}><NavigationIconView name="logout" size={16} /><span>{t('dashboard.logout')}</span></button>
           </div>}
         </aside>

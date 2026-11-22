@@ -30,6 +30,7 @@ describe('Auth Guard Routing Logic', () => {
 
   it('allows authenticated users on protected routes', () => {
     expect(resolveAuthRedirect('/dashboard', true)).toBeNull()
-    expect(resolveAuthRedirect('/admin', true)).toBeNull()
+    expect(resolveAuthRedirect('/admin', true)).toBe('/dashboard')
+    expect(resolveAuthRedirect('/student', true)).toBe('/dashboard')
   })
 })

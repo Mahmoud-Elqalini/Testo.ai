@@ -38,7 +38,7 @@ export default function StudentDashboard() {
   const featuredAttempt = openAttempts[0]
   const featuredUpcoming = upcoming.find((exam) => !attempts.some((attempt) => attempt.exam_id === exam.id))
 
-  return <WorkspaceLayout role="student" active="dashboard"><main className="space-y-7">
+  return <WorkspaceLayout active="dashboard"><main className="space-y-7">
       <header className="flex flex-wrap items-start justify-between gap-4">
         <div><p className="mb-2 text-[10px] font-bold tracking-[.14em] text-muted">{t('nav.dashboard').toLocaleUpperCase(language)}</p><h1 className="text-[27px] font-semibold leading-tight tracking-[-.04em] sm:text-[30px]">{t('student.exam.dashboardTitle')}</h1><p className="mt-2 text-[13px] text-muted dark:text-muted">{t('student.exam.dashboardDescription')}</p></div>
         <Link href="/student/join-group"><Button variant="secondary">{t('dashboard.joinGroup')}</Button></Link>

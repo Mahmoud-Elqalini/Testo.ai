@@ -9,7 +9,6 @@ import { CourseSearch } from '@/components/shared/CourseSearch'
 import { PreferenceControls } from '@/components/shared/PreferenceSwitcher'
 
 type WorkspaceLayoutProps = {
-  role: 'admin' | 'student' | null
   active: 'dashboard' | 'exams' | 'groups' | 'exam-room'
   children: ReactNode
   focusMode?: boolean
@@ -19,25 +18,12 @@ type WorkspaceLayoutProps = {
   onSignOut?: () => void
 }
 
-export function WorkspaceLayout({ role, active, children, focusMode = false, dashboardHref, dashboardMode = false, userName = '', onSignOut }: WorkspaceLayoutProps) {
+export function WorkspaceLayout({ active, children, focusMode = false, dashboardHref = '/dashboard', dashboardMode = false, userName = '', onSignOut }: WorkspaceLayoutProps) {
   const { t, language } = useTranslation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   const skipMenuFocusReturn = useRef(false)
-  const admin = role === 'admin'
-  const links = admin
-    ? [
-        { key: 'dashboard', href: dashboardHref ?? '/admin', label: t('nav.dashboard') },
-        { key: 'exams', href: '/admin#exam-list', label: t('admin.exams.title') },
-        { key: 'groups', href: '/admin/groups', label: t('admin.groups.title') },
-      ]
-    : [
-        { key: 'dashboard', href: dashboardHref ?? '/student', label: t('nav.dashboard') },
-        { key: 'exams', href: '/student#open-exams-title', label: t('student.exam.available') },
-        { key: 'groups', href: '/student/join-group', label: t('dashboard.joinGroup') },
-      ]
-
   useEffect(() => {
     if (!dashboardMode || !mobileMenuOpen) return
     const menuButton = menuButtonRef.current
@@ -77,22 +63,17 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
     return (
       <div dir={language === 'ar' ? 'rtl' : 'ltr'} className="dashboard-shell testo-workspace-dashboard">
         <header className="dashboard-header">
-          <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.dashboard')}>
-            <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
-          </Link>
-          <CourseSearch isDrawerOpen={mobileMenuOpen} onSearchOpen={() => { if (mobileMenuOpen) { skipMenuFocusReturn.current = true; setMobileMenuOpen(false) } }} />
-          <div className="dashboard-header-actions">
-            <button
-              ref={menuButtonRef}
-              type="button"
-              className={`dashboard-menu-toggle${mobileMenuOpen ? ' is-open' : ''}`}
-              onClick={() => setMobileMenuOpen((open) => !open)}
-              aria-label={mobileMenuOpen ? t('common.close') : t('common.menu')}
-              aria-expanded={mobileMenuOpen}
-              aria-controls="dashboard-navigation-drawer"
-            >
+          <div className="dashboard-header-brand-area">
+            <button ref={menuButtonRef} type="button" className={`dashboard-menu-toggle${mobileMenuOpen ? ' is-open' : ''}`} onClick={() => setMobileMenuOpen((open) => !open)} aria-label={mobileMenuOpen ? t('common.close') : t('common.menu')} aria-expanded={mobileMenuOpen} aria-controls="dashboard-navigation-drawer">
               {mobileMenuOpen ? <X size={20} strokeWidth={2} aria-hidden="true" /> : <Menu size={20} strokeWidth={2} aria-hidden="true" />}
             </button>
+            <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.dashboard')}>
+              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} />
+              <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} />
+            </Link>
+          </div>
+          <CourseSearch isDrawerOpen={mobileMenuOpen} onSearchOpen={() => { if (mobileMenuOpen) { skipMenuFocusReturn.current = true; setMobileMenuOpen(false) } }} />
+          <div className="dashboard-header-actions">
             <PreferenceControls />
           </div>
         </header>
@@ -107,7 +88,8 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
         >
           <div className="dashboard-drawer-header">
             <Link className="dashboard-header-brand" href="/dashboard" onClick={() => setMobileMenuOpen(false)}>
-              <span className="dashboard-brand-mark"><Image src="/testo-mark.png" alt="" fill sizes="36px" /></span><strong>Testo</strong>
+              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} />
+              <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} />
             </Link>
             <button ref={closeButtonRef} className="dashboard-drawer-close" type="button" aria-label={t('common.close')} onClick={() => setMobileMenuOpen(false)}>
               <X size={20} strokeWidth={2} aria-hidden="true" />
@@ -118,14 +100,14 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
               <li><Link className={`dashboard-nav-item${active === 'dashboard' ? ' is-active' : ''}`} href={dashboardHref ?? '/dashboard'} aria-current={active === 'dashboard' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="dashboard" /><span>{t('nav.dashboard')}</span></Link></li>
               <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="courses" /><span>{t('dashboard.myCourses')}</span><small>{t('nav.soon')}</small></button></li>
               <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="explore" /><span>{t('dashboard.exploreCourses')}</span><small>{t('nav.soon')}</small></button></li>
-              {role && <li><Link className={`dashboard-nav-item${active === 'groups' ? ' is-active' : ''}`} href={admin ? '/admin/groups' : '/student/join-group'} aria-current={active === 'groups' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="groups" /><span>{t('dashboard.myGroups')}</span></Link></li>}
-              {role && <li><Link className={`dashboard-nav-item${active === 'exams' ? ' is-active' : ''}`} href={admin ? '/admin#exam-list' : '/student#open-exams-title'} aria-current={active === 'exams' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="exams" /><span>{t('dashboard.studentExams')}</span></Link></li>}
+              <li><Link className={`dashboard-nav-item${active === 'groups' ? ' is-active' : ''}`} href="/admin/groups" aria-current={active === 'groups' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="groups" /><span>{t('dashboard.myGroups')}</span></Link></li>
+              <li><Link className={`dashboard-nav-item${active === 'exams' ? ' is-active' : ''}`} href="/dashboard#dashboard-exams-title" aria-current={active === 'exams' ? 'page' : undefined} onClick={() => setMobileMenuOpen(false)}><WorkspaceIcon name="exams" /><span>{t('dashboard.studentExams')}</span></Link></li>
               <li><button className="dashboard-nav-item is-disabled" type="button" disabled aria-disabled="true"><WorkspaceIcon name="settings" /><span>{t('dashboard.settings')}</span><small>{t('nav.soon')}</small></button></li>
             </ul>
           </nav>
           <div className="dashboard-account-card">
             <span className="dashboard-account-avatar" aria-hidden="true">{userName.trim().charAt(0).toLocaleUpperCase(language) || 'T'}</span>
-            <span className="dashboard-account-copy" title={userName || undefined}><strong>{userName || t('dashboard.account')}</strong><small>{role ? admin ? t('nav.adminRole') : t('dashboard.studentRole') : t('common.loading')}</small></span>
+            <span className="dashboard-account-copy" title={userName || undefined}><strong>{userName || t('dashboard.account')}</strong><small>{t('dashboard.accountMember')}</small></span>
             {onSignOut && <button className="dashboard-account-signout" type="button" onClick={() => { setMobileMenuOpen(false); onSignOut() }} aria-label={t('dashboard.logout')} title={t('dashboard.logout')}><WorkspaceIcon name="logout" size={16} /><span>{t('dashboard.logout')}</span></button>}
           </div>
         </aside>
@@ -138,7 +120,7 @@ export function WorkspaceLayout({ role, active, children, focusMode = false, das
     <div dir={language === 'ar' ? 'rtl' : 'ltr'} className={`testo-workspace${focusMode ? ' testo-workspace-focus' : ''}`}>
       <div className="testo-main">
         {!dashboardMode && <header className="testo-topbar">
-          {!focusMode && <div className="testo-breadcrumb">{admin ? (language === 'ar' ? 'مساحة المدرسة' : 'School workspace') : t('student.exam.dashboardTitle')} <span>/</span> {links.find((item) => item.key === active)?.label}</div>}
+          {!focusMode && <div className="testo-breadcrumb">{t('nav.dashboard')} <span>/</span> {active === 'exam-room' ? t('student.exam.dashboardTitle') : active === 'groups' ? t('dashboard.myGroups') : active === 'exams' ? t('dashboard.studentExams') : t('nav.dashboard')}</div>}
           {focusMode && <span className="testo-saved-indicator"><i />{t('student.exam.autosaveHint')}</span>}
         </header>}
         <div className="testo-page-content">{children}</div>

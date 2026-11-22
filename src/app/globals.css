@@ -4,20 +4,23 @@
 
 :root {
   color-scheme: light;
-  --page-bg: #F8FAFC;
+  --page-bg: #FBF8F0;
   --surface: #FFFFFF;
-  --surface-soft: #F8FAFC;
-  --border: #E2E8F0;
-  --text: #0F172A;
-  --muted: #64748B;
-  --subtle: #94A3B8;
-  --primary: #7C3AED;
-  --primary-hover: #6D28D9;
-  --primary-text: #6D28D9;
-  --primary-soft: #F5F3FF;
-  --primary-soft-strong: #EDE9FE;
-  --hero-start: #6D28D9;
-  --hero-end: #4F46E5;
+  --surface-soft: #F6F1E4;
+  --border: #D9D2BC;
+  --text: #171A33;
+  --muted: #505577;
+  --subtle: #767B99;
+  --primary: #FFB81C;
+  --primary-hover: #FFC63D;
+  --primary-text: #9A5A05;
+  --primary-soft: #FDF1D6;
+  --primary-soft-strong: #FCEBC4;
+  --hero-start: #171A33;
+  --hero-end: #2A3068;
+  --hero-text: #F6F1E4;
+  --hero-muted: #B8B5CC;
+  --focus-ring: #171A33;
   --success: #10B981;
   --success-soft: #ECFDF5;
   --success-border: #A7F3D0;
@@ -28,9 +31,9 @@
   --danger-soft: #FEE2E2;
   --danger-border: #FECACA;
   --danger-text: #B91C1C;
-  --neutral-chip-bg: #F1F5F9;
-  --neutral-chip-text: #334155;
-  --on-primary: #FFFFFF;
+  --neutral-chip-bg: #F6F1E4;
+  --neutral-chip-text: #171A33;
+  --on-primary: #14110A;
   --shadow-color: 15 23 42;
   --exam-accent: #39776B;
   --exam-soft: #E8F2EE;
@@ -74,7 +77,7 @@
   --shell-section-gap: 0.5rem;
   --shell-icon-color: color-mix(in srgb, var(--subtle) 70%, var(--text));
 
-  /* Manjam public-home tokens. Legacy semantic colors above remain unchanged. */
+  /* Manjam semantic tokens retained for staged migration of existing components. */
   --manjam-bg: #FBF8F0;
   --manjam-surface: #FFFFFF;
   --manjam-surface-raised: #F6F1E4;
@@ -106,30 +109,33 @@
 
 .dark {
   color-scheme: dark;
-  --page-bg: #0F172A;
-  --surface: #1E293B;
-  --surface-soft: #263449;
-  --border: #334155;
-  --text: #F1F5F9;
-  --muted: #94A3B8;
-  --subtle: #94A3B8;
-  --primary: #7C3AED;
-  --primary-hover: #6D28D9;
-  --primary-text: #A78BFA;
-  --primary-soft: color-mix(in srgb, #7C3AED 15%, #1E293B);
-  --primary-soft-strong: color-mix(in srgb, #7C3AED 20%, #1E293B);
-  --success-soft: color-mix(in srgb, #10B981 15%, #1E293B);
+  --page-bg: #0E1020;
+  --surface: #171A33;
+  --surface-soft: #1F2347;
+  --border: #2E3470;
+  --text: #F6F1E4;
+  --muted: #B8B5CC;
+  --subtle: #B8B5CC;
+  --primary: #FFB81C;
+  --primary-hover: #FFC63D;
+  --primary-text: #F5B83D;
+  --primary-soft: color-mix(in srgb, #F5B83D 15%, #171A33);
+  --primary-soft-strong: color-mix(in srgb, #F5B83D 20%, #171A33);
+  --hero-text: #F6F1E4;
+  --hero-muted: #B8B5CC;
+  --focus-ring: #F5B83D;
+  --success-soft: color-mix(in srgb, #10B981 15%, #171A33);
   --success-border: #047857;
   --success-text: #6EE7B7;
-  --warning-soft: color-mix(in srgb, #B45309 15%, #1E293B);
+  --warning-soft: color-mix(in srgb, #B45309 15%, #171A33);
   --warning-border: #B45309;
   --warning-text: #FCD34D;
-  --danger-soft: color-mix(in srgb, #B91C1C 15%, #1E293B);
+  --danger-soft: color-mix(in srgb, #B91C1C 15%, #171A33);
   --danger-border: #B91C1C;
   --danger-text: #FCA5A5;
-  --neutral-chip-bg: #334155;
-  --neutral-chip-text: #F1F5F9;
-  --on-primary: #FFFFFF;
+  --neutral-chip-bg: #2E3470;
+  --neutral-chip-text: #F6F1E4;
+  --on-primary: #14110A;
   --shadow-color: 0 0 0;
   --exam-accent: #8FC6B5;
   --exam-soft: #2C4039;

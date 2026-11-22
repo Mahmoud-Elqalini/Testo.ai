@@ -1,12 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
-import {
-  addStudentToGroup,
-  createGroup,
-  listGroupStudents,
-  listAdminGroups,
-  removeStudentFromGroup,
-  searchStudentsByEmail,
-} from '../../../src/lib/services/group-service'
+import { createGroup, listAdminGroups, listGroupStudents, listJoinedGroups, removeStudentFromGroup } from '../../../src/lib/services/group-service'
+import { createGroupInvitation } from '../../../src/lib/services/group-invitation-service'
+import { createClient } from '../../../src/lib/supabase/client'
+import { adminClient } from '../helpers/supabase-admin'
 import { createTestAdmin, createTestStudent } from './test-context'
 
 describe('group service (local Supabase)', () => {
@@ -18,55 +14,67 @@ describe('group service (local Supabase)', () => {
     if (student) { await student.cleanup(); student = undefined }
   })
 
-  it('creates an owned group, finds a student by exact email, and adds/removes that student', async () => {
+  it('creates an owned group and allows a student to join through its invitation', async () => {
     admin = await createTestAdmin()
     student = await createTestStudent()
 
     const created = await createGroup({ name: 'Algebra cohort' })
     expect(created.error).toBeNull()
-    expect(created.data).toMatchObject({ name: 'Algebra cohort', admin_id: admin.userId })
+    expect(created.data).toMatchObject({ name: 'Algebra cohort', owner_id: admin.userId })
+    const { data: ownerSessionData, error: ownerSessionError } = await createClient().auth.getSession()
+    expect(ownerSessionError).toBeNull()
+    expect(ownerSessionData.session).not.toBeNull()
 
-    const search = await searchStudentsByEmail(student.email.toUpperCase())
-    expect(search.error).toBeNull()
-    expect(search.data).toEqual([{ id: student.userId, email: student.email, full_name: '' }])
-    const studentSearch = await student.client.rpc('search_student_by_email', { search_email: admin.email })
-    expect(studentSearch.error).toBeNull()
-    expect(studentSearch.data).toEqual([])
-    expect(await searchStudentsByEmail('student')).toMatchObject({ data: null, error: { code: 'validation_error' } })
+    const invitation = await createGroupInvitation(created.data!.id)
+    expect(invitation.error).toBeNull()
+    const redeemed = await student.client.rpc('redeem_group_invitation', { invitation_code: invitation.data!.code })
+    expect(redeemed.error).toBeNull()
+    expect(redeemed.data).toEqual({ success: true })
 
-    const added = await addStudentToGroup(created.data!.id, student.userId)
-    expect(added.error).toBeNull()
     const members = await listGroupStudents(created.data!.id)
+    expect(members.error).toBeNull()
     expect(members.data).toEqual([{ id: student.userId, email: student.email, full_name: '' }])
 
-    const listed = await listAdminGroups()
-    expect(listed.data?.map(({ id }) => id)).toContain(created.data!.id)
+    const ownedGroups = await listAdminGroups()
+    expect(ownedGroups.error).toBeNull()
+    expect(ownedGroups.data?.map(({ id }) => id)).toContain(created.data!.id)
 
+    const { data: studentSession, error: studentSessionError } = await student.client.auth.getSession()
+    expect(studentSessionError).toBeNull()
+    expect(studentSession.session).not.toBeNull()
+    const { error: appSessionError } = await createClient().auth.setSession({
+      access_token: studentSession.session!.access_token,
+      refresh_token: studentSession.session!.refresh_token,
+    })
+    expect(appSessionError).toBeNull()
+    const studentJoinedGroups = await listJoinedGroups()
+    expect(studentJoinedGroups.error).toBeNull()
+    expect(studentJoinedGroups.data).toContainEqual({ group_id: created.data!.id, group_name: 'Algebra cohort' })
+
+    const { error: ownerSessionRestoreError } = await createClient().auth.setSession({
+      access_token: ownerSessionData.session!.access_token,
+      refresh_token: ownerSessionData.session!.refresh_token,
+    })
+    expect(ownerSessionRestoreError).toBeNull()
     const removed = await removeStudentFromGroup(created.data!.id, student.userId)
     expect(removed.error).toBeNull()
     expect((await listGroupStudents(created.data!.id)).data).toEqual([])
   }, 30_000)
 
-  it('does not find non-students or expose another admin’s groups', async () => {
+  it('does not expose another owner’s groups or their members', async () => {
     admin = await createTestAdmin()
     student = await createTestStudent()
     const created = await createGroup({ name: 'Private group' })
     expect(created.error).toBeNull()
+    const otherGroup = await adminClient.from('groups')
+      .insert({ name: 'Foreign group', owner_id: student.userId })
+      .select('id')
+      .single()
+    expect(otherGroup.error).toBeNull()
 
-    const { adminClient } = await import('../helpers/supabase-admin')
-    const { data: other, error } = await adminClient.auth.admin.createUser({
-      email: `foundation-other-${crypto.randomUUID()}@testo.local`,
-      password: 'Testo-service-test-password-123!',
-      email_confirm: true,
-    })
-    expect(error).toBeNull()
-    expect(other.user).toBeDefined()
-    await adminClient.from('profiles').update({ role: 'admin' }).eq('id', other.user!.id)
-    const otherGroups = await adminClient.from('groups').insert({ name: 'Foreign', admin_id: other.user!.id }).select('id').single()
-    expect(otherGroups.error).toBeNull()
-
-    expect((await listAdminGroups()).data?.map(({ id }) => id)).not.toContain(otherGroups.data!.id)
-    expect((await listGroupStudents(otherGroups.data!.id)).data).toEqual([])
-    await adminClient.auth.admin.deleteUser(other.user!.id)
+    const ownGroups = await listAdminGroups()
+    expect(ownGroups.data?.map(({ id }) => id)).toContain(created.data!.id)
+    expect(ownGroups.data?.map(({ id }) => id)).not.toContain(otherGroup.data!.id)
+    expect((await listGroupStudents(otherGroup.data!.id)).data).toEqual([])
   }, 30_000)
 })

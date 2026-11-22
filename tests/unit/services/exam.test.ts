@@ -35,7 +35,7 @@ describe('exam service (local Supabase)', () => {
       title: 'Foundations CRUD exam',
       description: 'Initial description',
       duration_minutes: 45,
-      admin_id: admin.userId,
+      owner_id: admin.userId,
       is_published: false,
     })
     const examId = created.data!.id
@@ -81,7 +81,7 @@ describe('exam service (local Supabase)', () => {
         title: 'Other admin exam',
         start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         duration_minutes: 30,
-        admin_id: other.user!.id,
+        owner_id: other.user!.id,
       })
       .select('id')
       .single()

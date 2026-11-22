@@ -1,5 +1,3 @@
-export type UserRole = 'student' | 'admin';
-
 export type QuestionType = 'mcq' | 'essay';
 
 export type AttemptStatus =
@@ -12,7 +10,6 @@ export type AttemptStatus =
 
 export interface Profile {
   id: string;
-  role: UserRole;
   full_name: string;
   preferred_language: 'en' | 'ar';
   preferred_theme: 'light' | 'dark';
@@ -21,7 +18,7 @@ export interface Profile {
 export interface Group {
   id: string;
   name: string;
-  admin_id: string;
+  owner_id: string;
 }
 
 export interface GroupStudent {
@@ -35,7 +32,7 @@ export interface Exam {
   description: string;
   start_time: string;
   duration_minutes: number;
-  admin_id: string;
+  owner_id: string;
   is_published: boolean;
 }
 
