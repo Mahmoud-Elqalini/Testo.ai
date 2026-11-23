@@ -75,3 +75,17 @@ These rules apply to every existing screen being restyled and every new screen o
 - Check the main user journeys with the existing routes and data, including drawer open/close, Escape and overlay behavior, keyboard focus, language/theme switching, and real empty/populated states where applicable.
 - Confirm there are no leftover reference names/data, placeholder badges, obsolete copy, missing localization keys, one-direction-only spacing, or visible controls that do nothing.
 - Keep the final change scoped to the requested experience. Report what changed, what was checked, any limitation caused by a missing production feature, and provide a concise suggested commit message. Do not claim browser or test verification that was not performed.
+
+## Vitest mocked vs live projects (tests/unit)
+
+- `vitest.config.mts` defines two projects. `mocked` runs the explicit `mockedTests` list with `pool: 'forks'` and `isolate: true`. `live` runs the remaining `tests/unit` files with `pool: 'vmThreads'` and `isolate: false`.
+- Why this separation exists: with `isolate: false`, a test file that loads the real Supabase client can leave it in the module cache. A file using `vi.mock` may then receive the real client, and the reverse can also happen. This caused observed failures (observed 2026-11-23/24): `group-invitation-service.test.ts` had four `42501` failures when run after `exam-permissions.test.ts` or `exam-publish.test.ts`; `group.test.ts` failed when run after it.
+- Any new or changed test under `tests/unit` that uses `vi.mock`, `vi.doMock`, `vi.resetModules`, or replaces a module's exports must be added to `mockedTests` in the same change. A live-Supabase test must never mock `src/lib/supabase/client` or a service.
+- Never address a cross-file failure with retries, skips, or weaker assertions. Fix test isolation.
+- Read-only mock inventory command:
+  ```sh
+  git grep -l -E 'vi\.(mock|doMock|resetModules)' -- tests/unit
+  ```
+  Compare its output with `mockedTests` in `vitest.config.mts`. Every matching file must be listed in `mockedTests`.
+- After changing `vitest.config.mts`, run `npx vitest run tests/unit` and confirm every test file appears exactly once under one project label. The current test-file count is 37.
+- These pure files intentionally remain in `live`: `auth-guard`, `errors`, `offline-queue`, and `sanitize`. Moving them is optional.
