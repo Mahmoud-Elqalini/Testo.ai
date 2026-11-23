@@ -59,7 +59,7 @@ describe('exam service (local Supabase)', () => {
     expect(afterDelete.data).toBeNull()
   }, 30_000)
 
-  it('does not expose or modify an exam owned by another admin', async () => {
+  it('does not expose or modify an exam owned by another user', async () => {
     admin = await createTestAdmin()
     const { data: other, error: otherError } = await adminClient.auth.admin.createUser({
       email: `foundation-other-admin-${crypto.randomUUID()}@testo.local`,
@@ -68,12 +68,6 @@ describe('exam service (local Supabase)', () => {
     })
     expect(otherError).toBeNull()
     expect(other.user).toBeDefined()
-
-    const { error: roleError } = await adminClient
-      .from('profiles')
-      .update({ role: 'admin' })
-      .eq('id', other.user!.id)
-    expect(roleError).toBeNull()
 
     const { data: foreignExam, error: insertError } = await adminClient
       .from('exams')

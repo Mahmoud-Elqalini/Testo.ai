@@ -12,14 +12,6 @@ export async function createInvitationTestUser(role: 'admin' | 'student') {
   })
   if (error || !data.user) throw error ?? new Error('Supabase did not return the test user')
 
-  if (role === 'admin') {
-    const { error: roleError } = await adminClient.from('profiles').update({ role }).eq('id', data.user.id)
-    if (roleError) {
-      await adminClient.auth.admin.deleteUser(data.user.id)
-      throw roleError
-    }
-  }
-
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anonKey) throw new Error('Local Supabase URL and anon key are required for invitation tests')
