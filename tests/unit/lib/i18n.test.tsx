@@ -128,8 +128,11 @@ describe('i18n Provider and Hook', () => {
       // Wait for the Supabase Postgres trigger to create the profile row
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      const { result } = renderHook(() => useTranslation(), {
-        wrapper: ({ children }) => <I18nProvider>{children}</I18nProvider>,
+      let result!: { current: ReturnType<typeof useTranslation> }
+      await act(async () => {
+        result = renderHook(() => useTranslation(), {
+          wrapper: ({ children }) => <I18nProvider>{children}</I18nProvider>,
+        }).result
       })
 
       await waitFor(() => {
