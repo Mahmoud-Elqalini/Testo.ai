@@ -81,9 +81,9 @@
 .testo-dashboard-action svg { width:17px;height:17px;flex:0 0 17px; }
 .testo-dashboard-action-light { color:var(--on-primary); }
 .testo-dashboard-action-outline { background:transparent; }
-.testo-dashboard-action-outline:hover { background:var(--primary-hover); }
-.dark .testo-dashboard-action-outline { background:var(--primary-hover); }
-.dark .testo-dashboard-action-outline:hover { background:var(--primary-hover); }
+.testo-dashboard-action-outline:hover { background:var(--primary-hover);color:var(--on-primary); }
+.dark .testo-dashboard-action-outline { background:transparent;color:var(--hero-text); }
+.dark .testo-dashboard-action-outline:hover { background:var(--primary-hover);color:var(--on-primary); }
 .testo-dashboard-section-heading h2 svg { width:20px;height:20px;flex:0 0 20px;color:var(--primary-text);fill:none;stroke:currentColor;stroke-width:2; }
 .testo-dashboard-section-heading>a:focus-visible,
 .testo-dashboard-group-card:focus-visible,

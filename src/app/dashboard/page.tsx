@@ -131,7 +131,7 @@ export default function DashboardPage() {
         <div className="testo-dashboard-groups-grid">
           <section className="testo-dashboard-group-panel" aria-labelledby="managed-groups-heading">
             <header className="testo-dashboard-group-panel-heading">
-              <div><span className="testo-dashboard-eyebrow">{t('dashboard.teachingSection')}</span><h3 id="managed-groups-heading">{t('dashboard.managedGroups')}</h3></div>
+              <div><span className="inline-flex items-center rounded-full border border-border bg-neutral-chip-bg px-2 py-1 text-[10px] font-bold tracking-wide text-neutral-chip-text uppercase">{t('dashboard.teachingSection')}</span><h3 id="managed-groups-heading">{t('dashboard.managedGroups')}</h3></div>
               <span className="testo-dashboard-count testo-dashboard-count-managed">{groups.length}</span>
             </header>
             {sectionErrors.ownedGroups ? <p className="testo-dashboard-empty-state" role="alert">{t('dashboard.sectionLoadError')}</p> : groups.length > 0 ? <div className="testo-dashboard-group-rows">
@@ -143,13 +143,13 @@ export default function DashboardPage() {
           </section>
           <section className="testo-dashboard-group-panel" aria-labelledby="joined-groups-heading">
             <header className="testo-dashboard-group-panel-heading">
-              <div><span className="testo-dashboard-eyebrow">{t('dashboard.learningSection')}</span><h3 id="joined-groups-heading">{t('dashboard.joinedGroups')}</h3></div>
+              <div><span className="inline-flex items-center rounded-full border border-border bg-neutral-chip-bg px-2 py-1 text-[10px] font-bold tracking-wide text-neutral-chip-text uppercase">{t('dashboard.learningSection')}</span><h3 id="joined-groups-heading">{t('dashboard.joinedGroups')}</h3></div>
               <span className="testo-dashboard-count testo-dashboard-count-muted">{joinedGroups.length}</span>
             </header>
             {sectionErrors.joinedGroups ? <p className="testo-dashboard-empty-state" role="alert">{t('dashboard.sectionLoadError')}</p> : joinedGroups.length > 0 ? <div className="testo-dashboard-group-rows">
               {joinedGroups.slice(0, 4).map((group) => <article key={group.group_id} className="testo-dashboard-group-row">
                 <span className="testo-dashboard-group-copy"><strong><SafeText value={group.group_name} /></strong><small>{t('dashboard.joinedGroupLabel')}</small></span>
-                <span className="testo-dashboard-role-tag testo-dashboard-role-tag-student">{t('dashboard.member')}</span>
+                <span className="rounded-sm bg-neutral-chip-bg px-2.5 py-1.5 text-[10px] font-bold text-neutral-chip-text">{t('dashboard.member')}</span>
               </article>)}
             </div> : <DashboardEmptyState icon="groups" action={{ href: '/student/join-group', label: t('dashboard.joinGroup') }}>{t('dashboard.noJoinedGroups')}</DashboardEmptyState>}
           </section>

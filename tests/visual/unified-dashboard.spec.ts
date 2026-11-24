@@ -52,6 +52,7 @@ test.describe('Unified dashboard relationships', () => {
           const joinedGroupName = locale === 'en' ? 'Shared learning group' : 'مجموعة انضممت إليها'
           const ownExamTitle = locale === 'en' ? 'My draft exam' : 'امتحاني غير المنشور'
           const sharedExamTitle = locale === 'en' ? 'Shared published exam' : 'امتحان المجموعة المنشور'
+        const dashboardClock = new Date('2026-11-20T10:25:00')
 
           const { data: ownGroup, error: ownGroupError } = await adminClient!.from('groups')
             .insert({ name: ownGroupName, owner_id: actorData.user.id }).select('id').single()
@@ -81,7 +82,7 @@ test.describe('Unified dashboard relationships', () => {
           if (redemptionError) throw redemptionError
           expect(redemption).toEqual({ success: true })
 
-          const startsAt = new Date(Date.now() + 86_400_000).toISOString()
+          const startsAt = new Date(dashboardClock.getTime() + 86_400_000).toISOString()
           const { error: ownExamError } = await adminClient!.from('exams').insert({
             title: ownExamTitle,
             start_time: startsAt,
@@ -113,6 +114,7 @@ test.describe('Unified dashboard relationships', () => {
             window.localStorage.setItem('testo_theme', theme)
           }, { locale, theme })
           await signInBrowserContext(context, actorEmail, password)
+          await page.clock.setFixedTime(dashboardClock)
           await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
           await expect(page).toHaveURL(/\/dashboard$/)
           await expect(page.locator('html')).toHaveAttribute('lang', locale)
