@@ -5,8 +5,13 @@ import { adminClient } from '../helpers/supabase-admin'
 import { createAttemptFixture } from '../edge-functions/attempt-test-context'
 
 function runPostgresSql(sql: string): string {
+  const containers = spawnSync('docker', ['ps', '--filter', 'name=supabase_db_', '--format', '{{.Names}}'], { encoding: 'utf8' })
+  if (containers.error) throw containers.error
+  if (containers.status !== 0) throw new Error(containers.stderr || containers.stdout || 'Unable to locate the local Supabase database container')
+  const containerName = containers.stdout.trim().split(/\r?\n/).find(Boolean)
+  if (!containerName) throw new Error('No local Supabase database container is running')
   const result = spawnSync('docker', [
-    'exec', 'supabase_db_05_Testo', 'psql', '-X', '-U', 'postgres', '-d', 'postgres',
+    'exec', containerName, 'psql', '-X', '-U', 'postgres', '-d', 'postgres',
     '-v', 'ON_ERROR_STOP=1', '-t', '-A', '-c', sql,
   ], { encoding: 'utf8', maxBuffer: 1024 * 1024 })
   if (result.error) throw result.error

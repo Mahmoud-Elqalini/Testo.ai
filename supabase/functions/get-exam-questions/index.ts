@@ -1,16 +1,10 @@
-import { authenticate, callOperation, internalError, isUuid, json, preflight, validation } from '../_shared/http.ts'
+import { callOperation, isUuid, validation, withAuth } from '../_shared/http.ts'
 
-Deno.serve(async (request) => {
-  const options = preflight(request)
-  if (options) return options
+Deno.serve(withAuth('get-exam-questions', async (request, user) => {
   if (request.method !== 'GET') return validation('GET is required.')
-  let user
-  try { user = await authenticate(request) }
-  catch (error) { return internalError('get-exam-questions', error) }
-  if (!user) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
   const url = new URL(request.url)
   const attemptId = url.searchParams.get('attempt_id')
   const sessionId = url.searchParams.get('session_id')
   if (!isUuid(attemptId) || !isUuid(sessionId)) return validation('Valid attempt_id and session_id are required.')
-  return callOperation(request, 'get-exam-questions', 'fn_get_exam_questions', { p_attempt_id: attemptId, p_session_id: sessionId }, attemptId)
-})
+  return callOperation(request, 'get-exam-questions', 'fn_get_exam_questions', { p_attempt_id: attemptId, p_session_id: sessionId }, { attemptId, user })
+}))

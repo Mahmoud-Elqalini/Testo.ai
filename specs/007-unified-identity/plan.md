@@ -30,6 +30,7 @@ Replace fixed student/admin authorization with authenticated identity plus resou
 
 - **Responsibilities and boundaries**: PostgreSQL owns authorization and relationship integrity; narrowly scoped server functions expose profile projections; Edge Functions authenticate attempt operations and pass verified identity; existing services adapt to new data names; the dashboard composes existing learning/teaching data and route destinations.
 - **SOLID review**: Each server function has one disclosure/action purpose. Group membership and exam access remain separate relationships. UI does not decide authorization. Data access depends on Supabase contracts already in use. Avoid combining email lookup with participant listing because they have different disclosure rules.
+- **T075 Edge boundary**: `withAuth` is a small shared wrapper justified by the four attempt handlers repeating the same bearer verification, preflight handling, and generic authentication-error response. It passes the verified user to `callOperation` so each request performs one user verification. Keeping the checks duplicated was the simpler initial implementation but risks drift across endpoints; a general middleware framework or service layer would add more structure than these four handlers need.
 - **Dependency direction**: UI → existing service modules → authenticated Supabase RPC/RLS/Edge endpoints → database. Database checks derive identity from `auth.uid()` and join resource ownership or membership. Edge operations use authenticated user identity and never authorize from request-supplied user IDs.
 - **Patterns and alternatives**: Two explicit SECURITY DEFINER projections are required: associated-participant list (name+email) and exact lookup (id+name, never email). This split directly enforces FR-008/FR-009; one generic profile/search endpoint would make accidental over-disclosure easier. No new general repository or policy abstraction is justified.
 - **Scope and complexity**: Keep 007 limited to groups, exams, profiles and dashboard. Group invitations remain the supported join path; exam invitation is deferred. Preserve testable legacy domain behavior while deleting role-specific branches.
@@ -144,7 +145,7 @@ Each migration must be atomic. 0014–0016 are additive and must leave old autho
 
 ### Follow-ups after migration 0022
 
-- Rename the legacy Supabase `project_id` (`05_Testo` in `supabase/config.toml`) to the approved Manjam project identifier; update deployment/local-link references together.
+- Rename the legacy local Supabase `project_id` (`05_Testo` in `supabase/config.toml`) to `manjam`; update name-dependent local test references while preserving the separate linked remote project reference.
 - Clean obsolete local security fixture data and temporary database artifacts after the final evidence is saved; preserve the frozen baseline and committed reports.
 - Refactor shared Edge authorization and test infrastructure after 0022: `withAuth`, optional `callOperation` options, centralized `denial_reason` constants, and typed test helpers.
 

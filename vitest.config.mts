@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react'
 
 const mockedTests = [
   'tests/unit/components/group-invitations.test.tsx',
+  'tests/unit/edge-functions/http.test.ts',
   'tests/unit/lib/edge-functions.test.ts',
   'tests/unit/services/dashboard.test.ts',
   'tests/unit/services/group-invitation-service.test.ts',
@@ -18,7 +19,10 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     resolve: {
-      alias: { '@': path.resolve(process.cwd(), 'src') },
+      alias: {
+        '@': path.resolve(process.cwd(), 'src'),
+        'jsr:@supabase/supabase-js@2': path.resolve(process.cwd(), 'tests/unit/edge-functions/supabase-js-mock.ts'),
+      },
     },
     cacheDir: '.cache/vite',
     test: {
