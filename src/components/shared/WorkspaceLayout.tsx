@@ -68,7 +68,7 @@ export function WorkspaceLayout({ active, children, focusMode = false, dashboard
               {mobileMenuOpen ? <X size={20} strokeWidth={2} aria-hidden="true" /> : <Menu size={20} strokeWidth={2} aria-hidden="true" />}
             </button>
             <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.dashboard')}>
-              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} />
+              <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} loading="eager" fetchPriority="high" />
               <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} />
             </Link>
           </div>
