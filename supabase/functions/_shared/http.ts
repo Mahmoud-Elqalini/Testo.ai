@@ -22,9 +22,42 @@ export function validation(message: string) {
   return json({ error: 'validation_error', message }, 400)
 }
 
-export function denial(functionName: string, userId: string, reason: string, context: Record<string, unknown> = {}) {
+export function denial(functionName: string, userId: string, reason: DenialReason, context: Record<string, unknown> = {}) {
   console.error(JSON.stringify({ timestamp: new Date().toISOString(), function_name: functionName, auth_uid: userId, denial_reason: reason, context }))
   return json({ error: 'access_denied', message: 'Access denied.' }, 403)
+}
+
+export const denialReasons = [
+  'owner_mismatch',
+  'status_not_startable',
+  'exam_not_published',
+  'outside_exam_window',
+  'session_mismatch',
+  'attempt_not_in_progress',
+] as const
+
+export type DenialReason = typeof denialReasons[number]
+
+function isDenialReason(reason: string): reason is DenialReason {
+  return (denialReasons as readonly string[]).includes(reason)
+}
+
+export type AuthenticatedUser = { id: string }
+
+export type AuthenticatedHandler = (request: Request, user: AuthenticatedUser) => Promise<Response>
+
+export function withAuth(functionName: string, handler: AuthenticatedHandler) {
+  return async (request: Request): Promise<Response> => {
+    const options = preflight(request)
+    if (options) return options
+    try {
+      const user = await authenticate(request)
+      if (!user) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
+      return await handler(request, user)
+    } catch (error) {
+      return internalError(functionName, error)
+    }
+  }
 }
 
 export function internalError(functionName: string, error: unknown) {
@@ -32,23 +65,23 @@ export function internalError(functionName: string, error: unknown) {
   return json({ error: 'internal_error', message: 'An unexpected error occurred.' }, 500)
 }
 
-export async function authenticate(request: Request) {
-  const authorization = request.headers.get('Authorization')
-  if (!authorization?.startsWith('Bearer ')) return null
+function callerClient(authorization: string) {
   const url = Deno.env.get('SUPABASE_URL')
   const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
   if (!url || !anonKey) throw new Error('Supabase auth configuration is missing')
-  const client = createClient(url, anonKey, { global: { headers: { Authorization: authorization } }, auth: { persistSession: false, autoRefreshToken: false } })
+  return createClient(url, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  })
+}
+
+export async function authenticate(request: Request) {
+  const authorization = request.headers.get('Authorization')
+  if (!authorization?.startsWith('Bearer ')) return null
+  const client = callerClient(authorization)
   const { data, error } = await client.auth.getUser()
   if (error || !data.user) return null
   return data.user
-}
-
-export function serviceClient() {
-  const url = Deno.env.get('SUPABASE_URL')
-  const key = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  if (!url || !key) throw new Error('Supabase service configuration is missing')
-  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } })
 }
 
 export async function readJson(request: Request): Promise<Record<string, unknown> | null> {
@@ -58,16 +91,32 @@ export async function readJson(request: Request): Promise<Record<string, unknown
   } catch { return null }
 }
 
-export async function callOperation(request: Request, functionName: string, operation: string, args: Record<string, unknown>, attemptId?: string) {
-  const options = preflight(request)
-  if (options) return options
+export type CallOperationOptions = {
+  user?: AuthenticatedUser
+  attemptId?: string
+}
+
+export async function callOperation(
+  request: Request,
+  functionName: string,
+  operation: string,
+  args: Record<string, unknown>,
+  options: CallOperationOptions = {},
+) {
+  const preflightResponse = preflight(request)
   try {
-    const user = await authenticate(request)
+    if (preflightResponse) return preflightResponse
+    const authorization = request.headers.get('Authorization')
+    if (!authorization?.startsWith('Bearer ')) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
+    const user = options.user ?? await authenticate(request)
     if (!user) return json({ error: 'unauthorized', message: 'Authentication required.' }, 401)
-    const { data, error } = await serviceClient().rpc(operation, { ...args, p_student_id: user.id })
+    const { data, error } = await callerClient(authorization).rpc(operation, args)
     if (error) throw error
     const result = data as Record<string, unknown>
-    if (typeof result?.denial_reason === 'string') return denial(functionName, user.id, result.denial_reason, attemptId ? { attempt_id: attemptId } : {})
+    if (typeof result?.denial_reason === 'string') {
+      const reason = isDenialReason(result.denial_reason) ? result.denial_reason : 'unknown_denial_reason'
+      return denial(functionName, user.id, reason, options.attemptId ? { attempt_id: options.attemptId } : {})
+    }
     if (typeof result?.validation_error === 'string') return validation(result.validation_error)
     return json(result)
   } catch (error) { return internalError(functionName, error) }

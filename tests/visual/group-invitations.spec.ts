@@ -36,14 +36,14 @@ test.describe('Group invitation visual regression', () => {
 
         try {
           await updateVisualProfile(adminClient!, adminData.user.id, {
-            role: 'admin', preferred_language: locale, preferred_theme: theme,
+            preferred_language: locale, preferred_theme: theme,
           })
           await updateVisualProfile(adminClient!, studentData.user.id, {
             preferred_language: locale,
             preferred_theme: theme,
           })
           const { data: group, error: groupError } = await adminClient!.from('groups')
-            .insert({ name: 'Invitation visual cohort', admin_id: adminData.user.id }).select('id').single()
+            .insert({ name: 'Invitation visual cohort', owner_id: adminData.user.id }).select('id').single()
           if (groupError || !group) throw groupError ?? new Error('Could not create visual test group')
 
           await context.addCookies([{ name: 'testo_language', value: locale, url: visualAppOrigin() }])
@@ -66,7 +66,7 @@ test.describe('Group invitation visual regression', () => {
           await page.goto('/dashboard', { waitUntil: 'domcontentloaded' })
           await expect(page).toHaveURL(/\/dashboard$/, { timeout: 30_000 })
           const joinGroupLabel = locale === 'en' ? 'Join a group' : 'الانضمام إلى مجموعة'
-          await expect(page.getByRole('link', { name: joinGroupLabel })).toHaveCount(0)
+          await expect(page.getByRole('link', { name: joinGroupLabel })).toBeVisible()
 
           await page.goto(`/admin/groups/${group.id}`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'en' ? 'Group invitation' : 'دعوة المجموعة' })).toBeVisible()

@@ -35,7 +35,7 @@ describe('exam service (local Supabase)', () => {
       title: 'Foundations CRUD exam',
       description: 'Initial description',
       duration_minutes: 45,
-      admin_id: admin.userId,
+      owner_id: admin.userId,
       is_published: false,
     })
     const examId = created.data!.id
@@ -59,7 +59,7 @@ describe('exam service (local Supabase)', () => {
     expect(afterDelete.data).toBeNull()
   }, 30_000)
 
-  it('does not expose or modify an exam owned by another admin', async () => {
+  it('does not expose or modify an exam owned by another user', async () => {
     admin = await createTestAdmin()
     const { data: other, error: otherError } = await adminClient.auth.admin.createUser({
       email: `foundation-other-admin-${crypto.randomUUID()}@testo.local`,
@@ -69,19 +69,13 @@ describe('exam service (local Supabase)', () => {
     expect(otherError).toBeNull()
     expect(other.user).toBeDefined()
 
-    const { error: roleError } = await adminClient
-      .from('profiles')
-      .update({ role: 'admin' })
-      .eq('id', other.user!.id)
-    expect(roleError).toBeNull()
-
     const { data: foreignExam, error: insertError } = await adminClient
       .from('exams')
       .insert({
         title: 'Other admin exam',
         start_time: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
         duration_minutes: 30,
-        admin_id: other.user!.id,
+        owner_id: other.user!.id,
       })
       .select('id')
       .single()

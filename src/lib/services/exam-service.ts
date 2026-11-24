@@ -68,7 +68,7 @@ export async function createExam(input: CreateExamInput): Promise<ServiceResult<
         description: sanitizeText(input.description ?? ''),
         start_time: input.start_time,
         duration_minutes: input.duration_minutes,
-        admin_id: user.id,
+        owner_id: user.id,
       })
       .select('*')
       .single()

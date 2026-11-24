@@ -1,0 +1,947 @@
+{
+  "sourceMigrations": [
+    "0001_schema.sql",
+    "0002_rls_policies.sql",
+    "0003_functions_triggers_cron.sql",
+    "0004_fix_get_my_role_rls_bypass.sql",
+    "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+    "0006_secure_student_search.sql",
+    "0007_group_invitations.sql",
+    "0008_student_attempt_operations.sql",
+    "0009_attempt_publication_denial.sql",
+    "0010_harden_expired_attempt_sweep.sql",
+    "0011_student_results.sql",
+    "0012_fix_student_results_attempt_lookup.sql",
+    "0013_list_my_joined_groups.sql"
+  ],
+  "generatedFrom": "supabase/migrations source; active policy definitions use migration 0005 after role-helper rebuild; functions apply CREATE/DROP history through 0013",
+  "catalogReconciled": true,
+  "catalogSnapshot": [
+    {
+      "kind": "function",
+      "object": "private.is_admin",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "private.is_admin_scoped_student",
+      "signature_hash": "9970fdfbc45de45e2fa9f67af31d9686"
+    },
+    {
+      "kind": "function",
+      "object": "private.is_student",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "private.owns_exam",
+      "signature_hash": "f98eb670c8263ff8c2386a1705e94621"
+    },
+    {
+      "kind": "function",
+      "object": "private.owns_exam_attempt",
+      "signature_hash": "8a098e6da6042eb1f176824cb681c27b"
+    },
+    {
+      "kind": "function",
+      "object": "private.owns_group",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.create_group_invitation",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_create_profile_on_signup",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_enforce_group_ownership_on_permission",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_get_exam_questions",
+      "signature_hash": "6c0e4aee376344105b1fee2bbae41256"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_get_student_attempt_result",
+      "signature_hash": "346b7dc5296e25fd749be4c513d8bdfb"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_protect_profile_role",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_require_student_exam_permission",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_require_student_group_member",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_save_attempt_answer",
+      "signature_hash": "19cb8b0ebddfb4050cbdc1eea5b26cc4"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_start_attempt",
+      "signature_hash": "6c0e4aee376344105b1fee2bbae41256"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_submit_attempt",
+      "signature_hash": "6c0e4aee376344105b1fee2bbae41256"
+    },
+    {
+      "kind": "function",
+      "object": "public.fn_sync_user_role",
+      "signature_hash": "d41d8cd98f00b204e9800998ecf8427e"
+    },
+    {
+      "kind": "function",
+      "object": "public.get_group_invitation_status",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.list_exam_permissions",
+      "signature_hash": "f98eb670c8263ff8c2386a1705e94621"
+    },
+    {
+      "kind": "function",
+      "object": "public.list_group_students",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.redeem_group_invitation",
+      "signature_hash": "b1ad93ee64389709a9637feadb2b36e3"
+    },
+    {
+      "kind": "function",
+      "object": "public.revoke_group_invitation",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.rotate_group_invitation",
+      "signature_hash": "c8e425e620121cd1b4c711bc55b8a998"
+    },
+    {
+      "kind": "function",
+      "object": "public.search_student_by_email",
+      "signature_hash": "324aaaec40894a54cec9ea22e0fd3f3d"
+    },
+    {
+      "kind": "policy",
+      "object": "answers_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "answers_student_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_attempts_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_attempts_student_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_permissions_admin_delete",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_permissions_admin_insert",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_permissions_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_permissions_admin_update",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exam_permissions_student_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exams_admin_delete",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exams_admin_insert",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exams_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exams_admin_update",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "exams_student_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "group_students_admin_delete",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "group_students_admin_insert",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "group_students_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "group_students_admin_update",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "groups_admin_delete",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "groups_admin_insert",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "groups_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "groups_admin_update",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "profiles_admin_read_scoped_students",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "questions_admin_delete",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "questions_admin_insert",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "questions_admin_select",
+      "signature_hash": ""
+    },
+    {
+      "kind": "policy",
+      "object": "questions_admin_update",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_create_profile_on_signup",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_enforce_group_ownership_on_permission",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_protect_profile_role",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_require_student_exam_permission",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_require_student_group_member",
+      "signature_hash": ""
+    },
+    {
+      "kind": "trigger",
+      "object": "trg_sync_user_role",
+      "signature_hash": ""
+    }
+  ],
+  "planReconciled": true,
+  "excludedRelatedFunctions": [
+    {
+      "object": "public.get_my_role()",
+      "reason": "Historical role function dropped by migration 0005; absent from the active local pg_catalog, so no active before-state path exists to baseline."
+    },
+    {
+      "object": "private.can_access_exam",
+      "reason": "Membership/published-state helper; its active definition contains no profiles.role or admin_id check."
+    },
+    {
+      "object": "private.can_access_exam_permission",
+      "reason": "Membership/published-state helper; its active definition contains no profiles.role or admin_id check."
+    },
+    {
+      "object": "private.owns_attempt",
+      "reason": "auth.uid()-based self-ownership helper; its active definition contains no profiles.role or admin_id check."
+    },
+    {
+      "object": "public.fn_create_pending_attempt_on_permission",
+      "reason": "Attempt-generation trigger helper; its active definition contains no profiles.role or admin_id check."
+    },
+    {
+      "object": "public.fn_create_pending_attempt_on_group_student",
+      "reason": "Attempt-generation trigger helper; its active definition contains no profiles.role or admin_id check."
+    },
+    {
+      "object": "public.fn_create_pending_attempts_at_start",
+      "reason": "Attempt-generation helper; its active definition contains no profiles.role or admin_id check."
+    }
+  ],
+  "generatedAtUtc": "2026-11-06T19:18:31.902Z",
+  "entries": [
+    {
+      "id": "policy:profiles_admin_read_scoped_students",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "profiles_admin_read_scoped_students",
+      "table": "profiles",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ( (SELECT private.is_admin()) AND (SELECT private.is_admin_scoped_student(id)) )",
+      "allowCase": "Authenticated owner/admin or participant matching profiles_admin_read_scoped_students",
+      "denyCase": "Authenticated unrelated account and anon request denied by profiles_admin_read_scoped_students"
+    },
+    {
+      "id": "policy:groups_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "groups_admin_select",
+      "table": "groups",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching groups_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by groups_admin_select"
+    },
+    {
+      "id": "policy:groups_admin_insert",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "groups_admin_insert",
+      "table": "groups",
+      "command": "INSERT",
+      "policySql": "FOR INSERT TO authenticated WITH CHECK (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching groups_admin_insert",
+      "denyCase": "Authenticated unrelated account and anon request denied by groups_admin_insert"
+    },
+    {
+      "id": "policy:groups_admin_update",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "groups_admin_update",
+      "table": "groups",
+      "command": "UPDATE",
+      "policySql": "FOR UPDATE TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin())) WITH CHECK (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching groups_admin_update",
+      "denyCase": "Authenticated unrelated account and anon request denied by groups_admin_update"
+    },
+    {
+      "id": "policy:groups_admin_delete",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "groups_admin_delete",
+      "table": "groups",
+      "command": "DELETE",
+      "policySql": "FOR DELETE TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching groups_admin_delete",
+      "denyCase": "Authenticated unrelated account and anon request denied by groups_admin_delete"
+    },
+    {
+      "id": "policy:group_students_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "group_students_admin_select",
+      "table": "group_students",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_group(group_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching group_students_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by group_students_admin_select"
+    },
+    {
+      "id": "policy:group_students_admin_insert",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "group_students_admin_insert",
+      "table": "group_students",
+      "command": "INSERT",
+      "policySql": "FOR INSERT TO authenticated WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_group(group_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching group_students_admin_insert",
+      "denyCase": "Authenticated unrelated account and anon request denied by group_students_admin_insert"
+    },
+    {
+      "id": "policy:group_students_admin_update",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "group_students_admin_update",
+      "table": "group_students",
+      "command": "UPDATE",
+      "policySql": "FOR UPDATE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_group(group_id))) WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_group(group_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching group_students_admin_update",
+      "denyCase": "Authenticated unrelated account and anon request denied by group_students_admin_update"
+    },
+    {
+      "id": "policy:group_students_admin_delete",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "group_students_admin_delete",
+      "table": "group_students",
+      "command": "DELETE",
+      "policySql": "FOR DELETE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_group(group_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching group_students_admin_delete",
+      "denyCase": "Authenticated unrelated account and anon request denied by group_students_admin_delete"
+    },
+    {
+      "id": "policy:exams_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exams_admin_select",
+      "table": "exams",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching exams_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exams_admin_select"
+    },
+    {
+      "id": "policy:exams_admin_insert",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exams_admin_insert",
+      "table": "exams",
+      "command": "INSERT",
+      "policySql": "FOR INSERT TO authenticated WITH CHECK (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching exams_admin_insert",
+      "denyCase": "Authenticated unrelated account and anon request denied by exams_admin_insert"
+    },
+    {
+      "id": "policy:exams_admin_update",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exams_admin_update",
+      "table": "exams",
+      "command": "UPDATE",
+      "policySql": "FOR UPDATE TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin())) WITH CHECK (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching exams_admin_update",
+      "denyCase": "Authenticated unrelated account and anon request denied by exams_admin_update"
+    },
+    {
+      "id": "policy:exams_admin_delete",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exams_admin_delete",
+      "table": "exams",
+      "command": "DELETE",
+      "policySql": "FOR DELETE TO authenticated USING (admin_id = (SELECT auth.uid()) AND (SELECT private.is_admin()))",
+      "allowCase": "Authenticated owner/admin or participant matching exams_admin_delete",
+      "denyCase": "Authenticated unrelated account and anon request denied by exams_admin_delete"
+    },
+    {
+      "id": "policy:exams_student_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exams_student_select",
+      "table": "exams",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_student()) AND (SELECT private.can_access_exam(id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exams_student_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exams_student_select"
+    },
+    {
+      "id": "policy:exam_permissions_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_permissions_admin_select",
+      "table": "exam_permissions",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_permissions_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_permissions_admin_select"
+    },
+    {
+      "id": "policy:exam_permissions_admin_insert",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_permissions_admin_insert",
+      "table": "exam_permissions",
+      "command": "INSERT",
+      "policySql": "FOR INSERT TO authenticated WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_permissions_admin_insert",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_permissions_admin_insert"
+    },
+    {
+      "id": "policy:exam_permissions_admin_update",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_permissions_admin_update",
+      "table": "exam_permissions",
+      "command": "UPDATE",
+      "policySql": "FOR UPDATE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id))) WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_permissions_admin_update",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_permissions_admin_update"
+    },
+    {
+      "id": "policy:exam_permissions_admin_delete",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_permissions_admin_delete",
+      "table": "exam_permissions",
+      "command": "DELETE",
+      "policySql": "FOR DELETE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_permissions_admin_delete",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_permissions_admin_delete"
+    },
+    {
+      "id": "policy:exam_permissions_student_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_permissions_student_select",
+      "table": "exam_permissions",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ( (SELECT private.is_student()) AND (SELECT private.can_access_exam_permission(exam_id, student_id, group_id)) )",
+      "allowCase": "Authenticated owner/admin or participant matching exam_permissions_student_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_permissions_student_select"
+    },
+    {
+      "id": "policy:questions_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "questions_admin_select",
+      "table": "questions",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching questions_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by questions_admin_select"
+    },
+    {
+      "id": "policy:questions_admin_insert",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "questions_admin_insert",
+      "table": "questions",
+      "command": "INSERT",
+      "policySql": "FOR INSERT TO authenticated WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching questions_admin_insert",
+      "denyCase": "Authenticated unrelated account and anon request denied by questions_admin_insert"
+    },
+    {
+      "id": "policy:questions_admin_update",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "questions_admin_update",
+      "table": "questions",
+      "command": "UPDATE",
+      "policySql": "FOR UPDATE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id))) WITH CHECK ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching questions_admin_update",
+      "denyCase": "Authenticated unrelated account and anon request denied by questions_admin_update"
+    },
+    {
+      "id": "policy:questions_admin_delete",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "questions_admin_delete",
+      "table": "questions",
+      "command": "DELETE",
+      "policySql": "FOR DELETE TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching questions_admin_delete",
+      "denyCase": "Authenticated unrelated account and anon request denied by questions_admin_delete"
+    },
+    {
+      "id": "policy:exam_attempts_student_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_attempts_student_select",
+      "table": "exam_attempts",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING (student_id = (SELECT auth.uid()) AND (SELECT private.is_student()))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_attempts_student_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_attempts_student_select"
+    },
+    {
+      "id": "policy:exam_attempts_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "exam_attempts_admin_select",
+      "table": "exam_attempts",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam(exam_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching exam_attempts_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by exam_attempts_admin_select"
+    },
+    {
+      "id": "policy:answers_student_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "answers_student_select",
+      "table": "answers",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_student()) AND (SELECT private.owns_attempt(attempt_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching answers_student_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by answers_student_select"
+    },
+    {
+      "id": "policy:answers_admin_select",
+      "type": "rls_policy",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "answers_admin_select",
+      "table": "answers",
+      "command": "SELECT",
+      "policySql": "FOR SELECT TO authenticated USING ((SELECT private.is_admin()) AND (SELECT private.owns_exam_attempt(attempt_id)))",
+      "allowCase": "Authenticated owner/admin or participant matching answers_admin_select",
+      "denyCase": "Authenticated unrelated account and anon request denied by answers_admin_select"
+    },
+    {
+      "id": "function:public.fn_protect_profile_role",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0003_functions_triggers_cron.sql",
+      "object": "public.fn_protect_profile_role()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_protect_profile_role()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_protect_profile_role()",
+      "sourceExcerpt": "BEGIN IF OLD.role IS DISTINCT FROM NEW.role THEN IF current_user NOT IN ('postgres', 'service_role') AND current_setting('role', true) NOT IN ('postgres', 'service_role') THEN RAISE EXCEPTION 'Changing profiles.role is forbidden outside service-role context' USING ERRCODE = 'insufficient_privilege'; END IF; END IF; RETURN NEW; END;"
+    },
+    {
+      "id": "function:public.fn_create_profile_on_signup",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0003_functions_triggers_cron.sql",
+      "object": "public.fn_create_profile_on_signup()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_create_profile_on_signup()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_create_profile_on_signup()",
+      "sourceExcerpt": "BEGIN INSERT INTO public.profiles (id, role, full_name, preferred_language, preferred_theme) VALUES ( NEW.id, 'student', -- default role; admin promotion is a service-role operation COALESCE(NEW.raw_user_meta_data->>'full_name', ''), COALESCE(NEW.raw_user_meta_data->>'preferred_language', 'en'), COALESCE(NEW.raw_user_meta_data->>'preferred_theme', 'light') ); RETURN NEW; END;"
+    },
+    {
+      "id": "function:public.fn_enforce_group_ownership_on_permission",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0003_functions_triggers_cron.sql",
+      "object": "public.fn_enforce_group_ownership_on_permission()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_enforce_group_ownership_on_permission()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_enforce_group_ownership_on_permission()",
+      "sourceExcerpt": "DECLARE v_exam_admin_id uuid; v_group_admin_id uuid; BEGIN -- Only applies when group_id is set IF NEW.group_id IS NOT NULL THEN SELECT admin_id INTO v_exam_admin_id FROM exams WHERE id = NEW.exam_id; SELECT admin_id INTO v_group_admin_id FROM groups WHERE id = NEW.group_id; IF v_exam_admin_id IS DISTINCT FROM v_group_admin_id THEN RAISE EXCEPTION 'Group does not belong to the same admin as the exam (FR-005a)' USING ERRCODE = 'check_violation'; END IF; END IF; RETURN NEW; END;"
+    },
+    {
+      "id": "function:public.fn_sync_user_role",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "public.fn_sync_user_role()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_sync_user_role()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_sync_user_role()",
+      "sourceExcerpt": "BEGIN INSERT INTO public.private_user_roles (user_id, role) VALUES (NEW.id, NEW.role) ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role; RETURN NEW; END;"
+    },
+    {
+      "id": "function:private.is_admin",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.is_admin()",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.is_admin()",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.is_admin()",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.private_user_roles AS pur WHERE pur.user_id = (SELECT auth.uid()) AND pur.role = 'admin'::public.user_role );"
+    },
+    {
+      "id": "function:private.is_student",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.is_student()",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.is_student()",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.is_student()",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.private_user_roles AS pur WHERE pur.user_id = (SELECT auth.uid()) AND pur.role = 'student'::public.user_role );"
+    },
+    {
+      "id": "function:private.owns_group",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.owns_group(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.owns_group(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.owns_group(target_group_id uuid)",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.groups AS g WHERE g.id = target_group_id AND g.admin_id = (SELECT auth.uid()) );"
+    },
+    {
+      "id": "function:private.owns_exam",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.owns_exam(target_exam_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.owns_exam(target_exam_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.owns_exam(target_exam_id uuid)",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.exams AS e WHERE e.id = target_exam_id AND e.admin_id = (SELECT auth.uid()) );"
+    },
+    {
+      "id": "function:private.is_admin_scoped_student",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.is_admin_scoped_student(target_student_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.is_admin_scoped_student(target_student_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.is_admin_scoped_student(target_student_id uuid)",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.group_students AS gs JOIN public.groups AS g ON g.id = gs.group_id WHERE gs.student_id = target_student_id AND g.admin_id = (SELECT auth.uid()) ) OR EXISTS ( SELECT 1 FROM public.exam_attempts AS ea JOIN public.exams AS e ON e.id = ea.exam_id WHERE ea.student_id = target_student_id AND e.admin_id = (SELECT auth.uid()) );"
+    },
+    {
+      "id": "function:private.owns_exam_attempt",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0005_rebuild_role_helpers_and_break_rls_cycles.sql",
+      "object": "private.owns_exam_attempt(target_attempt_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by private.owns_exam_attempt(target_attempt_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by private.owns_exam_attempt(target_attempt_id uuid)",
+      "sourceExcerpt": "SELECT EXISTS ( SELECT 1 FROM public.exam_attempts AS ea JOIN public.exams AS e ON e.id = ea.exam_id WHERE ea.id = target_attempt_id AND e.admin_id = (SELECT auth.uid()) );"
+    },
+    {
+      "id": "function:public.search_student_by_email",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0006_secure_student_search.sql",
+      "object": "public.search_student_by_email(search_email text)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.search_student_by_email(search_email text)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.search_student_by_email(search_email text)",
+      "sourceExcerpt": "SELECT p.id, u.email::text, p.full_name FROM auth.users AS u JOIN public.profiles AS p ON p.id = u.id WHERE (SELECT private.is_admin()) AND p.role = 'student'::public.user_role AND lower(u.email) = lower(btrim(search_email)) AND char_length(btrim(search_email)) BETWEEN 6 AND 254 AND btrim(search_email) ~* '^[^[:space:]@]+@[^[:space:]@]+\\.[^[:space:]@]+$';"
+    },
+    {
+      "id": "function:public.list_group_students",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0006_secure_student_search.sql",
+      "object": "public.list_group_students(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.list_group_students(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.list_group_students(target_group_id uuid)",
+      "sourceExcerpt": "SELECT p.id, u.email::text, p.full_name FROM public.group_students AS gs JOIN public.profiles AS p ON p.id = gs.student_id JOIN auth.users AS u ON u.id = p.id WHERE gs.group_id = target_group_id AND (SELECT private.is_admin()) AND (SELECT private.owns_group(target_group_id)) AND p.role = 'student'::public.user_role ORDER BY lower(p.full_name), lower(u.email);"
+    },
+    {
+      "id": "function:public.list_exam_permissions",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0006_secure_student_search.sql",
+      "object": "public.list_exam_permissions(target_exam_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.list_exam_permissions(target_exam_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.list_exam_permissions(target_exam_id uuid)",
+      "sourceExcerpt": "SELECT ep.id, ep.exam_id, ep.group_id, ep.student_id, u.email::text, p.full_name, g.name FROM public.exam_permissions AS ep LEFT JOIN auth.users AS u ON u.id = ep.student_id LEFT JOIN public.profiles AS p ON p.id = ep.student_id LEFT JOIN public.groups AS g ON g.id = ep.group_id WHERE ep.exam_id = target_exam_id AND (SELECT private.is_admin()) AND (SELECT private.owns_exam(target_exam_id)) ORDER BY COALESCE(g.name, p.full_name, u.email);"
+    },
+    {
+      "id": "function:public.fn_require_student_group_member",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0006_secure_student_search.sql",
+      "object": "public.fn_require_student_group_member()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_require_student_group_member()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_require_student_group_member()",
+      "sourceExcerpt": "BEGIN IF NOT EXISTS ( SELECT 1 FROM public.profiles AS p WHERE p.id = NEW.student_id AND p.role = 'student'::public.user_role ) THEN RAISE EXCEPTION 'Only student accounts can be added to groups.' USING ERRCODE = '23514'; END IF; RETURN NEW; END;"
+    },
+    {
+      "id": "function:public.fn_require_student_exam_permission",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0006_secure_student_search.sql",
+      "object": "public.fn_require_student_exam_permission()",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_require_student_exam_permission()",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_require_student_exam_permission()",
+      "sourceExcerpt": "BEGIN IF NEW.student_id IS NOT NULL AND NOT EXISTS ( SELECT 1 FROM public.profiles AS p WHERE p.id = NEW.student_id AND p.role = 'student'::public.user_role ) THEN RAISE EXCEPTION 'Exam access can only be granted to student accounts.' USING ERRCODE = '23514'; END IF; RETURN NEW; END;"
+    },
+    {
+      "id": "function:public.create_group_invitation",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0007_group_invitations.sql",
+      "object": "public.create_group_invitation(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.create_group_invitation(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.create_group_invitation(target_group_id uuid)",
+      "sourceExcerpt": "DECLARE v_code text; v_expires_at timestamptz; BEGIN IF auth.uid() IS NULL OR NOT private.is_admin() OR NOT private.owns_group(target_group_id) THEN RAISE EXCEPTION 'Invitation management is not available for this group' USING ERRCODE = '42501'; END IF; v_code := private.group_invitation_new_code(); INSERT INTO private.group_invitations AS existing ( group_id, code_hash, created_by, created_at, expires_at, revoked_at ) VALUES ( target_group_id, private.group_invitation_code_hash(v_code), auth.ui"
+    },
+    {
+      "id": "function:public.rotate_group_invitation",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0007_group_invitations.sql",
+      "object": "public.rotate_group_invitation(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.rotate_group_invitation(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.rotate_group_invitation(target_group_id uuid)",
+      "sourceExcerpt": "DECLARE v_code text; v_expires_at timestamptz; BEGIN IF auth.uid() IS NULL OR NOT private.is_admin() OR NOT private.owns_group(target_group_id) THEN RAISE EXCEPTION 'Invitation management is not available for this group' USING ERRCODE = '42501'; END IF; v_code := private.group_invitation_new_code(); INSERT INTO private.group_invitations AS existing ( group_id, code_hash, created_by, created_at, expires_at, revoked_at ) VALUES ( target_group_id, private.group_invitation_code_hash(v_code), auth.ui"
+    },
+    {
+      "id": "function:public.revoke_group_invitation",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0007_group_invitations.sql",
+      "object": "public.revoke_group_invitation(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.revoke_group_invitation(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.revoke_group_invitation(target_group_id uuid)",
+      "sourceExcerpt": "DECLARE v_found boolean; BEGIN IF auth.uid() IS NULL OR NOT private.is_admin() OR NOT private.owns_group(target_group_id) THEN RAISE EXCEPTION 'Invitation management is not available for this group' USING ERRCODE = '42501'; END IF; UPDATE private.group_invitations SET revoked_at = COALESCE(revoked_at, pg_catalog.now()) WHERE group_id = target_group_id; v_found := FOUND; RETURN pg_catalog.jsonb_build_object('revoked', v_found); END;"
+    },
+    {
+      "id": "function:public.get_group_invitation_status",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0007_group_invitations.sql",
+      "object": "public.get_group_invitation_status(target_group_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.get_group_invitation_status(target_group_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.get_group_invitation_status(target_group_id uuid)",
+      "sourceExcerpt": "DECLARE v_invitation private.group_invitations%ROWTYPE; BEGIN IF auth.uid() IS NULL OR NOT private.is_admin() OR NOT private.owns_group(target_group_id) THEN RAISE EXCEPTION 'Invitation management is not available for this group' USING ERRCODE = '42501'; END IF; SELECT invitation.* INTO v_invitation FROM private.group_invitations AS invitation WHERE invitation.group_id = target_group_id; IF NOT FOUND THEN RETURN pg_catalog.jsonb_build_object( 'exists', false, 'created_at', NULL, 'expires_at', NU"
+    },
+    {
+      "id": "function:public.redeem_group_invitation",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0007_group_invitations.sql",
+      "object": "public.redeem_group_invitation(invitation_code text)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.redeem_group_invitation(invitation_code text)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.redeem_group_invitation(invitation_code text)",
+      "sourceExcerpt": "DECLARE v_student_id uuid := auth.uid(); v_limit private.group_invitation_redemption_limits%ROWTYPE; v_invitation private.group_invitations%ROWTYPE; v_code text; BEGIN IF v_student_id IS NULL OR NOT private.is_student() THEN RETURN pg_catalog.jsonb_build_object('success', false); END IF; INSERT INTO private.group_invitation_redemption_limits (student_id) VALUES (v_student_id) ON CONFLICT (student_id) DO NOTHING; SELECT limits.* INTO v_limit FROM private.group_invitation_redemption_limits AS limi"
+    },
+    {
+      "id": "function:public.fn_start_attempt",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0009_attempt_publication_denial.sql",
+      "object": "public.fn_start_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_start_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_start_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "sourceExcerpt": "DECLARE v_attempt public.exam_attempts%ROWTYPE; v_start timestamptz; v_duration integer; v_published boolean; BEGIN IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id=p_student_id AND role='student'::user_role) THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; SELECT * INTO v_attempt FROM public.exam_attempts ea WHERE ea.id = p_attempt_id AND ea.student_id = p_student_id FOR UPDATE; IF NOT FOUND THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; "
+    },
+    {
+      "id": "function:public.fn_get_exam_questions",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0008_student_attempt_operations.sql",
+      "object": "public.fn_get_exam_questions(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_get_exam_questions(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_get_exam_questions(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "sourceExcerpt": "DECLARE v_attempt public.exam_attempts%ROWTYPE; v_start timestamptz; v_duration integer; v_questions jsonb; v_answers jsonb; BEGIN SELECT * INTO v_attempt FROM public.exam_attempts ea WHERE ea.id = p_attempt_id FOR SHARE; IF NOT FOUND OR v_attempt.student_id <> p_student_id THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id=p_student_id AND role='student'::user_role) THEN RETURN jsonb_build_object('denial_reason','owner"
+    },
+    {
+      "id": "function:public.fn_save_attempt_answer",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0008_student_attempt_operations.sql",
+      "object": "public.fn_save_attempt_answer(p_attempt_id uuid,p_student_id uuid,p_session_id uuid,p_question_id uuid,p_mcq_answer text,p_essay_answer text)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_save_attempt_answer(p_attempt_id uuid,p_student_id uuid,p_session_id uuid,p_question_id uuid,p_mcq_answer text,p_essay_answer text)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_save_attempt_answer(p_attempt_id uuid,p_student_id uuid,p_session_id uuid,p_question_id uuid,p_mcq_answer text,p_essay_answer text)",
+      "sourceExcerpt": "DECLARE v_attempt public.exam_attempts%ROWTYPE; v_start timestamptz; v_duration integer; BEGIN SELECT * INTO v_attempt FROM public.exam_attempts ea WHERE ea.id=p_attempt_id FOR UPDATE; IF NOT FOUND OR v_attempt.student_id <> p_student_id THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id=p_student_id AND role='student'::user_role) THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; SELECT e.start_t"
+    },
+    {
+      "id": "function:public.fn_submit_attempt",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0008_student_attempt_operations.sql",
+      "object": "public.fn_submit_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_submit_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_submit_attempt(p_attempt_id uuid,p_student_id uuid,p_session_id uuid)",
+      "sourceExcerpt": "DECLARE v_attempt public.exam_attempts%ROWTYPE; BEGIN SELECT * INTO v_attempt FROM public.exam_attempts WHERE id=p_attempt_id AND student_id=p_student_id FOR UPDATE; IF NOT FOUND THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; IF NOT EXISTS (SELECT 1 FROM public.profiles WHERE id=p_student_id AND role='student'::user_role) THEN RETURN jsonb_build_object('denial_reason','owner_mismatch'); END IF; IF v_attempt.session_id IS DISTINCT FROM p_session_id THEN RETURN jsonb_bui"
+    },
+    {
+      "id": "function:public.fn_get_student_attempt_result",
+      "type": "security_definer_function_or_role_dependent_function",
+      "migration": "0012_fix_student_results_attempt_lookup.sql",
+      "object": "public.fn_get_student_attempt_result(p_attempt_id uuid)",
+      "allowCase": "Valid caller, role or resource relationship allowed by public.fn_get_student_attempt_result(p_attempt_id uuid)",
+      "denyCase": "Unauthenticated or unrelated caller denied by public.fn_get_student_attempt_result(p_attempt_id uuid)",
+      "sourceExcerpt": "DECLARE v_attempt_id uuid; v_exam_id uuid; v_attempt_status public.attempt_status; v_finished_at timestamptz; v_exam_title text; v_question_count bigint; v_scored_question_count bigint; v_questions jsonb; BEGIN IF auth.uid() IS NULL OR NOT EXISTS ( SELECT 1 FROM public.profiles p WHERE p.id = auth.uid() AND p.role = 'student'::public.user_role ) THEN RETURN jsonb_build_object('error', 'access_denied'); END IF; SELECT ea.id, ea.exam_id, ea.status, ea.finished_at INTO v_attempt_id, v_exam_id, v_at"
+    },
+    {
+      "id": "trigger:trg_protect_profile_role",
+      "type": "role_dependent_trigger_path",
+      "source": "0003_functions_triggers_cron.sql:profiles:fn_protect_profile_role",
+      "object": "trg_protect_profile_role",
+      "allowCase": "Valid database event passes trigger trg_protect_profile_role",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_protect_profile_role"
+    },
+    {
+      "id": "trigger:trg_create_profile_on_signup",
+      "type": "role_dependent_trigger_path",
+      "source": "0003_functions_triggers_cron.sql:auth:fn_create_profile_on_signup",
+      "object": "trg_create_profile_on_signup",
+      "allowCase": "Valid database event passes trigger trg_create_profile_on_signup",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_create_profile_on_signup"
+    },
+    {
+      "id": "trigger:trg_enforce_group_ownership_on_permission",
+      "type": "role_dependent_trigger_path",
+      "source": "0003_functions_triggers_cron.sql:exam_permissions:fn_enforce_group_ownership_on_permission",
+      "object": "trg_enforce_group_ownership_on_permission",
+      "allowCase": "Valid database event passes trigger trg_enforce_group_ownership_on_permission",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_enforce_group_ownership_on_permission"
+    },
+    {
+      "id": "trigger:trg_sync_user_role",
+      "type": "role_dependent_trigger_path",
+      "source": "0005_rebuild_role_helpers_and_break_rls_cycles.sql:profiles:public.fn_sync_user_role",
+      "object": "trg_sync_user_role",
+      "allowCase": "Valid database event passes trigger trg_sync_user_role",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_sync_user_role"
+    },
+    {
+      "id": "trigger:trg_require_student_group_member",
+      "type": "role_dependent_trigger_path",
+      "source": "0006_secure_student_search.sql:group_students:public.fn_require_student_group_member",
+      "object": "trg_require_student_group_member",
+      "allowCase": "Valid database event passes trigger trg_require_student_group_member",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_require_student_group_member"
+    },
+    {
+      "id": "trigger:trg_require_student_exam_permission",
+      "type": "role_dependent_trigger_path",
+      "source": "0006_secure_student_search.sql:exam_permissions:public.fn_require_student_exam_permission",
+      "object": "trg_require_student_exam_permission",
+      "allowCase": "Valid database event passes trigger trg_require_student_exam_permission",
+      "denyCase": "Invalid role/owner relationship is rejected by trigger trg_require_student_exam_permission"
+    },
+    {
+      "id": "edge:start-attempt/index.ts",
+      "type": "edge_function_path",
+      "source": "supabase/functions/start-attempt/index.ts",
+      "object": "start-attempt",
+      "allowCase": "Authenticated user for an authorized attempt/resource",
+      "denyCase": "Anon and authenticated unrelated user, including request-body identity spoofing"
+    },
+    {
+      "id": "edge:get-exam-questions/index.ts",
+      "type": "edge_function_path",
+      "source": "supabase/functions/get-exam-questions/index.ts",
+      "object": "get-exam-questions",
+      "allowCase": "Authenticated user for an authorized attempt/resource",
+      "denyCase": "Anon and authenticated unrelated user, including request-body identity spoofing"
+    },
+    {
+      "id": "edge:save-answer/index.ts",
+      "type": "edge_function_path",
+      "source": "supabase/functions/save-answer/index.ts",
+      "object": "save-answer",
+      "allowCase": "Authenticated user for an authorized attempt/resource",
+      "denyCase": "Anon and authenticated unrelated user, including request-body identity spoofing"
+    },
+    {
+      "id": "edge:submit-attempt/index.ts",
+      "type": "edge_function_path",
+      "source": "supabase/functions/submit-attempt/index.ts",
+      "object": "submit-attempt",
+      "allowCase": "Authenticated user for an authorized attempt/resource",
+      "denyCase": "Anon and authenticated unrelated user, including request-body identity spoofing"
+    }
+  ]
+}

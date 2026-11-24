@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { normalizeError, type TestoError } from '../errors'
 import { createClient } from '../supabase/client'
-import type { Exam, ExamAttempt, Group, UserRole } from '../types'
+import type { Exam, ExamAttempt, Group } from '../types'
 import type { JoinedGroup } from './group-service'
 
 export type DashboardExam = Pick<Exam, 'id' | 'title' | 'start_time' | 'duration_minutes'> & {
@@ -9,11 +9,15 @@ export type DashboardExam = Pick<Exam, 'id' | 'title' | 'start_time' | 'duration
 }
 
 export interface DashboardData {
-  role: UserRole
   fullName: string
   groups: Group[]
   joinedGroups: JoinedGroup[]
   exams: DashboardExam[]
+  sectionErrors: {
+    ownedGroups: boolean
+    joinedGroups: boolean
+    exams: boolean
+  }
 }
 
 export type DashboardDataResult =
@@ -38,8 +42,48 @@ export interface DashboardServiceResult<T> {
   error: TestoError | null
 }
 
+function fetchOwnedGroups(client: SupabaseClient, userId: string) {
+  return client.from('groups')
+    .select('*')
+    .eq('owner_id', userId)
+    .order('name', { ascending: true })
+}
+
+function fetchJoinedGroups(client: SupabaseClient) {
+  return client.rpc('list_my_joined_groups')
+}
+
+function fetchOwnedExams(client: SupabaseClient, userId: string) {
+  return client.from('exams')
+    .select('id, title, start_time, duration_minutes, is_published')
+    .eq('owner_id', userId)
+    .order('start_time', { ascending: false })
+}
+
+function fetchParticipantExams(client: SupabaseClient, userId: string) {
+  return client.from('exams')
+    .select('id, title, start_time, duration_minutes')
+    .eq('is_published', true)
+    .neq('owner_id', userId)
+    .order('start_time', { ascending: true })
+}
+
+function mergeDashboardExams(
+  owned: DashboardExam[],
+  participant: DashboardExam[],
+  now: number,
+): DashboardExam[] {
+  const examsById = new Map<string, DashboardExam>(owned.map((exam) => [exam.id, exam]))
+  for (const exam of participant) {
+    const expiresAt = Date.parse(exam.start_time) + exam.duration_minutes * 60_000
+    if (expiresAt > now && !examsById.has(exam.id)) examsById.set(exam.id, exam)
+  }
+  return [...examsById.values()]
+}
+
 export async function getDashboardData(
   client: SupabaseClient = createClient(),
+  now: () => number = Date.now,
 ): Promise<DashboardDataResult> {
   try {
     const { data: { user }, error: authError } = await client.auth.getUser()
@@ -47,7 +91,7 @@ export async function getDashboardData(
 
     const { data: profile, error: profileError } = await client
       .from('profiles')
-      .select('role, full_name')
+      .select('full_name')
       .eq('id', user.id)
       .maybeSingle()
 
@@ -60,43 +104,31 @@ export async function getDashboardData(
       }
     }
 
-    let groups: Group[] = []
-    let joinedGroups: JoinedGroup[] = []
-    let exams: DashboardExam[] = []
-
-    if (profile.role === 'admin') {
-      const [groupResult, examResult] = await Promise.all([
-        client.from('groups').select('*').order('name', { ascending: true }),
-        client.from('exams').select('*').order('start_time', { ascending: false }),
-      ])
-      if (groupResult.error) throw groupResult.error
-      if (examResult.error) throw examResult.error
-      groups = (groupResult.data ?? []) as Group[]
-      exams = (examResult.data ?? []) as DashboardExam[]
-    } else {
-      const [examResult, groupResult] = await Promise.all([
-        client.from('exams')
-          .select('id, title, start_time, duration_minutes')
-          .eq('is_published', true)
-          .order('start_time', { ascending: true }),
-        client.rpc('list_my_joined_groups'),
-      ])
-      if (examResult.error) throw examResult.error
-      if (groupResult.error) throw groupResult.error
-      const currentTime = Date.now()
-      exams = ((examResult.data ?? []) as DashboardExam[]).filter((exam) =>
-        Date.parse(exam.start_time) + exam.duration_minutes * 60_000 > currentTime,
-      )
-      joinedGroups = (groupResult.data ?? []) as JoinedGroup[]
-    }
+    const [groupResult, joinedGroupResult, ownedExamResult, participantExamResult] = await Promise.all([
+      fetchOwnedGroups(client, user.id),
+      fetchJoinedGroups(client),
+      fetchOwnedExams(client, user.id),
+      fetchParticipantExams(client, user.id),
+    ])
+    const groups = (groupResult.data ?? []) as Group[]
+    const joinedGroups = (joinedGroupResult.data ?? []) as JoinedGroup[]
+    const exams = mergeDashboardExams(
+      (ownedExamResult.data ?? []) as DashboardExam[],
+      (participantExamResult.data ?? []) as DashboardExam[],
+      now(),
+    )
 
     return {
       data: {
-        role: profile.role as UserRole,
         fullName: profile.full_name ?? '',
         groups,
         joinedGroups,
         exams,
+        sectionErrors: {
+          ownedGroups: Boolean(groupResult.error),
+          joinedGroups: Boolean(joinedGroupResult.error),
+          exams: Boolean(ownedExamResult.error || participantExamResult.error),
+        },
       },
       error: null,
       unauthenticated: false,

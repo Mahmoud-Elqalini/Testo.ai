@@ -1,6 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { createExam, getExamPermissionSummary, hasExamStartedAttempts, publishExam, unpublishExam, updateExam } from '../../../src/lib/services/exam-service'
 import { createQuestion, updateQuestion } from '../../../src/lib/services/question-service'
+import { grantExamGroupAccess } from '../../../src/lib/services/exam-permissions-service'
+import { createGroupInvitation } from '../../../src/lib/services/group-invitation-service'
 import { adminClient } from '../helpers/supabase-admin'
 import { createTestAdmin, createTestStudent } from './test-context'
 
@@ -31,24 +33,23 @@ describe('exam publishing and immutability (local Supabase)', () => {
 
     const { data: group, error: groupError } = await adminClient
       .from('groups')
-      .insert({ name: 'Publish summary fixture', admin_id: admin.userId })
+      .insert({ name: 'Publish summary fixture', owner_id: admin.userId })
       .select('id')
       .single()
     expect(groupError).toBeNull()
-    const { error: memberError } = await adminClient.from('group_students').insert({
-      group_id: group!.id,
-      student_id: student.userId,
+    const invitation = await createGroupInvitation(group!.id)
+    expect(invitation.error).toBeNull()
+    const joined = await student.client.rpc('redeem_group_invitation', {
+      invitation_code: invitation.data!.code,
     })
-    expect(memberError).toBeNull()
-    const { error: permissionError } = await adminClient.from('exam_permissions').insert([
-      { exam_id: created.data!.id, student_id: student.userId },
-      { exam_id: created.data!.id, group_id: group!.id },
-    ])
-    expect(permissionError).toBeNull()
+    expect(joined.error).toBeNull()
+    expect(joined.data).toEqual({ success: true })
+    const permission = await grantExamGroupAccess(created.data!.id, group!.id)
+    expect(permission.error).toBeNull()
 
     const audience = await getExamPermissionSummary(created.data!.id)
     expect(audience.error).toBeNull()
-    expect(audience.data).toEqual({ studentCount: 1, groupCount: 1 })
+    expect(audience.data).toEqual({ studentCount: 0, groupCount: 1 })
 
     const published = await publishExam(created.data!.id)
     expect(published.error).toBeNull()

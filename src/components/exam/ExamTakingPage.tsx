@@ -171,7 +171,7 @@ export default function ExamTakingPage({ attemptId, examTitle }: { attemptId: st
   const currentQuestion = data?.questions[currentIndex]
   const numberLabel = (value: number) => new Intl.NumberFormat(language).format(value)
 
-  return <WorkspaceLayout role="student" active="exam-room" focusMode><main className="testo-exam-room mx-auto w-full max-w-none space-y-6">
+  return <WorkspaceLayout active="exam-room" focusMode><main className="testo-exam-room mx-auto w-full max-w-none space-y-6">
     <header className="testo-exam-heading">
       <div><Link href="/student" className="text-sm text-primary-text hover:underline dark:text-primary-text">{t('common.backArrow')} {t('student.exam.backToDashboard')}</Link><p className="mt-3 testo-exam-eyebrow">{t('student.exam.questionCount').replace('{count}', numberLabel(data?.questions.length ?? 0))}</p><h1 className="mt-1 text-2xl font-bold">{title}</h1></div>
       <div className="testo-exam-secure">◈ <span>{t('student.exam.autosaveHint')}</span></div>

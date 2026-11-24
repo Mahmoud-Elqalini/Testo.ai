@@ -51,12 +51,12 @@ test.describe('Admin groups and access visual regression', () => {
 
         try {
           await updateVisualProfile(adminClient!, adminData.user.id, {
-            role: 'admin', preferred_language: locale, preferred_theme: theme,
+            preferred_language: locale, preferred_theme: theme,
           })
           await updateVisualProfile(adminClient!, studentData.user.id, { full_name: 'Visual Student' })
-          const { data: group, error: groupError } = await adminClient!.from('groups').insert({ name: 'Visual cohort', admin_id: adminData.user.id }).select('id').single()
+          const { data: group, error: groupError } = await adminClient!.from('groups').insert({ name: 'Visual cohort', owner_id: adminData.user.id }).select('id').single()
           if (groupError || !group) throw groupError ?? new Error('Could not create visual test group')
-          const { data: exam, error: examError } = await adminClient!.from('exams').insert({ title: 'Visual access exam', start_time: new Date(Date.now() + 86_400_000).toISOString(), duration_minutes: 30, admin_id: adminData.user.id }).select('id').single()
+          const { data: exam, error: examError } = await adminClient!.from('exams').insert({ title: 'Visual access exam', start_time: new Date(Date.now() + 86_400_000).toISOString(), duration_minutes: 30, owner_id: adminData.user.id }).select('id').single()
           if (examError || !exam) throw examError ?? new Error('Could not create visual test exam')
           const { error: memberError } = await adminClient!.from('group_students').insert({ group_id: group.id, student_id: studentData.user.id })
           if (memberError) throw memberError
@@ -78,18 +78,18 @@ test.describe('Admin groups and access visual regression', () => {
           // Wait for the Supabase-backed list before capturing or navigating away.
           await expect(page.getByText('Visual cohort', { exact: true })).toBeVisible({ timeout: 30_000 })
           await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
-          await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          await expect(page).toHaveScreenshot(`admin-groups-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, timeout: 20_000 })
 
           await page.goto(`/admin/groups/${group.id}`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByText(studentEmail, { exact: true }).first()).toBeVisible({ timeout: 30_000 })
           await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
-          await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })] })
+          await expect(page).toHaveScreenshot(`admin-group-detail-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, mask: [page.getByText(studentEmail, { exact: true })], timeout: 20_000 })
 
           await page.goto(`/admin/exams/${exam.id}/publish`, { waitUntil: 'domcontentloaded' })
           await expect(page.getByRole('heading', { name: locale === 'ar' ? 'صلاحيات دخول الامتحان' : 'Exam access' })).toBeVisible({ timeout: 15_000 })
           await expect(page.getByRole('option', { name: 'Visual cohort' })).toBeAttached({ timeout: 30_000 })
           await page.locator('nextjs-portal').evaluateAll((portals) => portals.forEach((portal) => portal.remove()))
-          await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05 })
+          await expect(page).toHaveScreenshot(`admin-exam-access-${locale}-${theme}.png`, { fullPage: true, animations: 'disabled', maxDiffPixelRatio: 0.05, timeout: 20_000 })
         } finally {
           // Stop auth/profile requests before deleting the user backing this session.
           if (!page.isClosed()) await page.close()

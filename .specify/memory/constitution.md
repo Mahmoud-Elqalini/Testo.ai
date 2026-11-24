@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
-Version change: 3.1.3 -> 3.2.0
-Modified principles: none
-Added sections: XI. Maintainable Design, SOLID, and Problem-Driven Patterns
+Version change: 4.0.0 -> 4.0.1
+Modified principles: IV. Exam Lifecycle Integrity (voiding authority clarified as the exam owner); X. Automated Free-Text Grading (override authority clarified as the exam owner)
+Added sections: XII. Unified Identity, No Fixed Roles; XIII. Protected Course Content
 Removed sections: none
-Follow-up TODOs: none
+Follow-up TODOs: Add a “superseded by 007” note to specs/001-foundation, specs/002-automated-grading, specs/003-notifications, specs/004-admin-insights, and specs/005-group-invitations when Feature 007 is specified; do not amend those specs as part of this constitution change.
 -->
 
 # Testo Constitution
@@ -18,14 +18,16 @@ The client (browser, mobile app) is never trusted to determine exam timing, exam
 No grading criteria — whether an MCQ's correct-answer flag (`is_correct`) or an essay question's model answer/scoring rubric used for automated grading — MUST be queryable, readable, or transmitted to a student-facing client at any point while that student's attempt is still open. Student-facing endpoints returning exam questions MUST exclude all grading-criteria fields at the query level, not merely hide them in the UI. All comparison of a student's answer against grading criteria — whether the deterministic MCQ comparison or the automated essay evaluation (Principle X) — MUST run in server-side/trusted code only. Privileged credentials (service-role keys, admin API keys, or any credential capable of bypassing access control) MUST NEVER be embedded in frontend code or any artifact shipped to the browser. **Rationale:** hiding grading criteria in the UI while still sending it over the network, or exposing a rubric a smart student could reverse-engineer answers from, is not security; this principle prevents the single most damaging failure mode of an exam platform — for either question type.
 
 ### III. Defense in Depth for Exam Access
-No single mechanism is ever relied upon alone to grant exam access. Every attempt MUST be protected by the composition of: Authentication (verified logged-in user); Authorization (row-level policies restricting each user to their own data); a unique, unguessable, time-scoped attempt token bound to one student/exam/attempt triple and valid only within the exam's actual scheduled window; and server-side time/state validation re-checked on every request, not just at token issuance. A leaked or guessed link alone MUST NEVER be sufficient to access or influence an exam. **Rationale:** each layer covers the others' potential failure.
+No single mechanism is ever relied upon alone to grant exam access. Every attempt MUST be protected by the composition of: Authentication (verified logged-in user); Authorization (row-level policies restricting each user to their own data); a unique, unguessable, time-scoped attempt token bound to one authenticated user/exam/attempt triple and valid only within the exam's actual scheduled window; and server-side time/state validation re-checked on every request, not just at token issuance. A user MUST NOT attempt an exam they own, and MUST NOT join as a member a group they own. A leaked or guessed link alone MUST NEVER be sufficient to access or influence an exam.
+
+Authorization changes MUST preserve or strengthen protection at every migration step: no migration may leave an intermediate state less secure than the state before the migration. Every migration that changes authorization MUST ship security tests that run against the state before and after the migration. Removing a role-based check MUST include a documented replacement check that is equally or more restrictive and is enforced server-side. **Rationale:** each access layer covers the others' potential failure; staged migration safety and tested replacement checks prevent authorization gaps while the model changes.
 
 ### IV. Data Integrity and Resilience Take Priority Over Convenience
 No work a student has already done may be silently lost, and no attempt may be manipulated into an inconsistent state.
 
 - **Autosave cadence:** answers MUST be saved via a bounded, debounced event — on MCQ choice selection, or after a short pause in typing / on field blur for free-text essay answers — never on every keystroke. Write volume must scale with real activity, not typing speed.
 - **Offline handling:** if the client loses connectivity, new or changed answers MUST be queued locally and the UI MUST clearly show an "unsynced" state rather than a false "saved" confirmation — an answer is only considered saved once the server acknowledges it. Any queued answer that reaches the server after the attempt's window has already been closed under Principle I MUST be rejected and MUST NOT be counted; client-side queuing is a UX convenience, never a way to extend an exam past its authoritative end time.
-- **Attempt lifecycle:** every attempt MUST move through an enforced state machine: `pending` (token/attempt row exists, student has not yet opened it) → `in_progress` → one of `submitted`, `auto_submitted`, or `abandoned` (the exam window closed with no submission ever recorded). An Admin MAY move any non-`pending` attempt to `voided`, for a documented reason, recording who voided it and when — this is the only sanctioned path for correcting a technical error or an interrupted attempt, and MUST NOT be done through direct, unlogged database edits.
+- **Attempt lifecycle:** every attempt MUST move through an enforced state machine: `pending` (token/attempt row exists, student has not yet opened it) → `in_progress` → one of `submitted`, `auto_submitted`, or `abandoned` (the exam window closed with no submission ever recorded). The exam owner MAY move any non-`pending` attempt to `voided`, for a documented reason, recording who voided it and when — this is the only sanctioned path for correcting a technical error or an interrupted attempt, and MUST NOT be done through direct, unlogged database edits.
 - An attempt whose time has expired MUST be closed and graded automatically by a server-side scheduled process — the platform MUST NOT depend on the student's browser staying open. A token or attempt MUST NOT be usable more than once.
 
 **Rationale:** exams are high-stakes and often one-shot; a lost answer, a double-submission, or an attempt stuck in an undefined state directly harms a student's grade and the platform's credibility.
@@ -61,7 +63,7 @@ Essay/free-text questions are graded automatically by a server-side grading mech
 - **Advisory flags are audit-only, never a hidden gate:** the system MAY compute heuristic warning signals (e.g. a likely negation/contradiction between a student's answer and the reference, or a likely keyword-stuffing pattern) to support later review. These flags MUST be logged and MUST NOT block, delay, or alter automatic grade finalization — introducing a silent human-review step for flagged answers would contradict the fully-automatic grading decision (Principle VII) and MUST NOT happen. Flags exist solely so a later dispute or audit has more to go on than a bare score.
 - **Full audit trail:** every automated grading pass and its result MUST be logged — the exact answer text graded, which reference answer(s)/rubric and model version were used, the raw score, any advisory flags raised, and a timestamp — so a grade can be reviewed or disputed after the fact, even though it was not reviewed before being finalized.
 - **No silent failure:** if a grading pass fails or times out for any reason, the attempt MUST NOT be left silently ungraded. A bounded retry mechanism MUST run, following the same logged/retried pattern as Principle V, and any attempt still stuck in a failed-grading state MUST be visible to the Admin.
-- **Post-hoc override remains possible:** an Admin MUST retain the ability to review and override any automatically-assigned grade after the fact through a documented, audited action (via the `voided`/regrade path in Principle IV) — grading without pre-review does not mean a grade is permanently unchallengeable.
+- **Post-hoc override remains possible:** the exam owner MUST retain the ability to review and override any automatically-assigned grade after the fact through a documented, audited action (via the `voided`/regrade path in Principle IV) — grading without pre-review does not mean a grade is permanently unchallengeable.
 
 **Rationale:** removing human review before finalization raises the stakes of every other safeguard, regardless of whether the mechanism behind the score is an embedding model or an LLM. A single-reference, uncalibrated, unlogged, or silently-failing automated grading path would be worse than no automation at all; these guarantees are what make full automation defensible rather than reckless, and they are written to survive the grading mechanism changing under them.
 
@@ -73,6 +75,16 @@ Recognized design patterns MAY be used only to solve a concrete, stated design p
 Every new or updated `spec.md` MUST stay focused on user outcomes and testable, technology-agnostic requirements. It MUST respect existing authorization, real data, domain rules, and the feature's agreed scope; it MUST NOT prescribe code-level patterns as user requirements. When an existing spec is amended, preserve unrelated decisions and acceptance scenarios. The corresponding `plan.md` MUST translate relevant maintainability needs into clear module boundaries, dependency direction, pattern decisions (or a reasoned choice not to add one), and a SOLID review.
 
 **Rationale:** consistent boundaries and focused responsibilities make features easier to change without weakening data or authorization guarantees. Requiring a reason for abstractions prevents pattern cargo-culting and keeps this project maintainable at its current scale.
+
+### XII. Unified Identity, No Fixed Roles
+An account MUST NOT have a fixed student or admin role. One account MUST be able to learn and teach. Authorization MUST derive only from the authenticated `auth.uid()`, resource ownership (`owner_id`), and membership or enrollment relationships; it MUST NOT trust client-supplied identity, ownership, membership, enrollment, or authorization values. If platform-level administration is ever required, it MUST be a separate server-controlled capability and MUST NOT be represented as a user-facing account role.
+
+**Rationale:** a person may participate in learning and teaching, while access remains tied to verified identity and concrete relationships to resources.
+
+### XIII. Protected Course Content
+Paid course media and files MUST be stored in private storage buckets. Access MUST be provided only through short-lived signed URLs issued after a server-side enrollment or ownership check. Course tables MUST use deny-by-default Row-Level Security (RLS); access MUST be explicitly granted only when the authenticated user satisfies the applicable ownership or enrollment rule.
+
+**Rationale:** private storage and restrictive data access prevent paid course materials from being exposed through public paths or unchecked client requests.
 
 ## Security & Compliance Requirements
 
@@ -106,4 +118,4 @@ Every new or updated `spec.md` MUST stay focused on user outcomes and testable, 
 - **Conflicting amendments:** if two developers propose conflicting amendments, the conflict is resolved by discussion among the project's developers before either is merged — an amendment is never force-merged over an open objection.
 - **Compliance review:** every `plan.md` MUST pass the Constitution Check gate (see Quality Gates above) before implementation tasks are generated.
 
-**Version**: 3.2.0 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-02
+**Version**: 4.0.1 | **Ratified**: 2026-08-25 | **Last Amended**: 2026-11-05

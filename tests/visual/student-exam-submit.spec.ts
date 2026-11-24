@@ -37,16 +37,16 @@ test.describe('Student exam manual submission (local Supabase)', () => {
 
     let examId: string | undefined
     let attemptId: string | undefined
+    let groupId: string | undefined
 
     try {
-      await updateVisualProfile(adminClient!, adminData.user.id, { role: 'admin' })
       await updateVisualProfile(adminClient!, studentData.user.id, { preferred_language: 'en', preferred_theme: 'light' })
 
       const { data: exam, error: examError } = await adminClient!.from('exams').insert({
         title: 'Manual submission exam',
         start_time: new Date(Date.now() - 30_000).toISOString(),
         duration_minutes: 30,
-        admin_id: adminData.user.id,
+        owner_id: adminData.user.id,
         is_published: true,
       }).select('id').single()
       if (examError || !exam) throw examError ?? new Error('Could not create submission test exam')
@@ -63,10 +63,22 @@ test.describe('Student exam manual submission (local Supabase)', () => {
       }).select('id').single()
       if (questionError || !question) throw questionError ?? new Error('Could not create submission test question')
 
+      const { data: group, error: groupError } = await adminClient!.from('groups').insert({
+        name: 'Submission test group',
+        owner_id: adminData.user.id,
+      }).select('id').single()
+      if (groupError || !group) throw groupError ?? new Error('Could not create submission test group')
+      groupId = group.id
+
+      const { error: memberError } = await adminClient!.from('group_students').insert({
+        group_id: groupId,
+        student_id: studentData.user.id,
+      })
+      if (memberError) throw memberError
+
       const { error: permissionError } = await adminClient!.from('exam_permissions').insert({
         exam_id: examId,
-        student_id: studentData.user.id,
-        group_id: null,
+        group_id: groupId,
       })
       if (permissionError) throw permissionError
 
@@ -130,6 +142,7 @@ test.describe('Student exam manual submission (local Supabase)', () => {
         await cleanup(() => adminClient!.from('questions').delete().eq('exam_id', examId!))
         await cleanup(() => adminClient!.from('exams').delete().eq('id', examId!))
       }
+      if (groupId) await cleanup(() => adminClient!.from('groups').delete().eq('id', groupId!))
       await cleanup(() => adminClient!.auth.admin.deleteUser(studentData.user.id))
       await cleanup(() => adminClient!.auth.admin.deleteUser(adminData.user.id))
       if (cleanupErrors.length) throw new AggregateError(cleanupErrors, 'Submission test cleanup failed')

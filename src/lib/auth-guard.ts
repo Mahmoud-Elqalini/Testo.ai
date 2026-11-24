@@ -1,4 +1,5 @@
 const PUBLIC_PATHS = new Set(['/', '/login', '/register', '/reset-password']);
+const LEGACY_SECTION_ROOTS = new Set(['/admin', '/student']);
 
 /**
  * Pure function to resolve auth redirects.
@@ -13,6 +14,9 @@ export function resolveAuthRedirect(pathname: string, isAuthenticated: boolean):
 
   // Authenticated users
   if (isAuthenticated) {
+    if (LEGACY_SECTION_ROOTS.has(pathname)) {
+      return '/dashboard';
+    }
     if (pathname === '/' || pathname === '/login' || pathname === '/register') {
       return '/dashboard';
     }

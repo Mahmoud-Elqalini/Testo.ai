@@ -3,7 +3,6 @@ import type { BrowserContext } from '@playwright/test'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 type VisualProfile = {
-  role?: 'student' | 'admin'
   full_name?: string
   preferred_language?: 'en' | 'ar'
   preferred_theme?: 'light' | 'dark'
@@ -23,13 +22,11 @@ export async function updateVisualProfile(
     .from('profiles')
     .update(profile)
     .eq('id', userId)
-    .select('id, role')
+    .select('id')
     .single()
 
   if (error) throw error
-  if (profile.role && data.role !== profile.role) {
-    throw new Error(`Expected visual user ${userId} to have role ${profile.role}, received ${data.role}.`)
-  }
+  if (data.id !== userId) throw new Error(`Could not update visual profile ${userId}.`)
 }
 
 export async function signInBrowserContext(

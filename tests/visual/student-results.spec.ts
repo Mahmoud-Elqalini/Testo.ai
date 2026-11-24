@@ -45,7 +45,7 @@ test.describe('Student results visual regression', () => {
               title: examTitle,
               start_time: new Date(Date.now() - 60_000).toISOString(),
               duration_minutes: 30,
-              admin_id: userData.user.id,
+              owner_id: userData.user.id,
               is_published: true,
             }).select('id').single()
             if (examError || !exam) throw examError ?? new Error('Could not create visual test exam')
@@ -121,7 +121,7 @@ test.describe('Student results visual regression', () => {
               const { error: examDeleteError } = await adminClient!.from('exams').delete().eq('id', examId)
               if (examDeleteError) cleanupError ??= examDeleteError
             }
-            // exams.admin_id references the visual user's profile.
+            // exams.owner_id references the visual user's profile.
             const { error: deleteError } = await adminClient!.auth.admin.deleteUser(userData.user.id)
             if (deleteError) cleanupError ??= deleteError
             if (cleanupError) throw cleanupError
