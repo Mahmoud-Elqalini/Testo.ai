@@ -69,6 +69,15 @@ describe('shared Edge authorization', () => {
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining('"attempt_id":"e7000000-0000-4000-8000-000000000003"'))
   })
 
+  it('maps an unrecognized RPC denial reason to the fallback audit reason', async () => {
+    client.rpc.mockResolvedValueOnce({ data: { denial_reason: 'future_denial_reason' }, error: null })
+
+    const response = await callOperation(bearerRequest(), 'test-operation', 'fn_test_operation', {})
+
+    expect(response.status).toBe(403)
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining('"denial_reason":"unknown_denial_reason"'))
+  })
+
   it('returns a generic internal error when user verification throws', async () => {
     client.auth.getUser.mockRejectedValueOnce(new Error('network details'))
     const handler = vi.fn(async () => json({ reached: true }))

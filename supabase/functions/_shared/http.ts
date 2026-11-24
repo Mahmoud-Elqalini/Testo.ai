@@ -36,9 +36,10 @@ export const denialReasons = [
   'attempt_not_in_progress',
 ] as const
 
-export type DenialReason = typeof denialReasons[number]
+type KnownDenialReason = typeof denialReasons[number]
+export type DenialReason = KnownDenialReason | 'unknown_denial_reason'
 
-function isDenialReason(reason: string): reason is DenialReason {
+function isDenialReason(reason: string): reason is KnownDenialReason {
   return (denialReasons as readonly string[]).includes(reason)
 }
 

@@ -31,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "supabase/functions", "Testo-Clarifier"]
+  "exclude": ["node_modules", "supabase/functions", "Testo-Clarifier", "tests"]
 }
