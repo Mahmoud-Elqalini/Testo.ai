@@ -1,4 +1,4 @@
-import { record, parseJson } from "./context.ts";
+import { record, parseJson, stringField, isRecord, type SecurityTestContext } from "./context.ts";
 
 const ids = {
   participantA: "a7000000-0000-4000-8000-000000000003",
@@ -9,7 +9,7 @@ const ids = {
   questionEdge: "d7000000-0000-4000-8000-000000000003",
 };
 
-async function call(ctx: any, endpoint: string, actor: string | undefined, method: string, data: Record<string, unknown>, query = "") {
+async function call(ctx: SecurityTestContext, endpoint: string, actor: string | undefined, method: string, data: Record<string, unknown>, query = "") {
   const response = await ctx.request(`/functions/v1/${endpoint}${query}`, actor, {
     method,
     headers: { apikey: ctx.anonKey, ...(actor ? {} : {}) },
@@ -18,7 +18,7 @@ async function call(ctx: any, endpoint: string, actor: string | undefined, metho
   return { response, body: parseJson(await response.text()) };
 }
 
-function valid(body: any) { return Boolean(body && typeof body === "object" && !body.error && !body.denial_reason); }
+function valid(body: unknown) { return isRecord(body) && !body.error && !body.denial_reason; }
 function diagnostic(body: unknown) {
   const text = typeof body === "string" ? body : JSON.stringify(body);
   return text.length > 500 ? `${text.slice(0, 500)}…` : text;
@@ -27,7 +27,7 @@ function unauthorized(response: Response, body: unknown) {
   return (response.status === 401 || response.status === 403) && !valid(body);
 }
 
-export async function runEdgeCases(ctx: any) {
+export async function runEdgeCases(ctx: SecurityTestContext) {
   const service = ctx.serviceHeaders();
   const examUrl = `/rest/v1/exams?id=eq.${ids.examEdge}`;
   // Use the manifest ID: the current schema intentionally has no authenticated SELECT grant on exam_attempts.
@@ -41,7 +41,7 @@ export async function runEdgeCases(ctx: any) {
   }
 
   const start = await call(ctx, "start-attempt", "participantA", "POST", { attempt_id: attemptId, student_id: ids.unrelated });
-  const sessionId = (start.body as any)?.session_id;
+  const sessionId = stringField(start.body, "session_id");
   const startAllowed = start.response.ok && valid(start.body) && typeof sessionId === "string";
   await record(ctx, "edge:start-attempt/index.ts.allow", startAllowed, `HTTP ${start.response.status}; authorized participant starts their attempt; response=${diagnostic(start.body)}`);
   const startDeny = await call(ctx, "start-attempt", "unrelated", "POST", { attempt_id: attemptId, student_id: ids.participantA });

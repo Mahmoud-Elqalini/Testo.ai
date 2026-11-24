@@ -1,8 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createContext, record, runSqlFile } from "./context.ts";
+import { createContext, record, runSqlFile, type SecurityTestContext } from "./context.ts";
 
-export async function runPreparation0015Cases(ctx: any) {
+export async function runPreparation0015Cases(ctx: SecurityTestContext) {
   const output = await runSqlFile("supabase/tests/007-unified-identity/preparation-0015.sql");
   for (const line of output.split(/\r?\n/)) {
     const match = /^CASE_RESULT\|([^|]+)\|(PASS|FAIL)\|(.+)$/.exec(line.trim());

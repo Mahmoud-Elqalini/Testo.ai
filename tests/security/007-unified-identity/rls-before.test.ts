@@ -1,4 +1,4 @@
-import { record, parseJson } from "./context.ts";
+import { record, parseJson, type SecurityTestContext } from "./context.ts";
 
 const ids = {
   ownerA: "a7000000-0000-4000-8000-000000000001",
@@ -18,7 +18,7 @@ const ids = {
 function nonempty(value: unknown) { return Array.isArray(value) && value.length > 0; }
 function empty(value: unknown) { return Array.isArray(value) && value.length === 0; }
 
-async function request(ctx: any, actor: string, table: string, method = "GET", query = "select=*", body?: unknown) {
+async function request(ctx: SecurityTestContext, actor: string, table: string, method = "GET", query = "select=*", body?: unknown) {
   const response = await ctx.request(`/rest/v1/${table}?${query}`, actor, {
     method,
     headers: { Prefer: "return=representation" },
@@ -28,14 +28,14 @@ async function request(ctx: any, actor: string, table: string, method = "GET", q
   return { response, body: parseJson(rawBody), rawBody };
 }
 
-async function readPair(ctx: any, policy: string, table: string, allowActor: string, allowQuery: string, denyActor: string, denyQuery: string) {
+async function readPair(ctx: SecurityTestContext, policy: string, table: string, allowActor: string, allowQuery: string, denyActor: string, denyQuery: string) {
   const allow = await request(ctx, allowActor, table, "GET", allowQuery);
   await record(ctx, `policy:${policy}.allow`, allow.response.ok && nonempty(allow.body), `HTTP ${allow.response.status}; matching authorized row returned`);
   const deny = await request(ctx, denyActor, table, "GET", denyQuery);
   await record(ctx, `policy:${policy}.deny`, deny.response.ok && empty(deny.body), `HTTP ${deny.response.status}; unrelated row hidden`);
 }
 
-async function writePair(ctx: any, policy: string, method: string, table: string, allowActor: string, allowBody: unknown, denyActor: string, denyBody: unknown, allowQuery = "select=*", denyQuery = allowQuery) {
+async function writePair(ctx: SecurityTestContext, policy: string, method: string, table: string, allowActor: string, allowBody: unknown, denyActor: string, denyBody: unknown, allowQuery = "select=*", denyQuery = allowQuery) {
   const allow = await request(ctx, allowActor, table, method, allowQuery, allowBody);
   const allowed = allow.response.ok && (nonempty(allow.body) || allow.response.status === 204);
   await record(ctx, `policy:${policy}.allow`, allowed, `HTTP ${allow.response.status}; owner operation ${allowed ? "accepted" : "rejected"}`);
@@ -45,7 +45,7 @@ async function writePair(ctx: any, policy: string, method: string, table: string
   return allow;
 }
 
-export async function runRlsCases(ctx: any) {
+export async function runRlsCases(ctx: SecurityTestContext) {
   const groupId = crypto.randomUUID();
   const examId = crypto.randomUUID();
   const questionId = crypto.randomUUID();
@@ -91,7 +91,7 @@ export async function runRlsCases(ctx: any) {
   await readPair(ctx, "exams_student_select", "exams", "participantA", `id=eq.${ids.examRpc}`, "ownerB", `id=eq.${ids.examRpc}`);
 
   await readPair(ctx, "exam_permissions_admin_select", "exam_permissions", "ownerA", `exam_id=eq.${ids.examA}`, "ownerB", `exam_id=eq.${ids.examA}`);
-  const extraGroup = await request(ctx, "ownerA", "groups", "POST", "select=id", { id: extraGroupId, name: "007 permission fixture", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
+  await request(ctx, "ownerA", "groups", "POST", "select=id", { id: extraGroupId, name: "007 permission fixture", [ctx.migrationVersions?.includes("0014") ? "owner_id" : "admin_id"]: ids.ownerA });
   // 0017 grants INSERT only on exam_id/group_id; use that natural key for the preserved CRUD assertions.
   await writePair(ctx, "exam_permissions_admin_insert", "POST", "exam_permissions", "ownerA", { exam_id: ids.examA, group_id: extraGroupId }, "ownerB", { exam_id: ids.examA, group_id: ids.groupA });
   const permissionRowFilter = `exam_id=eq.${ids.examA}&group_id=eq.${extraGroupId}`;

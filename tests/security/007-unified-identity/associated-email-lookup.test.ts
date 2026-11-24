@@ -1,4 +1,4 @@
-import { record, parseJson } from "./context.ts";
+import { record, parseJson, type SecurityTestContext } from "./context.ts";
 import { mkdir, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -11,7 +11,7 @@ const participantEmail = "participant-a-007@example.test";
 const unrelatedEmail = "unrelated-007@example.test";
 const missingEmail = "missing-007@example.test";
 
-async function lookup(ctx: any, actor: string, kind: "group" | "exam", id: string, email: string) {
+async function lookup(ctx: SecurityTestContext, actor: string, kind: "group" | "exam", id: string, email: string) {
   const started = performance.now();
   const response = await ctx.request("/rest/v1/rpc/lookup_associated_participant", actor, {
     method: "POST",
@@ -45,12 +45,12 @@ function toRawSample(result: Awaited<ReturnType<typeof lookup>>) {
   return { elapsedMs: roundMs(result.elapsedMs), status: result.response.status, rawBody: result.rawBody };
 }
 
-async function resetFixtureLimits(ctx: any) {
+async function resetFixtureLimits(ctx: SecurityTestContext) {
   const exists = ctx.runSql("SELECT to_regclass('private.associated_profile_lookup_rate_limits') IS NOT NULL").trim() === "t";
   if (exists) ctx.runSql(`DELETE FROM private.associated_profile_lookup_rate_limits WHERE requester_id IN ('a7000000-0000-4000-8000-000000000001'::uuid,'a7000000-0000-4000-8000-000000000002'::uuid) AND context_id IN ('${groupA}'::uuid,'${examA}'::uuid,'${groupB}'::uuid)`);
 }
 
-export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
+export async function runUniformTimingCase(ctx: SecurityTestContext, endpointAvailable = true) {
   try {
     await resetFixtureLimits(ctx);
     const sampleCount = 200;
@@ -312,7 +312,7 @@ export async function runUniformTimingCase(ctx: any, endpointAvailable = true) {
   }
 }
 
-export async function runAssociatedEmailLookupCases(ctx: any) {
+export async function runAssociatedEmailLookupCases(ctx: SecurityTestContext) {
   await resetFixtureLimits(ctx);
   try {
     const relationshipsBefore = ctx.runSql(`SELECT (SELECT count(*) FROM public.group_students WHERE group_id='${groupA}'::uuid)::text || ':' || (SELECT count(*) FROM public.exam_permissions WHERE exam_id='${examA}'::uuid)::text`).trim();

@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createContext, record, runSqlFile } from "./context.ts";
+import { createContext, record, runSqlFile, type SecurityTestContext } from "./context.ts";
 
 const ids = {
   ownerA: "a7000000-0000-4000-8000-000000000001",
@@ -9,11 +9,11 @@ const ids = {
   examA: "c7000000-0000-4000-8000-000000000001",
 };
 
-function parseJson(text: string): any {
+function parseJson(text: string): unknown {
   try { return text ? JSON.parse(text) : null; } catch { return text; }
 }
 
-export async function runOwnerMirrorCases(ctx: any) {
+export async function runOwnerMirrorCases(ctx: SecurityTestContext) {
   const output = await runSqlFile("supabase/tests/007-unified-identity/owner-mirror-0014.sql");
   for (const line of output.split(/\r?\n/)) {
     const match = /^CASE_RESULT\|([^|]+)\|(PASS|FAIL)\|(.+)$/.exec(line.trim());
@@ -24,13 +24,14 @@ export async function runOwnerMirrorCases(ctx: any) {
   await assertOwnerTransferDenied(ctx, "exams", ids.examA, "exam");
 }
 
-async function assertOwnerTransferDenied(ctx: any, table: "groups" | "exams", id: string, label: string) {
+async function assertOwnerTransferDenied(ctx: SecurityTestContext, table: "groups" | "exams", id: string, label: string) {
   const url = `/rest/v1/${table}?id=eq.${id}`;
   const beforeResponse = await ctx.request(`${url}&select=admin_id,owner_id`, "ownerA", {
     method: "GET", headers: ctx.serviceHeaders(),
   });
-  const beforeRows = parseJson(await beforeResponse.text()) as Array<{ admin_id?: string; owner_id?: string }>;
-  const before = beforeRows?.[0];
+  const beforeValue = parseJson(await beforeResponse.text());
+  const beforeRows = Array.isArray(beforeValue) ? beforeValue as Array<{ admin_id?: string; owner_id?: string }> : [];
+  const before = beforeRows[0];
   const updateResponse = await ctx.request(url, "ownerA", {
     method: "PATCH",
     headers: { Prefer: "return=representation" },
@@ -39,8 +40,9 @@ async function assertOwnerTransferDenied(ctx: any, table: "groups" | "exams", id
   const afterResponse = await ctx.request(`${url}&select=admin_id,owner_id`, "ownerA", {
     method: "GET", headers: ctx.serviceHeaders(),
   });
-  const afterRows = parseJson(await afterResponse.text()) as Array<{ admin_id?: string; owner_id?: string }>;
-  const after = afterRows?.[0];
+  const afterValue = parseJson(await afterResponse.text());
+  const afterRows = Array.isArray(afterValue) ? afterValue as Array<{ admin_id?: string; owner_id?: string }> : [];
+  const after = afterRows[0];
   const unchanged = before?.admin_id === ids.ownerA && before?.owner_id === ids.ownerA &&
     after?.admin_id === ids.ownerA && after?.owner_id === ids.ownerA;
   await record(

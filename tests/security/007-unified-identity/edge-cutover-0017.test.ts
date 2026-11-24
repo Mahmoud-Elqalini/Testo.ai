@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createContext, parseJson, record } from "./context.ts";
+import { createContext, isRecord, parseJson, record, stringField, type SecurityTestContext } from "./context.ts";
 import { resetStaticAttemptForEdgeCases } from "./edge-attempt-reset.ts";
 
 const ids = {
@@ -11,7 +11,7 @@ const ids = {
 };
 const wrongSessionId = "a7000000-0000-4000-8000-000000000099";
 
-async function call(ctx: any, endpoint: string, actor: string | undefined, method: string, body: Record<string, unknown>, query = "") {
+async function call(ctx: SecurityTestContext, endpoint: string, actor: string | undefined, method: string, body: Record<string, unknown>, query = "") {
   const response = await ctx.request(`/functions/v1/${endpoint}${query}`, actor, {
     method,
     headers: { apikey: ctx.anonKey },
@@ -20,8 +20,8 @@ async function call(ctx: any, endpoint: string, actor: string | undefined, metho
   return { response, body: parseJson(await response.text()) };
 }
 
-function accepted(response: Response, body: any) {
-  return response.ok && body && typeof body === "object" && !body.error && !body.denial_reason;
+function accepted(response: Response, body: unknown) {
+  return response.ok && isRecord(body) && !body.error && !body.denial_reason;
 }
 function denied(response: Response, body: unknown) {
   return [401, 403].includes(response.status) && !accepted(response, body);
@@ -36,7 +36,7 @@ function sessionIdFrom(body: unknown): string | null {
   return typeof sessionId === "string" ? sessionId : null;
 }
 
-export async function runEdgeCutoverCases(ctx: any) {
+export async function runEdgeCutoverCases(ctx: SecurityTestContext) {
   resetStaticAttemptForEdgeCases(ctx);
 
   for (const endpoint of ["start-attempt", "get-exam-questions", "save-answer", "submit-attempt"]) {
@@ -68,7 +68,7 @@ export async function runEdgeCutoverCases(ctx: any) {
   const wrongSessionGet = await call(ctx, "get-exam-questions", "participantA", "GET", {},
     `?attempt_id=${ids.attempt}&session_id=${wrongSessionId}`);
   await record(ctx, "edge-cutover:get_questions.wrong_session_denied",
-    wrongSessionGet.response.status === 403 && (wrongSessionGet.body as any)?.error === "access_denied",
+    wrongSessionGet.response.status === 403 && stringField(wrongSessionGet.body, "error") === "access_denied",
     `HTTP ${wrongSessionGet.response.status}; authenticated participant with the wrong session is denied; ${detail(wrongSessionGet.body)}`);
   const foreignGet = await call(ctx, "get-exam-questions", "unrelated", "GET", {},
     `?attempt_id=${ids.attempt}&session_id=${sessionId}&student_id=${ids.participantA}`);
@@ -109,12 +109,12 @@ export async function runEdgeCutoverCases(ctx: any) {
     mcq_answer: "a", essay_answer: null,
   });
   await record(ctx, "edge-cutover:save_answer.anonymous_valid_body_denied",
-    anonymousValidSave.response.status === 401 && (anonymousValidSave.body as any)?.error === "unauthorized",
+    anonymousValidSave.response.status === 401 && stringField(anonymousValidSave.body, "error") === "unauthorized",
     `HTTP ${anonymousValidSave.response.status}; valid anonymous save body is rejected by authentication; ${detail(anonymousValidSave.body)}`);
 
   const anonymousMalformedSave = await call(ctx, "save-answer", undefined, "POST", { attempt_id: "not-a-uuid" });
   await record(ctx, "edge-cutover:save_answer.anonymous_malformed_body_denied",
-    anonymousMalformedSave.response.status === 401 && (anonymousMalformedSave.body as any)?.error === "unauthorized",
+    anonymousMalformedSave.response.status === 401 && stringField(anonymousMalformedSave.body, "error") === "unauthorized",
     `HTTP ${anonymousMalformedSave.response.status}; malformed anonymous save body is rejected by authentication; ${detail(anonymousMalformedSave.body)}`);
 
   const anonymousMalformedCases = [
@@ -130,7 +130,7 @@ export async function runEdgeCutoverCases(ctx: any) {
   for (const testCase of anonymousMalformedCases) {
     const result = await call(ctx, testCase.endpoint, undefined, testCase.method, testCase.body, testCase.query);
     await record(ctx, `edge-cutover:${testCase.endpoint}.anonymous_malformed_${testCase.field.replaceAll(" ", "_")}`,
-      result.response.status === 401 && (result.body as any)?.error === "unauthorized",
+      result.response.status === 401 && stringField(result.body, "error") === "unauthorized",
       `HTTP ${result.response.status}; anonymous request with ${testCase.field} is rejected by authentication; ${detail(result.body)}`);
   }
 }

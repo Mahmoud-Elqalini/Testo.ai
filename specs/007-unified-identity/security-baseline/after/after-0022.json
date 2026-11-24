@@ -106,7 +106,7 @@
   },
   "fixtureHash": "740df71750b99c902ed1f7983e67a83046268a172d4f0f1a33835b76eaaa7baf",
   "command": "node --experimental-strip-types tests/security/007-unified-identity/harness.ts --phase after-0022",
-  "recordedAtUtc": "2026-11-23T23:51:28.388Z",
+  "recordedAtUtc": "2026-11-24T19:01:34.951Z",
   "caseCount": 259,
   "passCount": 206,
   "failCount": 0,
@@ -176,7 +176,7 @@
     {
       "case_id": "policy:group_students_admin_delete.allow",
       "status": "PASS",
-      "details": "HTTP 200; owner deletes disposable membership; response body=[{\"group_id\":\"c9e0db35-fe4d-439c-a14c-5d376b9b557c\"}]"
+      "details": "HTTP 200; owner deletes disposable membership; response body=[{\"group_id\":\"5f84d8c1-a7c1-4dcd-ab4c-9914dede11c9\"}]"
     },
     {
       "case_id": "policy:exams_admin_select.allow",
@@ -436,7 +436,7 @@
     {
       "case_id": "edge:start-attempt/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; authorized participant starts their attempt; response={\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"44320cd7-5939-4deb-b796-623d788052dd\",\"exam_ends_at\":\"2026-11-24T00:45:36.673893+00:00\",\"was_takeover\":false,\"remaining_seconds\":3530}"
+      "details": "HTTP 200; authorized participant starts their attempt; response={\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"4f1f47bf-5fca-4395-9b61-730b97e313d5\",\"exam_ends_at\":\"2026-11-24T19:56:31.300193+00:00\",\"was_takeover\":false,\"remaining_seconds\":3533}"
     },
     {
       "case_id": "edge:start-attempt/index.ts.deny",
@@ -451,7 +451,7 @@
     {
       "case_id": "edge:get-exam-questions/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; questions omit answer keys; response={\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3526}"
+      "details": "HTTP 200; questions omit answer keys; response={\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3528}"
     },
     {
       "case_id": "edge:get-exam-questions/index.ts.deny",
@@ -466,7 +466,7 @@
     {
       "case_id": "edge:save-answer/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; participant saves valid answer; response={\"saved\":true,\"saved_at\":\"2026-11-23T23:46:55.260556+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
+      "details": "HTTP 200; participant saves valid answer; response={\"saved\":true,\"saved_at\":\"2026-11-24T18:57:47.23472+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
     },
     {
       "case_id": "edge:save-answer/index.ts.deny",
@@ -481,7 +481,7 @@
     {
       "case_id": "edge:submit-attempt/index.ts.allow",
       "status": "PASS",
-      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-23T23:46:59.887157+00:00\",\"already_submitted\":false}"
+      "details": "HTTP 200; participant submits own attempt; response={\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-24T18:57:52.445133+00:00\",\"already_submitted\":false}"
     },
     {
       "case_id": "edge:submit-attempt/index.ts.deny",
@@ -566,12 +566,12 @@
     {
       "case_id": "contract:email_lookup.uniform_timing",
       "status": "PASS",
-      "details": "N=200; standard median difference=1.13ms, large-dataset median difference=0.278ms (both required <5ms); p95/p99 and all raw status/body samples saved; 5000 users cleaned=true; 50ms floor respected=true"
+      "details": "N=200; standard median difference=0.712ms, large-dataset median difference=0.368ms (both required <5ms); p95/p99 and all raw status/body samples saved; 5000 users cleaned=true; 50ms floor respected=true"
     },
     {
       "case_id": "contract:email_lookup.uniform_timing_large_context_add_only",
       "status": "PASS",
-      "details": "add-only N=200 each; members per context=500; contexts at 500 members=40; median difference=1.028ms (<5ms); same status/body=true; 50ms floor respected; cleanup remaining groups/memberships/pending attempts/users=0/0/0/0"
+      "details": "add-only N=200 each; members per context=500; contexts at 500 members=40; median difference=0.835ms (<5ms); same status/body=true; 50ms floor respected; cleanup remaining groups/memberships/pending attempts/users=0/0/0/0"
     },
     {
       "case_id": "contract:email_lookup.rate_limit_enforced",
@@ -996,7 +996,7 @@
     {
       "case_id": "edge-cutover:start_attempt.jwt_authoritative",
       "status": "PASS",
-      "details": "HTTP 200; participant JWT controls attempt despite spoofed student_id; returned session_id=00d5a1c6-0891-4c30-b38f-e2ef2581836f; {\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"00d5a1c6-0891-4c30-b38f-e2ef2581836f\",\"exam_ends_at\":\"2026-11-24T00:49:45.215297+00:00\",\"was_takeover\":false,\"remaining_seconds\":3531}"
+      "details": "HTTP 200; participant JWT controls attempt despite spoofed student_id; returned session_id=238aba48-6b6e-449a-b496-7b50381bdd97; {\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"session_id\":\"238aba48-6b6e-449a-b496-7b50381bdd97\",\"exam_ends_at\":\"2026-11-24T20:00:00.637748+00:00\",\"was_takeover\":false,\"remaining_seconds\":3532}"
     },
     {
       "case_id": "edge-cutover:start_attempt.spoof_denied",
@@ -1006,7 +1006,7 @@
     {
       "case_id": "edge-cutover:get_questions.jwt_and_projection",
       "status": "PASS",
-      "details": "HTTP 200; caller JWT authorizes and answer keys are absent; {\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3527}"
+      "details": "HTTP 200; caller JWT authorizes and answer keys are absent; {\"answers\":[],\"questions\":[{\"id\":\"d7000000-0000-4000-8000-000000000003\",\"text\":\"Synthetic Edge question\",\"type\":\"mcq\",\"order\":1,\"points\":1,\"mcq_choices\":[{\"id\":\"a\",\"text\":\"A\"},{\"id\":\"b\",\"text\":\"B\"}]}],\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"remaining_seconds\":3528}"
     },
     {
       "case_id": "edge-cutover:get_questions.wrong_session_denied",
@@ -1021,7 +1021,7 @@
     {
       "case_id": "edge-cutover:save_answer.jwt_authoritative",
       "status": "PASS",
-      "details": "HTTP 200; caller JWT controls answer write; {\"saved\":true,\"saved_at\":\"2026-11-23T23:51:03.491628+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
+      "details": "HTTP 200; caller JWT controls answer write; {\"saved\":true,\"saved_at\":\"2026-11-24T19:01:16.731048+00:00\",\"question_id\":\"d7000000-0000-4000-8000-000000000003\"}"
     },
     {
       "case_id": "edge-cutover:save_answer.spoof_denied",
@@ -1031,7 +1031,7 @@
     {
       "case_id": "edge-cutover:submit_attempt.jwt_authoritative",
       "status": "PASS",
-      "details": "HTTP 200; caller JWT controls submit; {\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-23T23:51:07.621417+00:00\",\"already_submitted\":false}"
+      "details": "HTTP 200; caller JWT controls submit; {\"status\":\"submitted\",\"attempt_id\":\"e7000000-0000-4000-8000-000000000003\",\"finished_at\":\"2026-11-24T19:01:19.61549+00:00\",\"already_submitted\":false}"
     },
     {
       "case_id": "edge-cutover:submit_attempt.spoof_denied",

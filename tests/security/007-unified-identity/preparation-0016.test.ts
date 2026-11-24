@@ -1,10 +1,10 @@
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-import { createContext, record } from "./context.ts";
+import { createContext, record, type SecurityTestContext } from "./context.ts";
 import { runParticipantListCases } from "./participant-list.test.ts";
 import { runAssociatedEmailLookupCases } from "./associated-email-lookup.test.ts";
 
-export async function runProfileProjectionCases(ctx: any) {
+export async function runProfileProjectionCases(ctx: SecurityTestContext) {
   await runParticipantListCases(ctx);
   await runAssociatedEmailLookupCases(ctx);
 }

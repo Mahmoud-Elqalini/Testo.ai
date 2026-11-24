@@ -147,6 +147,18 @@ export async function createContext(expectedLastMigration = "0013") {
   };
 }
 
+export type SecurityTestContext = Awaited<ReturnType<typeof createContext>>
+
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
+}
+
+export function stringField(value: unknown, key: string): string | undefined {
+  if (!isRecord(value)) return undefined
+  const field = value[key]
+  return typeof field === "string" ? field : undefined
+}
+
 export async function record(context: Awaited<ReturnType<typeof createContext>>, caseId: string, pass: boolean, details: string) {
   context.results.push({ case_id: caseId, status: pass ? "PASS" : "FAIL", details });
 }

@@ -1,4 +1,6 @@
-export function resetStaticAttemptForEdgeCases(ctx: any) {
+import type { SecurityTestContext } from "./context.ts";
+
+export function resetStaticAttemptForEdgeCases(ctx: SecurityTestContext) {
   ctx.runSql(`BEGIN;
 DELETE FROM answers
 WHERE attempt_id IN (

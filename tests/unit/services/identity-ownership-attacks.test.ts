@@ -64,7 +64,6 @@ describe.skipIf(!ownerMirrorSchemaAvailable)('unified identity cross-user owners
   let examA: string
   let examB: string
   let questionB: string
-  let permissionA: string
   let permissionB: string
   const prefix = `identity-ownership-${crypto.randomUUID()}`
 
@@ -92,7 +91,6 @@ describe.skipIf(!ownerMirrorSchemaAvailable)('unified identity cross-user owners
     const { data: permissionAResult, error: permissionAError } = await ownerA.client.from('exam_permissions')
       .insert({ exam_id: examA, group_id: groupA }).select('id').single()
     if (permissionAError || !permissionAResult) throw permissionAError ?? new Error('Could not create owner A permission fixture')
-    permissionA = permissionAResult.id
     const { data: permissionBResult, error: permissionBError } = await ownerB.client.from('exam_permissions')
       .insert({ exam_id: examB, group_id: groupB }).select('id').single()
     if (permissionBError || !permissionBResult) throw permissionBError ?? new Error('Could not create owner B permission fixture')

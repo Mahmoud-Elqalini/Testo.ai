@@ -1,13 +1,12 @@
-import { record, parseJson } from "./context.ts";
+import { record, parseJson, type SecurityTestContext } from "./context.ts";
 
 const ownerA = "ownerA";
 const ownerB = "ownerB";
-const participant = "participantA";
 const groupA = "b7000000-0000-4000-8000-000000000001";
 const examA = "c7000000-0000-4000-8000-000000000001";
 const participantId = "a7000000-0000-4000-8000-000000000003";
 
-async function list(ctx: any, actor: string | undefined, kind: "group" | "exam", id: string) {
+async function list(ctx: SecurityTestContext, actor: string | undefined, kind: "group" | "exam", id: string) {
   const response = await ctx.request("/rest/v1/rpc/list_associated_participants", actor, {
     method: "POST",
     body: JSON.stringify({ p_context_kind: kind, p_context_id: id }),
@@ -20,7 +19,7 @@ function keysAreExact(value: Record<string, unknown>) {
   return Object.keys(value).sort().join(",") === "display_name,email,id";
 }
 
-export async function runParticipantListCases(ctx: any) {
+export async function runParticipantListCases(ctx: SecurityTestContext) {
   const ownerResult = await list(ctx, ownerA, "group", groupA);
   const ownerRows = rows(ownerResult.body);
   const endpointAvailable = ownerResult.response.ok;

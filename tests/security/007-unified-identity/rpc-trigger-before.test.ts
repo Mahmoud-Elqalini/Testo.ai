@@ -1,4 +1,4 @@
-import { record, parseJson, runSqlFile } from "./context.ts";
+import { record, isRecord, parseJson, runSqlFile, stringField, type SecurityTestContext } from "./context.ts";
 import { readdir, readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
@@ -15,14 +15,14 @@ const ids = {
   attemptRpc: "e7000000-0000-4000-8000-000000000002",
 };
 
-async function rpc(ctx: any, actor: string | undefined, name: string, args: Record<string, unknown>) {
+async function rpc(ctx: SecurityTestContext, actor: string | undefined, name: string, args: Record<string, unknown>) {
   const response = await ctx.request(`/rest/v1/rpc/${name}`, actor, { method: "POST", body: JSON.stringify(args) });
   const body = parseJson(await response.text());
   return { response, body };
 }
 
 function returnedRows(body: unknown) { return Array.isArray(body) && body.length > 0; }
-function okay(response: Response, body: unknown) { return response.ok && !(body && typeof body === "object" && ("denial_reason" in body || "validation_error" in body || "error" in body)); }
+function okay(response: Response, body: unknown) { return response.ok && !(isRecord(body) && ("denial_reason" in body || "validation_error" in body || "error" in body)); }
 function responseDetail(body: unknown) {
   const text = typeof body === "string" ? body : JSON.stringify(body);
   return `; response=${text.length > 500 ? `${text.slice(0, 500)}…` : text}`;
@@ -37,7 +37,7 @@ async function sourceFiles(path: string): Promise<string[]> {
   return nested.flat();
 }
 
-export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolean; after0022?: boolean } = {}) {
+export async function runRpcTriggerCases(ctx: SecurityTestContext, options: { after0017?: boolean; after0022?: boolean } = {}) {
   const helperSqlPath = "supabase/tests/007-unified-identity/rpc-trigger-before.sql";
   let helperOutput: string;
   if (options.after0022) {
@@ -75,13 +75,13 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   await record(ctx, "function:public.list_exam_permissions.deny", permissionListDenied.response.ok && !returnedRows(permissionListDenied.body), `HTTP ${permissionListDenied.response.status}; non-owner receives no permission rows`);
 
   const invitation = await rpc(ctx, "ownerA", "create_group_invitation", { target_group_id: ids.groupA });
-  const inviteCode = (invitation.body as any)?.code;
+  const inviteCode = stringField(invitation.body, "code");
   await record(ctx, "function:public.create_group_invitation.allow", invitation.response.ok && typeof inviteCode === "string", `HTTP ${invitation.response.status}; group owner creates an invitation`);
   const createDenied = await rpc(ctx, "ownerB", "create_group_invitation", { target_group_id: ids.groupA });
   await record(ctx, "function:public.create_group_invitation.deny", !createDenied.response.ok, `HTTP ${createDenied.response.status}; non-owner cannot create an invitation`);
 
   const rotate = await rpc(ctx, "ownerA", "rotate_group_invitation", { target_group_id: ids.groupA });
-  const validCode = (rotate.body as any)?.code;
+  const validCode = stringField(rotate.body, "code");
   await record(ctx, "function:public.rotate_group_invitation.allow", rotate.response.ok && typeof validCode === "string", `HTTP ${rotate.response.status}; owner rotates invitation code`);
   const rotateDenied = await rpc(ctx, "ownerB", "rotate_group_invitation", { target_group_id: ids.groupA });
   await record(ctx, "function:public.rotate_group_invitation.deny", !rotateDenied.response.ok, `HTTP ${rotateDenied.response.status}; non-owner cannot rotate the invitation`);
@@ -92,9 +92,9 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   await record(ctx, "function:public.get_group_invitation_status.deny", !inviteStatusDenied.response.ok, `HTTP ${inviteStatusDenied.response.status}; non-owner cannot read invitation status`);
 
   const ownerRedeem = await rpc(ctx, "ownerA", "redeem_group_invitation", { invitation_code: validCode });
-  await record(ctx, "function:public.redeem_group_invitation.deny", ownerRedeem.response.ok && (ownerRedeem.body as any)?.success === false, `HTTP ${ownerRedeem.response.status}; owner cannot join their own group`);
+  await record(ctx, "function:public.redeem_group_invitation.deny", ownerRedeem.response.ok && isRecord(ownerRedeem.body) && ownerRedeem.body.success === false, `HTTP ${ownerRedeem.response.status}; owner cannot join their own group`);
   const participantRedeem = await rpc(ctx, "unrelated", "redeem_group_invitation", { invitation_code: validCode });
-  await record(ctx, "function:public.redeem_group_invitation.allow", participantRedeem.response.ok && (participantRedeem.body as any)?.success === true, `HTTP ${participantRedeem.response.status}; student redeems valid code for self`);
+  await record(ctx, "function:public.redeem_group_invitation.allow", participantRedeem.response.ok && isRecord(participantRedeem.body) && participantRedeem.body.success === true, `HTTP ${participantRedeem.response.status}; student redeems valid code for self`);
   await ctx.request(`/rest/v1/group_students?group_id=eq.${ids.groupA}&student_id=eq.${ids.unrelated}`, "ownerA", { method: "DELETE", headers: ctx.serviceHeaders() });
 
   const revoke = await rpc(ctx, "ownerA", "revoke_group_invitation", { target_group_id: ids.groupA });
@@ -188,7 +188,7 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   await record(ctx, "function:public.fn_start_attempt.deny", !okay(spoofStart, spoofStartBody), `HTTP ${spoofStart.status}; attempt cannot start for a different student id`);
 
   const getQuestions = await ctx.request("/rest/v1/rpc/fn_get_exam_questions", "participantA", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ p_attempt_id: rpcAttemptId, p_student_id: ids.participantA, p_session_id: sessionId }) });
-  const questionPayload = parseJson(await getQuestions.text()) as any;
+  const questionPayload = parseJson(await getQuestions.text());
   const safeQuestions = okay(getQuestions, questionPayload) && !JSON.stringify(questionPayload).includes("correct_choice") && !JSON.stringify(questionPayload).includes("reference_answers");
   await record(ctx, "function:public.fn_get_exam_questions.allow", safeQuestions, `HTTP ${getQuestions.status}; question projection excludes correct_choice and reference_answers${responseDetail(questionPayload)}`);
   const foreignQuestions = await ctx.request("/rest/v1/rpc/fn_get_exam_questions", "unrelated", { method: "POST", headers: serviceHeaders, body: JSON.stringify({ p_attempt_id: rpcAttemptId, p_student_id: ids.unrelated, p_session_id: sessionId }) });
@@ -210,9 +210,10 @@ export async function runRpcTriggerCases(ctx: any, options: { after0017?: boolea
   await record(ctx, "function:public.fn_submit_attempt.deny", !okay(submitDenied, submitDeniedBody), `HTTP ${submitDenied.status}; foreign identity cannot submit attempt${responseDetail(submitDeniedBody)}`);
 
   const result = await rpc(ctx, "participantA", "fn_get_student_attempt_result", { p_attempt_id: rpcAttemptId });
-  await record(ctx, "function:public.fn_get_student_attempt_result.allow", result.response.ok && ["pending", "graded"].includes((result.body as any)?.status), `HTTP ${result.response.status}; own submitted result projection is visible`);
+  const resultStatus = isRecord(result.body) ? result.body.status : undefined;
+  await record(ctx, "function:public.fn_get_student_attempt_result.allow", result.response.ok && (resultStatus === "pending" || resultStatus === "graded"), `HTTP ${result.response.status}; own submitted result projection is visible`);
   const resultDenied = await rpc(ctx, "unrelated", "fn_get_student_attempt_result", { p_attempt_id: rpcAttemptId });
-  await record(ctx, "function:public.fn_get_student_attempt_result.deny", !resultDenied.response.ok || (resultDenied.body as any)?.error === "access_denied", `HTTP ${resultDenied.response.status}; foreign caller receives no result`);
+  await record(ctx, "function:public.fn_get_student_attempt_result.deny", !resultDenied.response.ok || stringField(resultDenied.body, "error") === "access_denied", `HTTP ${resultDenied.response.status}; foreign caller receives no result`);
   }
   await ctx.request(`/rest/v1/exams?id=eq.${rpcExamId}`, "ownerA", { method: "DELETE", headers: serviceHeaders });
 

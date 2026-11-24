@@ -2,7 +2,7 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 import { adminClient } from '../helpers/supabase-admin'
 
 const password = 'Unified-identity-attack-test-password-123!'
-type AttackClient = SupabaseClient<any, any, any>
+type AttackClient = SupabaseClient
 
 export interface AttackIdentity {
   userId: string
