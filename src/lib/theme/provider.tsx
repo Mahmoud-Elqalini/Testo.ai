@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import React, { createContext, useContext, useSyncExternalStore, useEffect, ReactNode } from "react";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { createClient } from "../supabase/client";
 import { getUserPreferences, updateUserPreferences } from "../services/preferences-service";
@@ -8,18 +8,30 @@ import { getUserPreferences, updateUserPreferences } from "../services/preferenc
 export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "testo_theme";
+const themeListeners = new Set<() => void>();
 
 function persistTheme(theme: Theme) {
   localStorage.setItem(STORAGE_KEY, theme);
   document.cookie = `${STORAGE_KEY}=${theme}; path=/; max-age=31536000; samesite=lax`;
 }
 
-/** Read the last-known theme synchronously from localStorage (Fix 3).
- *  Falls back to undefined when localStorage is unavailable (SSR, first visit). */
-function readCachedTheme(): Theme | undefined {
-  if (typeof localStorage === "undefined") return undefined;
-  const v = localStorage.getItem(STORAGE_KEY);
-  return v === "dark" || v === "light" ? v : undefined;
+function applyDocumentTheme(theme: Theme) {
+  if (typeof document !== "undefined") {
+    const themeChanged = document.documentElement.classList.contains("dark") !== (theme === "dark");
+    document.documentElement.classList.toggle("dark", theme === "dark");
+    if (themeChanged) themeListeners.forEach((listener) => listener());
+  }
+}
+
+function subscribeToTheme(listener: () => void) {
+  themeListeners.add(listener);
+  return () => themeListeners.delete(listener);
+}
+
+function readDocumentTheme(): Theme {
+  return typeof document !== "undefined" && document.documentElement.classList.contains("dark")
+    ? "dark"
+    : "light";
 }
 
 interface ThemeContextProps {
@@ -36,20 +48,27 @@ export function ThemeProvider({
   children: ReactNode;
   initialTheme?: Theme;
 }) {
-  // Fix 3: synchronous initializer — avoids flash on repeat visits.
-  // Priority: explicit prop > localStorage cache > 'light' default.
-  const [theme, setThemeState] = useState<Theme>(
-    initialTheme ?? readCachedTheme() ?? "light"
+  // Hydrate from the same server snapshot, then sync with the blocking script's
+  // document class on the client without producing a hydration mismatch.
+  const theme = useSyncExternalStore(
+    subscribeToTheme,
+    readDocumentTheme,
+    () => initialTheme ?? "light",
   );
 
   useEffect(() => {
+    if (initialTheme) applyDocumentTheme(initialTheme);
+  }, [initialTheme]);
+
+  useEffect(() => {
     let active = true;
+
     const applyProfileTheme = async (userId: string) => {
       try {
         const preferences = await getUserPreferences(userId);
         if (!active || !preferences) return;
         const savedTheme = preferences.preferred_theme;
-        setThemeState(savedTheme);
+        applyDocumentTheme(savedTheme);
         persistTheme(savedTheme);
       } catch {
         // Keep the server or browser preference if the profile is temporarily unavailable.
@@ -64,12 +83,11 @@ export function ThemeProvider({
       }
 
       if (initialTheme) return;
-      // If there's already a cached theme, we don't need to apply the unauthenticated system fallback
-      if (readCachedTheme()) return;
+      // A dark theme restored from localStorage has already been applied and
+      // persisted by the blocking bootstrap script.
+      if (readDocumentTheme() === "dark") return;
 
       // New visitors and accounts start in light mode regardless of OS theme.
-      // An explicit theme saved by the user remains respected via the cache.
-      setThemeState("light");
       persistTheme("light");
     };
     void initTheme();
@@ -87,16 +105,8 @@ export function ThemeProvider({
     };
   }, [initialTheme]);
 
-  useEffect(() => {
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
-
   const setTheme = async (newTheme: Theme) => {
-    setThemeState(newTheme);
+    applyDocumentTheme(newTheme);
     persistTheme(newTheme);
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();

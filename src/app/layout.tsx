@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { I18nProvider } from "@/lib/i18n/provider";
 import { ThemeProvider, type Theme } from "@/lib/theme/provider";
+import { themeBootstrapScript } from "@/lib/theme/bootstrap-script";
 import { QueryProvider } from "@/lib/query/provider";
 import { SiteNavigation } from "@/components/shared/SiteNavigation";
 import "./globals.css";
@@ -40,8 +41,8 @@ export const metadata: Metadata = {
 };
 
 // Root layout — Server Component.
-// suppressHydrationWarning is required because ThemeProvider mutates the <html>
-// classList on the client (to apply "dark"), causing a benign hydration mismatch.
+// The bootstrap script can set the browser-only theme before hydration, so only
+// the expected <html> class difference is suppressed.
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const cookieStore = await cookies();
   const langCookie = cookieStore.get("testo_language")?.value;
@@ -59,6 +60,9 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased${initialTheme === "dark" ? " dark" : ""}`}
       suppressHydrationWarning
     >
+      <head>
+        <script id="theme-bootstrap" dangerouslySetInnerHTML={{ __html: themeBootstrapScript }} />
+      </head>
       <body className="min-h-full flex flex-col bg-[--color-background] text-[--color-foreground]">
         <QueryProvider>
           <ThemeProvider initialTheme={initialTheme}>

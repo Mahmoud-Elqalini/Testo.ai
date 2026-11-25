@@ -153,7 +153,7 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
         {isPublicHome ? <header className="dashboard-header global-site-header manjam-public-header">
           <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
             <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={461} height={262} style={{ height: 'auto' }} loading="eager" fetchPriority="high" />
-            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} loading="eager" fetchPriority="high" />
           </Link>
           <div className="manjam-header-actions">
             <PreferenceControls variant="compact-switch" />
@@ -162,13 +162,13 @@ export function SiteNavigation({ children }: { children: ReactNode }) {
         </header> : isAuthRoute ? <header className="dashboard-header global-site-header manjam-public-header manjam-auth-header">
           <Link className="manjam-header-brand" href="/" aria-label={t('publicHome.brandName')}>
             <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={461} height={262} style={{ height: 'auto' }} loading="eager" fetchPriority="high" />
-            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={461} height={262} style={{ height: 'auto' }} loading="eager" fetchPriority="high" />
           </Link>
           <div className="manjam-header-actions"><PreferenceControls variant="compact-switch" /></div>
         </header> : <header className="dashboard-header global-site-header">
           <Link className="dashboard-header-brand" href="/dashboard" aria-label={t('nav.home')}>
             <Image className="manjam-logo-light" src="/images/logo/manjam-logo-horizontal-light.svg" alt={t('publicHome.brandName')} width={138} height={78} loading="eager" fetchPriority="high" />
-            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} />
+            <Image className="manjam-logo-dark" src="/images/logo/manjam-logo-horizontal-dark.svg" alt="" width={138} height={78} loading="eager" fetchPriority="high" />
           </Link>
           <CourseSearch isDrawerOpen={menuOpen} onSearchOpen={() => { if (menuOpen) closeForNavigation() }} />
           <div className="dashboard-header-actions">
